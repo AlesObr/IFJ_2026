@@ -1,0 +1,16 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++11
+
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+
+IndentCaseLabels: true
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+ColumnLimit: 100
+AlignTrailingComments: true
+...
