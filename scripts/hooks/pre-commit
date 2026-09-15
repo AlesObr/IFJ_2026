@@ -31,6 +31,5 @@ if [ -f "scripts/lint_comments.py" ]; then
     python3 scripts/lint_comments.py $STAGED_FILES
 fi
 
-
 echo -e "${GREEN}[OK] Všechny soubory jsou sterilní.${NC}"
 exit 0

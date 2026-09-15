@@ -1,0 +1,158 @@
+ -camelCase
+42
+1e10
+100.5e+2  _var"escape: \" uvozovka" 1"escape: \\ lomitko"
+var
+999999999
+if  __private   1 0   _var   with123Numbers
+>=
+1e10   100.5e+2 if*
+42 // comment on line 10
+"escape: \\ lomitko"
+_1 0  var
+_1 _1  -val  1234567890123456  with123Numbers  x /* comment  */ while /* comment 
+
+
+ */ 42   3.14159 /* comment 
+
+
+ */ snake_case // comment on line 19
+(
+1e10 // comment on line 21
+-  2.5E-3
+else  _var   __private def snake_case   2.5E-3 // comment on line 23
+42 /* comment 
+ */ 1 /* comment 
+
+
+ */ 1
+1 999999999 // comment on line 29
+"hex: \x41" camelCase  3.14159 // comment on line 30
+"escape: \" uvozovka"  camelCase
+_var /* comment 
+
+
+ */ {  ) // comment on line 35
+return veryLongIdentifierNameThatShouldStillWorkInDynamicString /* comment  */ var snake_case
+veryLongIdentifierNameThatShouldStillWorkInDynamicString  ==  camelCase  with123Numbers   __private // comment on line 37
+<"hex male: \x61"
+__private /* comment 
+
+
+ */ :  (   999999999< ;   { /* comment  */ 42 :
+1e10 1234567890123456
+0 _var if   "escape: \\ lomitko"   1234567890123456
+999999999
+999999999 1234567890123456
+999999999
+snake_case
+_var   "hex: \x41" // comment on line 49
+"escape: \" uvozovka" /* comment  */ 2.5E-3 // comment on line 50
+def  0.0   "hello" 42"hex male: \x61"
+0
+>= /* comment 
+
+ */ with123Numbers
+{ /* comment 
+
+
+ */ 3.14159 /* comment 
+
+ */ snake_case
+camelCase /* comment 
+ */ _var _var  if   if 0.0
+camelCase   x  __private "hex male: \x61"snake_case   "hex: \x41" /* comment 
+ */ x
+"escape: \\ lomitko"   return  __private  999999999
+,   ""
+999999999
+999999999   "escape: \\ lomitko"
+_var  __private  0
+var >  var // comment on line 71
+1 // comment on line 72
+else>
+1  1  1234567890123456 /* comment 
+
+
+ */ + /* comment 
+ */ 1234567890123456   "escape: \" uvozovka"
+=
+100.5e+2  1 _1   *1e10  return // comment on line 80
+999999999   return
+"escape: \t tabulator"
+0  1e10 /* comment 
+
+
+ */ 3.14159   999999999   snake_case
+return
+val
+camelCase /* comment 
+
+ */ 100.5e+2 100.5e+2 "escape: \n nova radka"if /* comment  */ __private // comment on line 91
+1e10   <=  1234567890123456  1 0
+camelCase
+veryLongIdentifierNameThatShouldStillWorkInDynamicString "hex: \x41"
+"escape: \\ lomitko"   999999999 999999999  +  snake_case
+- * x 2.5E-3
+999999999
+0.0  with123Numbers 1e10 // comment on line 98
+>   / camelCase  def
+_var /* comment 
+ */ 3.14159: == /* comment 
+
+
+ */ "escape: \t tabulator"camelCase val  - /* comment  */ "text s mezerami" // comment on line 104
+"escape: \n nova radka"
+0 /* comment  */ var /* comment 
+ */ _var   100.5e+2  -
+while /* comment  */ 1e10
+x /* comment 
+
+ */ 1 // comment on line 111
+with123Numbers // comment on line 112
+2.5E-3 // comment on line 113
+3.14159 // comment on line 114
+100.5e+2   "escape: \n nova radka"  camelCase
+; 1 if  _var  999999999 // comment on line 116
++""   camelCase"hex: \x41"  0.0 __private
+2.5E-3 /* comment  */ 100.5e+2
+snake_case
+"text s mezerami" -   <val _1   _1
+_var
+0.0  return  0.0  veryLongIdentifierNameThatShouldStillWorkInDynamicString  _1  x   val 42 // comment on line 122
+0   42 999999999   veryLongIdentifierNameThatShouldStillWorkInDynamicString /* comment 
+ */ 42
+2.5E-3 // comment on line 125
+""2.5E-3
+val // comment on line 127
+1e10  else "hello"
+{ camelCase
+0.0 // comment on line 130
+2.5E-3  1
+999999999 // comment on line 132
+__private /* comment 
+
+ */ else
+_var   x /* comment  */ >=veryLongIdentifierNameThatShouldStillWorkInDynamicString  with123Numbers
+1e10  1234567890123456
+100.5e+2  x  = // comment on line 138
+"hex male: \x61"   1e10
+veryLongIdentifierNameThatShouldStillWorkInDynamicString 1234567890123456 = /* comment  */ _var // comment on line 140
+42 /* comment  */ / _1
+*
+"hex male: \x61" 999999999 // comment on line 143
+0
+1
+{  return "hex: \x41"  camelCase  var // comment on line 146
+"hex: \x41" 1
+3.14159 snake_case  0.0  < } __private  else
+0 2.5E-3  2.5E-3
+1  ;
+: // comment on line 151
+!= "hex: \x41"
+{  var  -   return
+>=
+/ /* comment 
+ */ 1234567890123456
+_1   __private 999999999
+<=  return  -1e10   3.14159 3.14159   3.14159   2.5E-3 ! 
