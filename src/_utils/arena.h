@@ -5,8 +5,8 @@
  * @note Standard: ISO C11
  */
 
-#ifndef ARENA_H
-#define ARENA_H
+#ifndef IFJ26_ARENA_H
+#define IFJ26_ARENA_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -51,4 +51,4 @@ void* arena_alloc(Arena *arena, size_t size);
  */
 void arena_dispose(Arena *arena);
 
-#endif // ARENA_H
+#endif /* IFJ26_ARENA_H */

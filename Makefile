@@ -15,4 +15,11 @@ test-scanner-valgrind: scanner_test
 	@python3 test/lexer_test/generate_testcases.py
 	@python3 test/test_run.py --valgrind
 
+linter-full: 
+	@python3 scripts/generate_headers.py
+	@python3 scripts/lint_comments.py
+
+linter:
+	@python3 scripts/lint_comments.py
+
 .PHONY: test-scanner test-scanner-valgrind

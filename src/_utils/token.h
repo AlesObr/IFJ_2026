@@ -5,8 +5,8 @@
  * @note Standard: ISO C11
  */
 
-#ifndef TOKEN_H
-#define TOKEN_H
+#ifndef IFJ26_TOKEN_H
+#define IFJ26_TOKEN_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -89,4 +89,4 @@ void token_init(Token *t);
  */
 void token_destroy(Token *t);
 
-#endif // TOKEN_H
+#endif /* IFJ26_TOKEN_H */

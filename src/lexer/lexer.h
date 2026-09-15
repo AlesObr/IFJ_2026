@@ -5,8 +5,8 @@
  * @note Standard: ISO C11
  */
 
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef IFJ26_LEXER_H
+#define IFJ26_LEXER_H
 
 #include <stdio.h>
 #include "../_utils/token.h"
@@ -28,4 +28,4 @@ void lexer_init(FILE *input);
  */
 Token lexer_get_next_token(void);
 
-#endif // LEXER_H
+#endif /* IFJ26_LEXER_H */

@@ -5,3 +5,9 @@
  * @note Standard: ISO C11
  */
 
+#ifndef IFJ26_CS_STRING_H
+#define IFJ26_CS_STRING_H
+
+
+
+#endif /* IFJ26_CS_STRING_H */
