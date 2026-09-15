@@ -78,7 +78,7 @@ def ensure_header(filepath: Path, author: str) -> bool:
 
 def main():
     root = Path(__file__).resolve().parent.parent
-    src_dir = root / "../src"
+    src_dir = root / "src"
 
     if not src_dir.exists():
         print(f"Adresář {src_dir} nenalezen.")

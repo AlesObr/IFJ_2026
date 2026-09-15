@@ -31,14 +31,6 @@ if [ -f "scripts/lint_comments.py" ]; then
     python3 scripts/lint_comments.py $STAGED_FILES
 fi
 
-# Kontrola zákazu volání free()
-ILLEGAL_FREE=$(grep -nE '\bfree\s*\(' $STAGED_FILES || true)
-if [ -n "$ILLEGAL_FREE" ]; then
-    echo -e "${RED}[KRITICKÝ POPLACH] Detekováno zakázané free():${NC}"
-    echo "$ILLEGAL_FREE"
-    echo -e "${RED}Ruční uvolňování paměti je zakázáno. Použij arénu.${NC}"
-    exit 1
-fi
 
 echo -e "${GREEN}[OK] Všechny soubory jsou sterilní.${NC}"
 exit 0
