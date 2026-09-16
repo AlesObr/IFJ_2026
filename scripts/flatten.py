@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 scripts/pack.py
-Zplošťovač stromové struktury src/ do plochého adresáře a zabalení archivu IFJ26.
-- Zploští hierarchii do build/submission/
-- Přepíše relativní #include cesty na ploché
-- Otestuje kompilaci na plochém stavu
-- Vygeneruje odevzdávací tar.gz archiv
+Flatten and package IFJ26 compiler source files for submission. It copies all .c and .h files from src/ into a single directory, rewrites #include directives to use only filenames, generates a Makefile, and creates a .tgz archive ready for submission.
+Usage:
+	python3 scripts/pack.py <xlogin>
+
+AI has been used to generate the initial version of this script, but it has been reviewed and modified by Aleš Obr (xobrale00) to ensure accuracy and adherence to project standards.
 """
 
 import os

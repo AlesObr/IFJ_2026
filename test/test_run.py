@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+# Test runner pro lexer
+# Author: Aleš Obr xobrale00
 import sys
 import subprocess
 import difflib
 from pathlib import Path
 
-# Cesty respektující tvůj strom
+# File paths
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURES_DIR = REPO_ROOT / "test" / "lexer_test" / "fixtures"
 BINARY = REPO_ROOT / "output" / "lexer_test"

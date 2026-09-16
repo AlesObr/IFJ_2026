@@ -1,8 +1,8 @@
 /**
+ * @project IFJ26 Compiler
  * @file arena.c
  * @brief Region-based memory arena allocator implementation.
- *
- * @author Aleš Obr (skolp)
+ * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11
  */
 

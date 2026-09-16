@@ -1,0 +1,2 @@
+> [!NOTE]
+> Pomocné skripty v tomto adresáři (lintery, správa hlaviček, testovací harness) byly vygenerovány za asistence LLM (Gemini 3 Flash) na základě specifikace zadané týmem. Implementace byla následně manuálně zkontrolována a upravena.

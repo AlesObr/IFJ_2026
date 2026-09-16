@@ -22,4 +22,11 @@ linter-full:
 linter:
 	@python3 scripts/lint_comments.py
 
+header-generate:
+	@python3 scripts/generate_headers.py
+
+format:
+	@clang-format -i src/*.c src/*.h
+	@echo "✓ Kód zformátován podle .clang-format"
+
 .PHONY: test-scanner test-scanner-valgrind

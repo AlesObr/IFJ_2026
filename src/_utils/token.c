@@ -1,7 +1,8 @@
 /**
+ * @project IFJ26 Compiler
  * @file token.c
  * @brief Token module implementation for IFJ26 compiler.
- * @author Aleš Obr (skolp)
+ * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11
  */
 

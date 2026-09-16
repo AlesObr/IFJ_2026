@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
 """
 scripts/lint_comments.py
-Komplexní inkviziční linter pro projekt IFJ26 podle sazebníku chyb:
-- INDENT:  Vynucení tabulátorů (\t), zákaz mezer na začátku řádku a trailing whitespaces
-- NOHEAD:  Povinná Doxygen hlavička na řádku 1
-- NOAUTHR: Povinný autor v hlavičce (diakritika povolena POUZE zde)
-- HDRCODE: Zákaz definic těl funkcí v .h souborech (struct, union a enum povoleny)
-- NOFNCOM: Povinný Doxygen blok (/** ... */) nad funkcemi i ADT (struct/enum) v .h
-- MIXLANG: Zákaz diakritiky a češtiny/slovenštiny v běžných komentářích
-- COMCODE: Zákaz zakomentovaného zdrojového kódu
-- VUL:     Zákaz vulgarismů, AI artefaktů a školních jmen
-- GP:      Kontrola nezdůvodněných globálních proměnných
-- Boss Override pro schválené výjimky
-- Podpora automatické opravy: --fix
+Complex linter for C/H source files in the IFJ26 project. It checks for:
+- Doxygen header presence and correctness
+- Comment hygiene (no vulgarisms, no Czech/Slovak diacritics, no commented-out code)
+- Indentation and whitespace issues (no spaces for indentation, no trailing spaces)
+- Header file rules (no function bodies in .h, Doxygen comments for declarations)
+AI has been used to generate the initial version of this script, but it has been reviewed and modified by Aleš Obr (xobrale00) to ensure accuracy and adherence to project standards.
+Prompt: "Write a Python 3 script to lint C/H source files for Doxygen headers, comment hygiene, indentation, and header file rules." and its iterations.
 """
 
 import sys

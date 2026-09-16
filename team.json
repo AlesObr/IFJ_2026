@@ -1,0 +1,24 @@
+{
+  "members": [
+    {
+      "name": "Aleš Obr",
+      "login": "xobrale00",
+      "identities": ["Aleš Obr", "xobrale00", "xobrale00@stud.fit.vutbr.cz"]
+    },
+    {
+      "name": "Jiří Kolek",
+      "login": "xkolekj00",
+      "identities": ["Jiří Kolek", "xkolek01", "xkolekj00@stud.fit.vutbr.cz"]
+    },
+    {
+      "name": "Karel Kříž",
+      "login": "xkrizka00",
+      "identities": ["Karel Kříž", "xkrizka00", "xkrizka00@stud.fit.vutbr.cz"]
+    },
+    {
+      "name": "Štěpán Hořenek",
+      "login": "xhorens00",
+      "identities": ["Štěpán Hořenek", "xhorens00", "xhorens00@stud.fit.vutbr.cz"]
+    }
+  ]
+}
