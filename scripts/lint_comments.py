@@ -410,6 +410,82 @@ def check_unjustified_globals(filepath: Path, lines: list[str]) -> list[str]:
 
     return errors
 
+# snake_case: pouze malá písmena, číslice a podtržítka (nezačíná číslem)
+SNAKE_CASE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+# Makra a konstanty (UPPER_CASE) ignorujeme
+UPPER_CASE_MACRO_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
+
+# Deklarace / definice funkce na začátku řádku (mimo těla jiných bloků)
+FUNC_NAME_RE = re.compile(
+	r"^(?!\s*(?:if|while|for|switch|return))\s*"
+	r"(?:static\s+|inline\s+)*"
+	r"[a-zA-Z_][a-zA-Z0-9_* \t]+\s+([a-zA-Z0-9_]+)\s*\([^;)]*\)\s*\{?"
+)
+
+# Detekce deklarace proměnné (vyžaduje explicitní C typ na začátku)
+# Chytá: "int foo = 1;", "char *bar;", "static size_t baz;"
+# Ignoruje řádky s porovnáním (==, !=), šipkami (->) a voláním funkcí
+VAR_DECL_RE = re.compile(
+	r"^\s*(?:static\s+|const\s+|volatile\s+|unsigned\s+|signed\s+)*"
+	r"(?:void|int|char|short|long|float|double|size_t|ssize_t|bool|uint\d+_t|int\d+_t|struct\s+[a-zA-Z0-9_]+|[a-zA-Z0-9_]+_t)\s+"
+	r"[* \t]*([a-zA-Z0-9_]+)"
+	r"(?:\s*\[[^\]]*\])*"
+	r"\s*(?:=|;|,)"
+)
+
+KEYWORDS_BLACKLIST = {
+	"if", "while", "for", "switch", "case", "default", "return",
+	"break", "continue", "goto", "sizeof", "NULL", "true", "false"
+}
+
+
+def check_naming_conventions(filepath: Path, lines: list[str]) -> list[str]:
+	"""NAMING: Vynucení snake_case pro funkce a proměnné."""
+	errors = []
+
+	for idx, line in enumerate(lines, start=1):
+		stripped = line.strip()
+
+		# Ignorovat prázdné řádky, preprocesor a komentáře
+		if not stripped or stripped.startswith(("#", "//", "/*", "*")):
+			continue
+
+		# Ignorovat typedefy a samotné hlavičky ADT (struct/enum definice)
+		if stripped.startswith(("typedef", "struct ", "enum ", "union ")):
+			continue
+
+		# 1. Kontrola názvu funkcí
+		func_match = FUNC_NAME_RE.match(stripped)
+		if func_match:
+			func_name = func_match.group(1)
+			if func_name not in KEYWORDS_BLACKLIST and not UPPER_CASE_MACRO_RE.match(func_name):
+				if not SNAKE_CASE_RE.match(func_name):
+					col = line.find(func_name) + 1
+					loc = format_loc(filepath, idx, col)
+					errors.append(
+						f"{loc} {CLR_YELLOW}[NAMING]{CLR_RESET} Funkce '{func_name}' není ve snake_case!"
+					)
+			continue
+
+		# 2. Kontrola proměnných (pouze deklarace)
+		var_match = VAR_DECL_RE.match(line)
+		if var_match:
+			var_name = var_match.group(1)
+			
+			# Odfiltrovat klíčová slova a makra jako NULL
+			if var_name in KEYWORDS_BLACKLIST or UPPER_CASE_MACRO_RE.match(var_name):
+				continue
+
+			if not SNAKE_CASE_RE.match(var_name):
+				col = line.find(var_name) + 1
+				loc = format_loc(filepath, idx, col)
+				errors.append(
+					f"{loc} {CLR_YELLOW}[NAMING]{CLR_RESET} Proměnná '{var_name}' není ve snake_case!"
+				)
+
+	return errors
+
 def lint_file(filepath: Path) -> list[str]:
     try:
         content = filepath.read_text(encoding="utf-8")
@@ -425,6 +501,7 @@ def lint_file(filepath: Path) -> list[str]:
     errors.extend(check_header_file_rules(filepath, lines))
     errors.extend(check_comments_hygiene(filepath, content))
     errors.extend(check_unjustified_globals(filepath, lines))
+    errors.extend(check_naming_conventions(filepath, lines))
 
     return errors
 

@@ -1,0 +1,5 @@
+// Test: test_0037_valid.ifj
+// Expect error: False
+
+y = (x - x - x - x / x * x - x * x * (x) / 42) + (x + x / x + x / x * 0 - x) * y;
+var foo_bar : Bool = 42;

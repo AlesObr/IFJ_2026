@@ -1,0 +1,6 @@
+// Test: test_0027_valid.ifj
+// Expect error: False
+
+while (x * x - x - x / x * 0 * (x + x) + (x - x) / "test" - 0 / (x + x - x / x - x / x * 0) + foo_bar + x / x * (x + x) / foo_bar / (x) * 1337 / 3.14) {
+var total_sum : Float = x * x * x / (x) - (x + x) / (x / x);
+}

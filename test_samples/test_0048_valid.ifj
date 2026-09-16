@@ -1,0 +1,4 @@
+// Test: test_0048_valid.ifj
+// Expect error: False
+
+var idx : String = x / "test" * 0 - (x - x - x * x - (x)) - x * x / 0 / (x) * 0 / 0 / y + (x / x / x) / y / (x / x - (x) + x * "test" - x * x * x * false * (x - x - x));

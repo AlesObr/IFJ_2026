@@ -1,0 +1,4 @@
+// Test: test_0022_valid.ifj
+// Expect error: False
+
+let foo_bar = 42 - y / idx / 42;

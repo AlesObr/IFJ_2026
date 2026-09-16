@@ -1,0 +1,8 @@
+// Test: test_0015_valid.ifj
+// Expect error: False
+
+while (foo_bar) {
+x / x + x / x * x - x * x / (x) / (x) - (x - x + x);
+x = x + x * x + x / x / x + x / 0 * idx;
+let idx = x / x - x / x * (x);
+}

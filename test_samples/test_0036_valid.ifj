@@ -1,0 +1,9 @@
+// Test: test_0036_valid.ifj
+// Expect error: False
+
+if (1337 * foo_bar - x * x * x / (x) * foo_bar * 3.14 / 3.14 / x) {
+42 * foo_bar;
+} else {
+var foo_bar : Bool = x / x - x / x * (x) + x * x / 0 / "test" + 42;
+}
+total_sum = (x - x + x / x) / false - "test" / total_sum / (x / x - x / x * 0) * 1337;

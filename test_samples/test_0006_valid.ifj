@@ -1,0 +1,16 @@
+// Test: test_0006_valid.ifj
+// Expect error: False
+
+var y : Int = y;
+let idx = x / x * (x) / y + y / (x - x * x) + foo_bar * (x + x - x * x / 0) + "test";
+let y = x;
+while (x * (x) * true * (x + x / x)) {
+while (x + x - x) {
+while (x) {
+let x = x;
+}
+let x = x;
+}
+x + x;
+var x : Int = x;
+}

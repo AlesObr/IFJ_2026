@@ -1,0 +1,59 @@
+// Test: test_0030_valid.ifj
+// Expect error: False
+
+var foo_bar : Float = foo_bar * 42;
+if (x * x * x * 42 / (x - x * x) / idx * idx) {
+if (x * x * x - x / x / (x) / x) {
+while (x + x) {
+let x = x;
+}
+while (x) {
+let x = x;
+}
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+let x = x;
+let x = x;
+} else {
+while (x - x) {
+let x = x;
+}
+while (x) {
+let x = x;
+}
+}
+if (x * x - x * x * 0) {
+x = x;
+while (x) {
+let x = x;
+}
+let x = x;
+let x = x;
+} else {
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+let x = x;
+let x = x;
+let x = x;
+}
+} else {
+if (x * x - (x) + foo_bar) {
+y = x + x;
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+} else {
+while (x - x) {
+let x = x;
+}
+x = x;
+}
+}

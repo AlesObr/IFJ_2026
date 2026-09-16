@@ -1,0 +1,17 @@
+// Test: test_0038_valid.ifj
+// Expect error: False
+
+var total_sum : Bool = (x + x / x * x) / (x - x * x - x + x / (x - x)) - 3.14 / true;
+if (idx + x * x / 0 * foo_bar * (x / x) / (x - x + x - 0) + 42 / (idx)) {
+x - x - x * x + x * 0 + (x) / 1337;
+} else {
+while (x - x / x - x / 0 - x / x / 0 * (x - x)) {
+x;
+}
+let foo_bar = x / x + x * x * 0;
+x - x * x;
+x;
+let x = x;
+x = x;
+let x = x;
+}

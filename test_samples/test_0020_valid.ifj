@@ -1,0 +1,4 @@
+// Test: test_0020_valid.ifj
+// Expect error: False
+
+y;

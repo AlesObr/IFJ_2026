@@ -1,0 +1,4 @@
+// Test: test_0009_valid.ifj
+// Expect error: False
+
+var total_sum : String = 3.14 * total_sum * (x * x * x + x / foo_bar - (x) / total_sum * (x * x));

@@ -1,0 +1,8 @@
+// Test: test_0023_valid.ifj
+// Expect error: False
+
+if (x / 0 * 1337 / (x + x + x / x) * (x + x + x / 0) * (x / x * x / (x)) - (x * x - (x)) * (x * x / 0 - x / x * x / y + x / x / 0 * (x - x) * x)) {
+(x) / (x + x) * y;
+} else {
+let foo_bar = x / x / 0 * (x - x) + (x) * (x * x);
+}

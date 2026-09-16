@@ -1,0 +1,41 @@
+// Test: test_0033_valid.ifj
+// Expect error: False
+
+while ((x / x * x / idx) / 1337) {
+let foo_bar = x + x + x * x + x / x - (x) / false + (x) * idx / (x * x);
+while (x / true) {
+if (x + x) {
+let x = x;
+let x = x;
+} else {
+let x = x;
+let x = x;
+}
+while (x) {
+let x = x;
+}
+}
+if (x / x * x) {
+while (x) {
+let x = x;
+}
+} else {
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+let x = x;
+}
+if (x) {
+x;
+} else {
+while (x) {
+let x = x;
+}
+}
+x - x;
+}
+let x = x * x / x * x / (x + x - x * x - x) * false;
+var x : Bool = x / x * (x + x) / (x / x) / 3.14;
+var idx : Bool = x / x * (x) * 1337 + 1337 / (x + x);

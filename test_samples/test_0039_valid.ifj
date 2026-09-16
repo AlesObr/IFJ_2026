@@ -1,0 +1,4 @@
+// Test: test_0039_valid.ifj
+// Expect error: False
+
+let y = y * (x / x / x - x * (x) / 0 - x * (x - x) * 42);

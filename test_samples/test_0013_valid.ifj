@@ -1,0 +1,36 @@
+// Test: test_0013_valid.ifj
+// Expect error: False
+
+if (y - x / "test" / 1337 * true * (x * x / idx) + x) {
+var x : Bool = x * x * x * foo_bar * 3.14;
+var total_sum : String = x / x / 0 / "test";
+x;
+x / x;
+while (x - x) {
+let x = x;
+}
+x = x;
+x;
+} else {
+total_sum;
+while (x - x + x / x - x - x * (x) / (x - x)) {
+while (x - x) {
+let x = x;
+let x = x;
+}
+}
+while (x * x / 0) {
+x = x;
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+}
+}
+if ((x * x / 0) * idx) {
+idx = x * x + x / 0 + x / x * (x) * (x);
+} else {
+total_sum = x * 0 + (x);
+}
+x = x / x / (x) * (x - x) / (x + x + x / x) + (x - x / x + x * x / 0);

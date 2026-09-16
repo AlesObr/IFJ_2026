@@ -1,0 +1,4 @@
+// Test: test_0031_valid.ifj
+// Expect error: False
+
+x + x - x * x - x / x * (x) - x * (x) * x + x * x * x / 1337 * total_sum - (x + x / x) * total_sum - 0 / (x + x - x * x) * (x + x + x / x - x * x / x) * 1337 - (x * x * x * (x + x) * total_sum);

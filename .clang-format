@@ -1,16 +1,31 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
-Standard: c++11
+Standard: c11
 
+# Vynucení tabulátorů bez kompromisů
 UseTab: Always
 IndentWidth: 4
 TabWidth: 4
+AlignAfterOpenBracket: DontAlign
+ContinuationIndentWidth: 4
 
+# Ukazatele zásadně 'type *name', nikdy 'type* name'
+PointerAlignment: Right
+
+# Struktura a závorky
 IndentCaseLabels: true
 BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
+AllowShortBlocksOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
 ColumnLimit: 100
 AlignTrailingComments: true
+
+
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
 ...

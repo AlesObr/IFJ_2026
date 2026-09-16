@@ -1,0 +1,4 @@
+// Test: test_0007_valid.ifj
+// Expect error: False
+
+foo_bar = (x) * (x - x) * (x + x + x) / true * foo_bar + (x * 1337) * 3.14;

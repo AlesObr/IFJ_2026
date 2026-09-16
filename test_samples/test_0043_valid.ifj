@@ -1,0 +1,33 @@
+// Test: test_0043_valid.ifj
+// Expect error: False
+
+if (false - x * ((x)) / y * (3.14 + 0 * 0 / 3.14)) {
+let x = x / x * x - x * 0 / y + 0 / (x - x) * (x + x);
+} else {
+y = x / x - x * 0 - true + x;
+42;
+if (x + x - x - x * x / 0) {
+while (x) {
+let x = x;
+}
+} else {
+var x : Int = x;
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+}
+if (x + x + x) {
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+let x = x;
+let x = x;
+} else {
+let x = x;
+}
+foo_bar = x;
+}

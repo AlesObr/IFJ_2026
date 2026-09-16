@@ -1,0 +1,5 @@
+// Test: test_0018_valid.ifj
+// Expect error: False
+
+let foo_bar = x + true + 1337 / 1337 * foo_bar;
+total_sum = y - x * x / x * (x) * (x - x / x) + false * (x - x + x / x) / 1337 - (x + x) / 0;

@@ -1,0 +1,4 @@
+// Test: test_0041_valid.ifj
+// Expect error: False
+
+var x : Int = x - (x) + x / x * true / false + 0 * y - true / true - 0 * (x / x - x / 0) * total_sum * (x / x / 0 + (x + x) + 42 * (x + x - x / x));

@@ -1,0 +1,23 @@
+// Test: test_0010_valid.ifj
+// Expect error: False
+
+var total_sum : Int = y + x * x - y;
+while (foo_bar / (x - x - x / x - x * x * 0) / 42) {
+while (x + x * x + x * x * x - 1337) {
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+}
+while (x + x + x + x) {
+x = x;
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+let x = x;
+let x = x;
+}
+}

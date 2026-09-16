@@ -1,0 +1,8 @@
+// Test: test_0046_valid.ifj
+// Expect error: False
+
+while (foo_bar + true * false * 1337 / (x / x / x + x / x * x * idx + (x + x - x / x))) {
+while (x + x) {
+x - x * x;
+}
+}

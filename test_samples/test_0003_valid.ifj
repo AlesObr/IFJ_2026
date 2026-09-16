@@ -1,0 +1,4 @@
+// Test: test_0003_valid.ifj
+// Expect error: False
+
+idx = 0 * foo_bar / foo_bar * y - foo_bar * 0 / (y) + idx;

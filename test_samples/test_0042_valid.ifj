@@ -1,0 +1,5 @@
+// Test: test_0042_valid.ifj
+// Expect error: False
+
+0 * 42 * foo_bar + foo_bar * true / 0 + 1337 / (x / x + (x)) / (x - x + x * x - x / (x) + foo_bar) + 1337 / idx;
+x * (x) / (x + x) + y * y - y / (x + x * x) * true - idx;

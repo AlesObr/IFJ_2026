@@ -1,0 +1,18 @@
+// Test: test_0029_valid.ifj
+// Expect error: False
+
+while (42 * total_sum - false * 0) {
+while (x + x + x * x - x / x * x - x / x * (x) * (x + x) + y * 1337) {
+if (x + x + x * x) {
+x = x;
+let x = x;
+let x = x;
+} else {
+while (x) {
+let x = x;
+}
+let x = x;
+let x = x;
+}
+}
+}

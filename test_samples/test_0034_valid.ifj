@@ -1,0 +1,4 @@
+// Test: test_0034_valid.ifj
+// Expect error: False
+
+x = x / x / (x) / false * 1337 + x * 0 / (x + x) * y / idx + (x) * true / (x + x + x * x - x * x * (x)) / x - x * (x) / 3.14 * "test" * idx * y / "test";

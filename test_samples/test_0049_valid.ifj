@@ -1,0 +1,17 @@
+// Test: test_0049_valid.ifj
+// Expect error: False
+
+while (y - (x * x - x / x) + y + true / 42) {
+if ((x) * (x + x + x)) {
+if (x + x + x) {
+x = x;
+} else {
+x;
+let x = x;
+}
+idx = x;
+let x = x;
+} else {
+x + x;
+}
+}

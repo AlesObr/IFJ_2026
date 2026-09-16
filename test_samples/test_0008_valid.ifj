@@ -1,0 +1,6 @@
+// Test: test_0008_valid.ifj
+// Expect error: False
+
+while (x / x + x * x * (x) + x / (x - x) - 3.14 / 3.14 - x * x / 0 / (x + x) * y * foo_bar - (x / x / x) / false - (x + x + x / x + x * x * 0 - x * x * (x) * 3.14) / 1337) {
+x - x / x + x * x / x + x / x * x * y - total_sum;
+}

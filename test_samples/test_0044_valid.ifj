@@ -1,0 +1,20 @@
+// Test: test_0044_valid.ifj
+// Expect error: False
+
+if (3.14 + 1337 + x * (x) / (x - x) / (x + x + x) * false * "test" + "test") {
+while (idx * total_sum) {
+if (x - x * x) {
+x = x;
+} else {
+if (x) {
+let x = x;
+} else {
+let x = x;
+}
+}
+x + x;
+}
+x = x + x - x + x / x * (x) - 0 * true;
+} else {
+var y : Bool = x * 3.14 / (x - x);
+}

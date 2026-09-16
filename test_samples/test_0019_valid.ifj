@@ -1,0 +1,4 @@
+// Test: test_0019_valid.ifj
+// Expect error: False
+
+let x = "test" * 0 - (x / (x) / foo_bar / (x + x + x));

@@ -1,0 +1,4 @@
+// Test: test_0032_valid.ifj
+// Expect error: False
+
+let idx = x * 0 * false + 1337 + "test" * total_sum + false * total_sum - 0 / (x - x) * (x + x - x / x) * ((x)) / 42 * "test";

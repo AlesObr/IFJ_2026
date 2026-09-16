@@ -1,0 +1,4 @@
+// Test: test_0005_valid.ifj
+// Expect error: False
+
+total_sum = x / x * (x) - x * (x) / (x) - x / x * x / (x + x) * idx - (x + x + x / x - x * (x)) - (x * x / x / 0) + y;
