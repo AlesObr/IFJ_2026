@@ -9,6 +9,8 @@
 #include "lexer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../_utils/token.h"
+#include "../_utils/dstring.h"
 
 
 typedef enum {

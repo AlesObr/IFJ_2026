@@ -25,7 +25,7 @@ linter:
 linter-fix:
 	@python3 scripts/lint_comments.py --fix
 
-header-generate:
+headers:
 	@python3 scripts/generate_headers.py
 
 format:
