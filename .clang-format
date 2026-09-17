@@ -1,7 +1,7 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
-Standard: c11
+Standard: Latest
 
 # Vynucení tabulátorů bez kompromisů
 UseTab: Always
@@ -10,7 +10,7 @@ TabWidth: 4
 AlignAfterOpenBracket: DontAlign
 ContinuationIndentWidth: 4
 
-# Ukazatele zásadně 'type *name', nikdy 'type* name'
+# Ukazatele: 'type *name'
 PointerAlignment: Right
 
 # Struktura a závorky
@@ -24,8 +24,4 @@ AllowShortLoopsOnASingleLine: false
 ColumnLimit: 100
 AlignTrailingComments: true
 
-
 SpaceBeforeParens: ControlStatements
-SpacesInParentheses: false
-SpacesInSquareBrackets: false
-...
