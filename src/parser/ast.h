@@ -4,15 +4,17 @@
  * @brief Abstract syntax tree data structures and interface using dstring.
  * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11
+ * @cite https://keleshev.com/abstract-syntax-tree-an-example-in-c/ by Vladimir Keleshev 20. 6. 2022
+ * available online
  */
 
 #ifndef IFJ26_AST_H
 #define IFJ26_AST_H
 
-#include <stdio.h>
+#include "../_utils/dstring.h"
 #include <stdbool.h>
 #include <stddef.h>
-#include "../_utils/dstring.h"
+#include <stdio.h>
 
 /**
  * @brief Enumeration of AST node types.
@@ -47,20 +49,20 @@ typedef enum {
  * @brief Enumeration of binary and unary operation types.
  */
 typedef enum {
-	OP_ADD,         // +
-	OP_SUB,         // -
-	OP_MUL,         // *
-	OP_DIV,         // /
-	OP_CONCAT,      // ~
-	OP_ASSIGN,      // =
-	OP_EQ,          // ==
-	OP_NEQ,         // !=
-	OP_LT,          // <
-	OP_LTE,         // <=
-	OP_GT,          // >
-	OP_GTE,         // >=
-	OP_NOT,         // ! (unary)
-	OP_UNARY_MINUS  // - (unary)
+	OP_ADD,		   // +
+	OP_SUB,		   // -
+	OP_MUL,		   // *
+	OP_DIV,		   // /
+	OP_CONCAT,	   // ~
+	OP_ASSIGN,	   // =
+	OP_EQ,		   // ==
+	OP_NEQ,		   // !=
+	OP_LT,		   // <
+	OP_LTE,		   // <=
+	OP_GT,		   // >
+	OP_GTE,		   // >=
+	OP_NOT,		   // ! (unary)
+	OP_UNARY_MINUS // - (unary)
 } OpType;
 
 typedef struct ASTNode ASTNode;
@@ -69,9 +71,9 @@ typedef struct ASTNode ASTNode;
  * @brief Dynamic list of AST node pointers for statement blocks and call arguments.
  */
 typedef struct ASTNodeList {
-	ASTNode **items;   /**< Dynamic array of ASTNode pointers. */
-	size_t count;      /**< Number of stored items. */
-	size_t capacity;   /**< Allocated capacity of the array. */
+	ASTNode **items; /**< Dynamic array of ASTNode pointers. */
+	size_t count;	 /**< Number of stored items. */
+	size_t capacity; /**< Allocated capacity of the array. */
 } ASTNodeList;
 
 /**
@@ -80,61 +82,61 @@ typedef struct ASTNodeList {
 struct ASTNode {
 	ASTNodeType type;
 	size_t line; /**< Source code line where the construct starts. */
-	size_t col;  /**< Source code column where the construct starts. */
+	size_t col;	 /**< Source code column where the construct starts. */
 
 	union {
-		long int_val;         /**< Literal integer value. */
-		double float_val;     /**< Literal float value. */
-		dstring_t str_val;    /**< Dynamic string for literal strings and identifiers. */
+		long int_val;	   /**< Literal integer value. */
+		double float_val;  /**< Literal float value. */
+		dstring_t str_val; /**< Dynamic string for literal strings and identifiers. */
 
 		/** @brief Structure for binary and unary operations. */
 		struct {
 			OpType op;
 			ASTNode *left;
-			ASTNode *right;   /**< Set to NULL for unary operations. */
+			ASTNode *right; /**< Set to NULL for unary operations. */
 		} op;
 
 		/** @brief Structure for variable declaration nodes. */
 		struct {
-			dstring_t var_name;       /**< Dynamic string holding declared variable name. */
-			dstring_t type_name;      /**< Dynamic string holding explicit type name. */
-			bool is_const;            /**< True if declared as const, false for var. */
-			ASTNode *init_expr;       /**< Initializer expression or NULL. */
+			dstring_t var_name;	 /**< Dynamic string holding declared variable name. */
+			dstring_t type_name; /**< Dynamic string holding explicit type name. */
+			bool is_const;		 /**< True if declared as const, false for var. */
+			ASTNode *init_expr;	 /**< Initializer expression or NULL. */
 		} var_decl;
 
 		/** @brief Structure for variable assignment nodes. */
 		struct {
-			dstring_t target_name;    /**< Target variable identifier name. */
-			ASTNode *expr;            /**< Assigned expression. */
+			dstring_t target_name; /**< Target variable identifier name. */
+			ASTNode *expr;		   /**< Assigned expression. */
 		} assignment;
 
 		/** @brief Structure for function call nodes. */
 		struct {
-			dstring_t func_name;      /**< Identifier of the called function. */
-			ASTNodeList args;         /**< List of argument expressions. */
+			dstring_t func_name; /**< Identifier of the called function. */
+			ASTNodeList args;	 /**< List of argument expressions. */
 		} call;
 
 		/** @brief Structure for composite statement blocks. */
 		struct {
-			ASTNodeList stmts;        /**< Sequential list of statement nodes. */
+			ASTNodeList stmts; /**< Sequential list of statement nodes. */
 		} block;
 
 		/** @brief Structure for if-else branching nodes. */
 		struct {
-			ASTNode *cond;            /**< Branching condition expression. */
-			ASTNode *then_branch;     /**< Statements executed on condition true. */
-			ASTNode *else_branch;     /**< Statements executed on condition false or NULL. */
+			ASTNode *cond;		  /**< Branching condition expression. */
+			ASTNode *then_branch; /**< Statements executed on condition true. */
+			ASTNode *else_branch; /**< Statements executed on condition false or NULL. */
 		} if_stmt;
 
 		/** @brief Structure for while loop nodes. */
 		struct {
-			ASTNode *cond;            /**< Loop condition expression. */
-			ASTNode *body;            /**< Loop body statement or block. */
+			ASTNode *cond; /**< Loop condition expression. */
+			ASTNode *body; /**< Loop body statement or block. */
 		} while_stmt;
 
 		/** @brief Structure for return statement nodes. */
 		struct {
-			ASTNode *expr;            /**< Returned expression or NULL for empty return. */
+			ASTNode *expr; /**< Returned expression or NULL for empty return. */
 		} return_stmt;
 	};
 };
@@ -216,7 +218,8 @@ ASTNode *ast_create_unop(OpType op, ASTNode *expr, size_t line, size_t col);
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_var_decl(const dstring_t *name, const dstring_t *type_name, bool is_const, ASTNode *init_expr, size_t line, size_t col);
+ASTNode *ast_create_var_decl(const dstring_t *name, const dstring_t *type_name, bool is_const,
+	ASTNode *init_expr, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for an assignment operation.
@@ -242,7 +245,7 @@ ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col);
  * @param call_node Function call node created via ast_create_call.
  * @param arg Evaluated argument expression node.
  */
-void ast_call_add_arg(ASTNode *call_node, ASTNode *arg);
+bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg);
 
 /**
  * @brief Creates a new AST node for an encapsulated statement block.
@@ -257,7 +260,7 @@ ASTNode *ast_create_block(size_t line, size_t col);
  * @param block_node Block node created via ast_create_block.
  * @param stmt Executable statement ASTNode to append.
  */
-void ast_block_add_stmt(ASTNode *block_node, ASTNode *stmt);
+bool ast_block_add_stmt(ASTNode *block_node, ASTNode *stmt);
 
 /**
  * @brief Creates a new AST node for an if-else branching construct.

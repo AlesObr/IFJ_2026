@@ -3,10 +3,17 @@ CFLAGS ?= -std=c11 -Wall -Wextra -Werror -pedantic -g
 INCLUDES = -Iinclude -Isrc
 
 # ----------------------------------------------------------------------
+# Konfigurace odevzdání (parsování loginu z team.json nebo fallback)
+# ----------------------------------------------------------------------
+LOGIN ?= $(shell python3 -c "import json; print(json.load(open('team.json'))['leader'])" 2>/dev/null || echo "xobrale00")
+ZIP_NAME = $(LOGIN).zip
+
+# ----------------------------------------------------------------------
 # Adresáře pro artefakty a výstupy
 # ----------------------------------------------------------------------
 BUILD_DIR  = build
 OUTPUT_DIR = output
+DIST_DIR   = $(BUILD_DIR)/dist
 
 # ----------------------------------------------------------------------
 # Zdrojové soubory modulů a testů
@@ -38,7 +45,8 @@ TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
         dstring-asan dstring-valgrind dstring-check \
         ast-asan ast-valgrind ast-check test_ast \
         scanner-build test-scanner test-scanner-valgrind \
-        linter linter-full linter-fix headers format
+        linter linter-full linter-fix headers format \
+        zip make_us_happy dist-prep
 
 # Výchozí cíl: spustí všechny rychlé testy
 all: check
@@ -49,7 +57,7 @@ check: dstring-check ast-check
 # ----------------------------------------------------------------------
 # Vytvoření adresářů
 # ----------------------------------------------------------------------
-$(BUILD_DIR) $(OUTPUT_DIR):
+$(BUILD_DIR) $(OUTPUT_DIR) $(DIST_DIR):
 	@mkdir -p $@
 
 # ----------------------------------------------------------------------
@@ -139,7 +147,31 @@ format:
 	@echo "✓ Kód zformátován podle .clang-format"
 
 # ----------------------------------------------------------------------
+# Zabalení archivu pro odevzdání (make zip / make make_us_happy)
+# ----------------------------------------------------------------------
+dist-prep: format linter-full | $(DIST_DIR)
+	@rm -rf $(DIST_DIR)/*
+	@if [ -f scripts/flatten.py ]; then \
+		echo "=== Zplošťuji projekt pomocí flatten.py ==="; \
+		python3 scripts/flatten.py --out $(DIST_DIR); \
+	else \
+		echo "=== Kopíruji zdrojové soubory do $(DIST_DIR) ==="; \
+		cp -r src/* $(DIST_DIR)/; \
+		[ -f Makefile ] && cp Makefile $(DIST_DIR)/; \
+	fi
+
+zip: dist-prep
+	@echo "=== Vytvářím odevzdávací archiv $(ZIP_NAME) ==="
+	@rm -f $(ZIP_NAME)
+	@cd $(DIST_DIR) && zip -r ../../$(ZIP_NAME) . -x "*.git*" "*build*" "*output*" "*.vscode*"
+	@echo "\033[32m✓ Archiv $(ZIP_NAME) byl úspěšně vygenerován.\033[0m"
+	@echo "--- Obsah archivu: ---"
+	@unzip -l $(ZIP_NAME)
+
+make_us_happy: zip
+
+# ----------------------------------------------------------------------
 # Úklid
 # ----------------------------------------------------------------------
 clean:
-	rm -rf $(BUILD_DIR) $(OUTPUT_DIR)
+	rm -rf $(BUILD_DIR) $(OUTPUT_DIR) $(ZIP_NAME)
