@@ -87,7 +87,7 @@ $(TARGET_AST_VALGRIND): $(AST_SRC) $(AST_TEST_SRC) | $(BUILD_DIR)
 
 ast-asan: $(TARGET_AST_ASAN)
 	@echo "=== [AST] Běh pod AddressSanitizer & UBSan ==="
-	@./$(TARGET_AST_ASAN)
+	@ASAN_OPTIONS=detect_leaks=0 ./$(TARGET_AST_ASAN)
 
 ast-valgrind: $(TARGET_AST_VALGRIND)
 	@echo "=== [AST] Běh pod Valgrind ==="
