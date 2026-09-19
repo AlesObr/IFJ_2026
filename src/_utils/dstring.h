@@ -67,6 +67,22 @@ bool dstring_append_str(dstring_t *str, const char *text);
 const char *dstring_get(const dstring_t *str);
 
 /**
+ * @brief Get the raw C-style string from a dstring (same as dstring_get).
+ * @param str The dstring to get the string from.
+ * @return The raw C-style string.
+ */
+const char *dstring_get_raw(const dstring_t *str);
+
+/**
+ * @brief Append a block of memory to a dstring.
+ * @param str The dstring to append to.
+ * @param data The memory block to append.
+ * @param length The length of the memory block.
+ * @return true if successful, false otherwise.
+ */
+bool dstring_append_mem(dstring_t *str, const char *data, size_t length)
+
+/**
  * @brief Compare a dstring with a C-style string.
  * @param str The dstring to compare.
  * @param text The C-style string to compare with.
