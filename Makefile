@@ -2,27 +2,52 @@ CC ?= gcc
 CFLAGS ?= -std=c11 -Wall -Wextra -Werror -pedantic -g
 INCLUDES = -Iinclude -Isrc
 
-# Adresáře pro artefakty
-BUILD_DIR = build
+# ----------------------------------------------------------------------
+# Adresáře pro artefakty a výstupy
+# ----------------------------------------------------------------------
+BUILD_DIR  = build
 OUTPUT_DIR = output
 
-# Zdrojáky pro izolovaný dstring test
-# (Pokud máte dstring v src/_utils/, upravte cestu na src/_utils/dstring.c)
-DSTRING_SRC = src/_utils/dstring.c
+# ----------------------------------------------------------------------
+# Zdrojové soubory modulů a testů
+# ----------------------------------------------------------------------
+DSTRING_SRC      = src/_utils/dstring.c
 DSTRING_TEST_SRC = test/dstring_test.c
 
-TARGET_DSTRING_ASAN = $(BUILD_DIR)/test_dstring_asan
-TARGET_DSTRING_VALGRIND = $(BUILD_DIR)/test_dstring_valgrind
+AST_SRC          = src/parser/ast.c $(DSTRING_SRC)
+AST_TEST_SRC     = test/ast_test.c
 
-# Cíle
-.PHONY: all check asan valgrind scanner-test test-scanner test-scanner-valgrind \
-        linter linter-full linter-fix headers format clean
-
-# Výchozí target při spuštění pouhého "make"
-all: check
+LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c $(DSTRING_SRC)
+LEXER_TEST_SRC   = test/lexer_test/lexer_test.c
 
 # ----------------------------------------------------------------------
-# Adresáře
+# Cílové binárky (vše konzistentně do BUILD_DIR)
+# ----------------------------------------------------------------------
+TARGET_DSTRING_ASAN      = $(BUILD_DIR)/test_dstring_asan
+TARGET_DSTRING_VALGRIND  = $(BUILD_DIR)/test_dstring_valgrind
+
+TARGET_AST_ASAN          = $(BUILD_DIR)/test_ast_asan
+TARGET_AST_VALGRIND      = $(BUILD_DIR)/test_ast_valgrind
+
+TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
+
+# ----------------------------------------------------------------------
+# Phony cíle
+# ----------------------------------------------------------------------
+.PHONY: all check clean \
+        dstring-asan dstring-valgrind dstring-check \
+        ast-asan ast-valgrind ast-check test_ast \
+        scanner-build test-scanner test-scanner-valgrind \
+        linter linter-full linter-fix headers format
+
+# Výchozí cíl: spustí všechny rychlé testy
+all: check
+
+check: dstring-check ast-check
+	@echo "\033[32m✓ Všechny základní subsystémové testy (dstring + AST) prošly.\033[0m"
+
+# ----------------------------------------------------------------------
+# Vytvoření adresářů
 # ----------------------------------------------------------------------
 $(BUILD_DIR) $(OUTPUT_DIR):
 	@mkdir -p $@
@@ -37,11 +62,11 @@ $(TARGET_DSTRING_VALGRIND): $(DSTRING_SRC) $(DSTRING_TEST_SRC) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
 
 dstring-asan: $(TARGET_DSTRING_ASAN)
-	@echo "=== [1/2] Běh dstring pod AddressSanitizer & UBSan ==="
+	@echo "=== [dstring] Běh pod AddressSanitizer & UBSan ==="
 	@./$(TARGET_DSTRING_ASAN)
 
 dstring-valgrind: $(TARGET_DSTRING_VALGRIND)
-	@echo "=== [2/2] Běh dstring pod Valgrind ==="
+	@echo "=== [dstring] Běh pod Valgrind ==="
 	@valgrind --leak-check=full \
 	          --show-leak-kinds=all \
 	          --track-origins=yes \
@@ -49,15 +74,42 @@ dstring-valgrind: $(TARGET_DSTRING_VALGRIND)
 	          ./$(TARGET_DSTRING_VALGRIND)
 
 dstring-check: dstring-asan dstring-valgrind
-	@echo "\033[32m✓ Všechny unit testy dstring prošly.\033[0m"
+	@echo "\033[32m✓ Unit testy dstring prošly.\033[0m"
+
+# ----------------------------------------------------------------------
+# Unit testy: AST (ASan & Valgrind)
+# ----------------------------------------------------------------------
+$(TARGET_AST_ASAN): $(AST_SRC) $(AST_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -fsanitize=address,undefined $(INCLUDES) $^ -o $@
+
+$(TARGET_AST_VALGRIND): $(AST_SRC) $(AST_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+ast-asan: $(TARGET_AST_ASAN)
+	@echo "=== [AST] Běh pod AddressSanitizer & UBSan ==="
+	@./$(TARGET_AST_ASAN)
+
+ast-valgrind: $(TARGET_AST_VALGRIND)
+	@echo "=== [AST] Běh pod Valgrind ==="
+	@valgrind --leak-check=full \
+	          --show-leak-kinds=all \
+	          --track-origins=yes \
+	          --error-exitcode=42 \
+	          ./$(TARGET_AST_VALGRIND)
+
+ast-check: ast-asan ast-valgrind
+	@echo "\033[32m✓ Unit testy AST prošly.\033[0m"
+
+# Alias pro zpětnou kompatibilitu
+test_ast: ast-asan
 
 # ----------------------------------------------------------------------
 # Lexer / Scanner testy
 # ----------------------------------------------------------------------
-$(OUTPUT_DIR)/lexer_test: src/lexer/lexer.c src/_utils/token.c $(DSTRING_SRC) test/lexer_test/lexer_test.c | $(OUTPUT_DIR)
+$(TARGET_LEXER_TEST): $(LEXER_SRC) $(LEXER_TEST_SRC) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
 
-scanner-build: $(OUTPUT_DIR)/lexer_test
+scanner-build: $(TARGET_LEXER_TEST)
 
 test-scanner: scanner-build
 	@python3 test/test_run.py

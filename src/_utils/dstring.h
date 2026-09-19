@@ -80,7 +80,7 @@ const char *dstring_get_raw(const dstring_t *str);
  * @param length The length of the memory block.
  * @return true if successful, false otherwise.
  */
-bool dstring_append_mem(dstring_t *str, const char *data, size_t length)
+bool dstring_append_mem(dstring_t *str, const char *data, size_t length);
 
 /**
  * @brief Compare a dstring with a C-style string.
