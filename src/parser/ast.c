@@ -4,22 +4,38 @@
  * @brief AST node constructors, recursive destructor and S-expression dumper.
  * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11
+ *
+ * @par Ownership contract
+ * Every constructor that receives child ASTNode pointers takes ownership of
+ * them unconditionally. If the constructor fails (allocation error or invalid
+ * argument), it destroys the children it was given and returns NULL. The
+ * caller therefore never has to clean up arguments it already handed over --
+ * it only destroys the nodes it still holds itself.
+ *
+ * The same rule applies to ast_call_add_arg() and ast_block_add_stmt():
+ * on failure the appended node is destroyed and false is returned.
+ *
+ * @see Architectural design & tagged-union implementation pattern:
+ *      Vladimir Keleshev: "Abstract Syntax Tree: An Example in C" (2022)
+ *      https://keleshev.com/abstract-syntax-tree-an-example-in-c/
+ *
+ * @see Conceptual inspiration for AST scope & intermediate representation:
+ *      Flux Research Group, University of Utah: "C Abstract Syntax Tree (CAST) Representation",
+ *      The Flick IDL Compiler Project.
  */
 
 #include "ast.h"
-#include <stdlib.h>
 #include "../_utils/dstring.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-/* Helper functions for ASTNodeList */
+/* --- Helper functions for ASTNodeList --- */
 
-static bool ast_nodelist_init(ASTNodeList *list) {
-	if (!list) {
-		return false;
-	}
+static void ast_nodelist_init(ASTNodeList *list) {
 	list->items = NULL;
 	list->count = 0;
 	list->capacity = 0;
-	return true;
 }
 
 static bool ast_nodelist_append(ASTNodeList *list, ASTNode *item) {
@@ -28,6 +44,9 @@ static bool ast_nodelist_append(ASTNodeList *list, ASTNode *item) {
 	}
 	if (list->count >= list->capacity) {
 		size_t new_cap = list->capacity == 0 ? 4 : list->capacity * 2;
+		if (new_cap > SIZE_MAX / sizeof(ASTNode *)) {
+			return false;
+		}
 		ASTNode **new_items = realloc(list->items, new_cap * sizeof(ASTNode *));
 		if (!new_items) {
 			return false;
@@ -40,7 +59,7 @@ static bool ast_nodelist_append(ASTNodeList *list, ASTNode *item) {
 }
 
 static void ast_nodelist_destroy(ASTNodeList *list) {
-	if (!list || !list->items) {
+	if (!list) {
 		return;
 	}
 	for (size_t i = 0; i < list->count; ++i) {
@@ -52,28 +71,58 @@ static void ast_nodelist_destroy(ASTNodeList *list) {
 	list->capacity = 0;
 }
 
-/* --- Node constructors --- */
+/* --- Internal allocation helper --- */
 
-ASTNode *ast_create_int(long val, size_t line, size_t col) {
+/**
+ * @brief Allocates a bare node and fills in the common header fields.
+ * @return Newly allocated node, or NULL on allocation failure.
+ */
+static ASTNode *ast_alloc(ASTNodeType type, size_t line, size_t col) {
 	ASTNode *node = malloc(sizeof(ASTNode));
 	if (!node) {
 		return NULL;
 	}
-	node->type = NODE_INT_LITERAL;
+	node->type = type;
 	node->line = line;
 	node->col = col;
+	return node;
+}
+
+/**
+ * @brief Initializes @p dst and copies @p src into it.
+ *
+ * A NULL @p src yields an initialized but empty string, which is how an
+ * omitted (inferred) type annotation is represented.
+ *
+ * @return true on success; on failure @p dst is left uninitialized/freed.
+ */
+static bool ast_dstring_clone(dstring_t *dst, const dstring_t *src) {
+	if (!dstring_init(dst)) {
+		return false;
+	}
+	if (src && !dstring_copy(dst, src)) {
+		dstring_free(dst);
+		return false;
+	}
+	return true;
+}
+
+/* --- Node constructors --- */
+
+ASTNode *ast_create_int(long val, size_t line, size_t col) {
+	ASTNode *node = ast_alloc(NODE_INT_LITERAL, line, col);
+	if (!node) {
+		return NULL;
+	}
 	node->int_val = val;
 	return node;
 }
 
 ASTNode *ast_create_float(double val, size_t line, size_t col) {
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_FLOAT_LITERAL, line, col);
 	if (!node) {
 		return NULL;
 	}
-	node->type = NODE_FLOAT_LITERAL;
-	node->line = line;
-	node->col = col;
 	node->float_val = val;
 	return node;
 }
@@ -82,67 +131,43 @@ ASTNode *ast_create_string(const dstring_t *val, size_t line, size_t col) {
 	if (!val) {
 		return NULL;
 	}
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_STRING_LITERAL, line, col);
 	if (!node) {
 		return NULL;
 	}
-	if (!dstring_init(&node->str_val)) {
+	if (!ast_dstring_clone(&node->str_val, val)) {
 		free(node);
 		return NULL;
 	}
-	if (!dstring_copy(&node->str_val, val)) {
-		dstring_free(&node->str_val);
-		free(node);
-		return NULL;
-	}
-	node->type = NODE_STRING_LITERAL;
-	node->line = line;
-	node->col = col;
 	return node;
 }
 
 ASTNode *ast_create_null(size_t line, size_t col) {
-	ASTNode *node = malloc(sizeof(ASTNode));
-	if (!node) {
-		return NULL;
-	}
-	node->type = NODE_NULL_LITERAL;
-	node->line = line;
-	node->col = col;
-	return node;
+	return ast_alloc(NODE_NULL_LITERAL, line, col);
 }
 
 ASTNode *ast_create_ident(const dstring_t *name, size_t line, size_t col) {
 	if (!name) {
 		return NULL;
 	}
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_IDENTIFIER, line, col);
 	if (!node) {
 		return NULL;
 	}
-	if (!dstring_init(&node->str_val)) {
+	if (!ast_dstring_clone(&node->str_val, name)) {
 		free(node);
 		return NULL;
 	}
-	if (!dstring_copy(&node->str_val, name)) {
-		dstring_free(&node->str_val);
-		free(node);
-		return NULL;
-	}
-	node->type = NODE_IDENTIFIER;
-	node->line = line;
-	node->col = col;
 	return node;
 }
 
 ASTNode *ast_create_binop(OpType op, ASTNode *left, ASTNode *right, size_t line, size_t col) {
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_BINARY_OP, line, col);
 	if (!node) {
+		ast_destroy(left);
+		ast_destroy(right);
 		return NULL;
 	}
-	node->type = NODE_BINARY_OP;
-	node->line = line;
-	node->col = col;
 	node->op.op = op;
 	node->op.left = left;
 	node->op.right = right;
@@ -150,138 +175,128 @@ ASTNode *ast_create_binop(OpType op, ASTNode *left, ASTNode *right, size_t line,
 }
 
 ASTNode *ast_create_unop(OpType op, ASTNode *expr, size_t line, size_t col) {
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_UNARY_OP, line, col);
 	if (!node) {
+		ast_destroy(expr);
 		return NULL;
 	}
-	node->type = NODE_UNARY_OP;
-	node->line = line;
-	node->col = col;
 	node->op.op = op;
 	node->op.left = expr;
 	node->op.right = NULL;
 	return node;
 }
 
-ASTNode *ast_create_var_decl(const dstring_t *name, const dstring_t *type_name, bool is_const, ASTNode *init_expr, size_t line, size_t col) {
+ASTNode *ast_create_var_decl(const dstring_t *name, const dstring_t *type_name, bool is_const,
+	ASTNode *init_expr, size_t line, size_t col) {
+	ASTNode *node = NULL;
+
 	if (!name) {
-		return NULL;
+		goto fail;
 	}
-	ASTNode *node = malloc(sizeof(ASTNode));
+	node = ast_alloc(NODE_VAR_DECL, line, col);
 	if (!node) {
-		return NULL;
+		goto fail;
+	}
+	if (!ast_dstring_clone(&node->var_decl.var_name, name)) {
+		goto fail_node;
+	}
+	if (!ast_dstring_clone(&node->var_decl.type_name, type_name)) {
+		goto fail_var_name;
 	}
 
-	if (!dstring_init(&node->var_decl.var_name)) {
-		free(node);
-		return NULL;
-	}
-	if (!dstring_copy(&node->var_decl.var_name, name)) {
-		dstring_free(&node->var_decl.var_name);
-		free(node);
-		return NULL;
-	}
-
-	if (!dstring_init(&node->var_decl.type_name)) {
-		dstring_free(&node->var_decl.var_name);
-		free(node);
-		return NULL;
-	}
-	if (type_name && !dstring_copy(&node->var_decl.type_name, type_name)) {
-		dstring_free(&node->var_decl.type_name);
-		dstring_free(&node->var_decl.var_name);
-		free(node);
-		return NULL;
-	}
-
-	node->type = NODE_VAR_DECL;
-	node->line = line;
-	node->col = col;
 	node->var_decl.is_const = is_const;
 	node->var_decl.init_expr = init_expr;
 	return node;
+
+fail_var_name:
+	dstring_free(&node->var_decl.var_name);
+fail_node:
+	free(node);
+fail:
+	ast_destroy(init_expr);
+	return NULL;
 }
 
 ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t line, size_t col) {
+	ASTNode *node = NULL;
+
 	if (!target) {
-		return NULL;
+		goto fail;
 	}
-	ASTNode *node = malloc(sizeof(ASTNode));
+	node = ast_alloc(NODE_ASSIGNMENT, line, col);
 	if (!node) {
-		return NULL;
+		goto fail;
 	}
-	if (!dstring_init(&node->assignment.target_name)) {
+	if (!ast_dstring_clone(&node->assignment.target_name, target)) {
 		free(node);
-		return NULL;
+		goto fail;
 	}
-	if (!dstring_copy(&node->assignment.target_name, target)) {
-		dstring_free(&node->assignment.target_name);
-		free(node);
-		return NULL;
-	}
-	node->type = NODE_ASSIGNMENT;
-	node->line = line;
-	node->col = col;
+
 	node->assignment.expr = expr;
 	return node;
+
+fail:
+	ast_destroy(expr);
+	return NULL;
 }
 
 ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col) {
 	if (!func_name) {
 		return NULL;
 	}
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_CALL, line, col);
 	if (!node) {
 		return NULL;
 	}
-	if (!dstring_init(&node->call.func_name)) {
-		free(node);
-		return NULL;
-	}
-	if (!dstring_copy(&node->call.func_name, func_name)) {
-		dstring_free(&node->call.func_name);
+	if (!ast_dstring_clone(&node->call.func_name, func_name)) {
 		free(node);
 		return NULL;
 	}
 	ast_nodelist_init(&node->call.args);
-	node->type = NODE_CALL;
-	node->line = line;
-	node->col = col;
 	return node;
 }
 
-void ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
-	if (call_node && call_node->type == NODE_CALL && arg) {
-		ast_nodelist_append(&call_node->call.args, arg);
+bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
+	if (!call_node || call_node->type != NODE_CALL || !arg) {
+		ast_destroy(arg);
+		return false;
 	}
+	if (!ast_nodelist_append(&call_node->call.args, arg)) {
+		ast_destroy(arg);
+		return false;
+	}
+	return true;
 }
 
 ASTNode *ast_create_block(size_t line, size_t col) {
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_BLOCK, line, col);
 	if (!node) {
 		return NULL;
 	}
 	ast_nodelist_init(&node->block.stmts);
-	node->type = NODE_BLOCK;
-	node->line = line;
-	node->col = col;
 	return node;
 }
 
-void ast_block_add_stmt(ASTNode *block_node, ASTNode *stmt) {
-	if (block_node && block_node->type == NODE_BLOCK && stmt) {
-		ast_nodelist_append(&block_node->block.stmts, stmt);
+bool ast_block_add_stmt(ASTNode *block_node, ASTNode *stmt) {
+	if (!block_node || block_node->type != NODE_BLOCK || !stmt) {
+		ast_destroy(stmt);
+		return false;
 	}
+	if (!ast_nodelist_append(&block_node->block.stmts, stmt)) {
+		ast_destroy(stmt);
+		return false;
+	}
+	return true;
 }
 
 ASTNode *ast_create_if(ASTNode *cond, ASTNode *then_b, ASTNode *else_b, size_t line, size_t col) {
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_IF, line, col);
 	if (!node) {
+		ast_destroy(cond);
+		ast_destroy(then_b);
+		ast_destroy(else_b);
 		return NULL;
 	}
-	node->type = NODE_IF;
-	node->line = line;
-	node->col = col;
 	node->if_stmt.cond = cond;
 	node->if_stmt.then_branch = then_b;
 	node->if_stmt.else_branch = else_b;
@@ -289,59 +304,72 @@ ASTNode *ast_create_if(ASTNode *cond, ASTNode *then_b, ASTNode *else_b, size_t l
 }
 
 ASTNode *ast_create_while(ASTNode *cond, ASTNode *body, size_t line, size_t col) {
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_WHILE, line, col);
 	if (!node) {
+		ast_destroy(cond);
+		ast_destroy(body);
 		return NULL;
 	}
-	node->type = NODE_WHILE;
-	node->line = line;
-	node->col = col;
 	node->while_stmt.cond = cond;
 	node->while_stmt.body = body;
 	return node;
 }
 
 ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col) {
-	ASTNode *node = malloc(sizeof(ASTNode));
+	ASTNode *node = ast_alloc(NODE_RETURN, line, col);
 	if (!node) {
+		ast_destroy(expr);
 		return NULL;
 	}
-	node->type = NODE_RETURN;
-	node->line = line;
-	node->col = col;
 	node->return_stmt.expr = expr;
 	return node;
 }
 
 /* --- Serialization to S-expression --- */
 /*
- *	This functions were implemented primarily for debugging and testing purposes - mainly for unit testing the parser and AST construction.
+ * These functions were implemented primarily for debugging and testing purposes --
+ * mainly for unit testing the parser and AST construction.
  */
-
-
-
 
 static const char *op_to_str(OpType op) {
 	switch (op) {
-		case OP_ADD:         return "+";
-		case OP_SUB:         return "-";
-		case OP_MUL:         return "*";
-		case OP_DIV:         return "/";
-		case OP_CONCAT:      return "~";
-		case OP_ASSIGN:      return "=";
-		case OP_EQ:          return "==";
-		case OP_NEQ:         return "!=";
-		case OP_LT:          return "<";
-		case OP_LTE:         return "<=";
-		case OP_GT:          return ">";
-		case OP_GTE:         return ">=";
-		case OP_NOT:         return "!";
-		case OP_UNARY_MINUS: return "-";
-		default:             return "?";
+		case OP_ADD:
+			return "+";
+		case OP_SUB:
+			return "-";
+		case OP_MUL:
+			return "*";
+		case OP_DIV:
+			return "/";
+		case OP_CONCAT:
+			return "~";
+		case OP_ASSIGN:
+			return "=";
+		case OP_EQ:
+			return "==";
+		case OP_NEQ:
+			return "!=";
+		case OP_LT:
+			return "<";
+		case OP_LTE:
+			return "<=";
+		case OP_GT:
+			return ">";
+		case OP_GTE:
+			return ">=";
+		case OP_NOT:
+			return "!";
+		case OP_UNARY_MINUS:
+			return "-";
+		default:
+			return "?";
 	}
 }
 
 void ast_dump_sexpr(const ASTNode *node, FILE *out) {
+	if (!out) {
+		return;
+	}
 	if (!node) {
 		fputs("()", out);
 		return;
@@ -389,11 +417,10 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) {
 		case NODE_VAR_DECL: {
 			const char *name = dstring_get(&node->var_decl.var_name);
 			const char *type = dstring_get(&node->var_decl.type_name);
-			fprintf(out, "(%s %s%s%s ",
-					node->var_decl.is_const ? "const" : "var",
-					name ? name : "<null>",
-					type ? ":" : "",
-					type ? type : "");
+			/* An empty type string means the annotation was omitted, so no colon. */
+			bool has_type = (type != NULL && type[0] != '\0');
+			fprintf(out, "(%s %s%s%s ", node->var_decl.is_const ? "const" : "var",
+				name ? name : "<null>", has_type ? ":" : "", has_type ? type : "");
 			ast_dump_sexpr(node->var_decl.init_expr, out);
 			fputc(')', out);
 			break;

@@ -9,6 +9,4 @@
 #ifndef IFJ26_PARSER_H
 #define IFJ26_PARSER_H
 
-
-
 #endif /* IFJ26_PARSER_H */
