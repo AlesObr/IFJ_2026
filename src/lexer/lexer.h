@@ -25,7 +25,8 @@ void lexer_init(FILE *input);
  * Functions on a pull principle. Advances input until a full token is recognized.
  * If a lexical error occurs, the HErBA protocol will be involved.
  *
- * @param out_token Pointer to the token structure to be filled with the next token.
+ * @param out_token Pointer to the token structure to be filled with the next token. If error
+ * occurs, the token will be in a valid, destructible state.
  * @return Error code indicating success or failure of the operation.
  */
 Error lexer_get_next_token(Token *out_token);

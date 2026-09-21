@@ -40,10 +40,14 @@ Error lexer_get_next_token(Token *out_token) {
 
 	token_init(out_token);
 
+	// @dev(Jirka Kolek) Tady budeme implementovat samotnou logiku lexeru => DKA
 	out_token->type = TOKEN_EOF;
 	out_token->data.str_val = NULL;
 	out_token->line = current_line;
 	out_token->col = current_col;
+
+	// @dev(Jirka Kolek) Při průchodu je třeba updateovat current_line a current_col podle toho,
+	// @dev kolik znaků jsme přečetli a zda jsme narazili na nový řádek.
 
 	return ERROR_OK();
 }

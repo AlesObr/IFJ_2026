@@ -136,6 +136,11 @@ linter-full:
 	@python3 scripts/generate_headers.py
 	@python3 scripts/lint_comments.py
 
+linter-clear:
+	@python3 scripts/generate_headers.py
+	@python3 scripts/lint_comments.py --strip-dev --fix
+	@python3 scripts/lint_comments.py
+
 linter-fix:
 	@python3 scripts/lint_comments.py --fix
 

@@ -16,6 +16,7 @@
 #ifndef IFJ26_TOKEN_H
 #define IFJ26_TOKEN_H
 
+#include "../_utils/dstring.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -72,7 +73,7 @@ typedef enum token_type {
 typedef union token_value {
 	int64_t int_val;
 	double float_val;
-	char *str_val;
+	dstring_t *str_val;
 } TokenValue;
 
 /**
