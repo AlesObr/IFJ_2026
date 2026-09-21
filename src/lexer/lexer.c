@@ -7,74 +7,43 @@
  */
 
 #include "lexer.h"
+#include "../_utils/dstring.h"
+#include "../_utils/error.h"
+#include "../_utils/token.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../_utils/token.h"
-#include "../_utils/dstring.h"
 
-
+/**
+ * @brief Enumeration of lexer states.
+ */
 typedef enum {
 	STATE_START,
 } LexerState;
 
-// Dummy implementation of the lexer. This should be replaced with a full implementation.
-static FILE *source_file = NULL;
-static size_t current_line = 1;
+/*All Global vars. belove are important to keep curent state of Lexer */
+/** The current state of the lexer. */
+static LexerState current_state = STATE_START;
+
+static FILE *source_file = NULL; /** The input file being lexed - it will be de facto STDIN */
+static size_t current_line = 1;	 /** The current line number in the source file being lexed */
+static size_t current_col = 1;	 /** The current column number in the source file being lexed */
 
 void lexer_init(FILE *input) {
 	source_file = input;
 	current_line = 1;
 }
 
-Token lexer_get_next_token(void) {
-	Token token;
-	token_init(&token);
-	token.line = current_line;
-
-	if (!source_file) {
-		token.type = TOKEN_EOF;
-		return token;
+Error lexer_get_next_token(Token *out_token) {
+	if (!out_token) {
+		return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Output token pointer is NULL.");
 	}
 
-	LexerState state = STATE_START;
+	token_init(out_token);
 
-	while (1) {
-		int c = fgetc(source_file);
+	out_token->type = TOKEN_EOF;
+	out_token->data.str_val = NULL;
+	out_token->line = current_line;
+	out_token->col = current_col;
 
-		switch (state) {
-			case STATE_START:
-				// Dummy
-				if (c == ' ' || c == '\t' || c == '\r') {
-					continue;
-				}
-
-				// Dummy
-				if (c == '\n') {
-					current_line++;
-					token.line = current_line;
-					continue;
-				}
-
-				// Dummy
-				if (c == EOF) {
-					token.type = TOKEN_EOF;
-					return token;
-				}
-
-				// Dummy
-				if (c == '+') {
-					token.type = TOKEN_PLUS;
-					return token;
-				}
-
-				// Here add more cases for other token types (identifiers, numbers, strings, etc.) as needed.
-				fprintf(stderr, "Lexical error on line %zu: unexpected character '%c' (ASCII %d)\n",
-						current_line, (char)c, c);
-				exit(1);
-
-			default:
-				fprintf(stderr, "Internal compiler error: unknown lexer state\n");
-				exit(99);
-		}
-	}
+	return ERROR_OK();
 }

@@ -6,6 +6,16 @@
  * @note Standard: ISO C11
  * @cite https://keleshev.com/abstract-syntax-tree-an-example-in-c/ by Vladimir Keleshev 20. 6. 2022
  * available online
+ *
+ * @par Ownership contract
+ * Every constructor that receives child ASTNode pointers takes ownership of
+ * them unconditionally. If the constructor fails (allocation error or invalid
+ * argument), it destroys the children it was given and returns NULL. The
+ * caller therefore never has to clean up arguments it already handed over --
+ * it only destroys the nodes it still holds itself.
+ *
+ * The same rule applies to ast_call_add_arg() and ast_block_add_stmt():
+ * on failure the appended node is destroyed and false is returned.
  */
 
 #ifndef IFJ26_AST_H

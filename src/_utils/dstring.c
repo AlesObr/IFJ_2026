@@ -3,6 +3,15 @@
  * @file dstring.c
  * @brief Implementation of dynamic string library to be used for work with strings
  * @author Aleš Obr (xobrale00)
+ *
+ * @par Ownership contract
+ * Functions receiving a pointer to dstring_t operate on borrowed references;
+ * they DO NOT take ownership of the instance or its allocated buffer.
+ * The caller retains full ownership and is strictly responsible for calling dstring_free().
+ *
+ * If any function fails (e.g. realloc failure or invalid arguments), the dstring_t
+ * is guaranteed to remain in a valid, consistent, and destructible state.
+ *
  * @note Standard: ISO C11
  */
 

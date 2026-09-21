@@ -4,14 +4,21 @@
  * @brief Token module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11
+ *
+ * @par Ownership contract
+ * Functions receiving a Token pointer borrow the instance; they do NOT take ownership.
+ * The caller retains full ownership and is strictly responsible for calling token_destroy()
+ * when the token is no longer needed.
+ *
+ * If any operation fails, the Token is guaranteed to remain in a valid, destructible state.
  */
 
 #ifndef IFJ26_TOKEN_H
 #define IFJ26_TOKEN_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
  * @brief Enumeration of token types.
@@ -59,7 +66,6 @@ typedef enum token_type {
 	TOKEN_COMMA
 } TokenType;
 
-
 /**
  * @brief Union to hold the value of a token.
  */
@@ -73,9 +79,10 @@ typedef union token_value {
  * @brief Structure to represent a token.
  */
 typedef struct token {
-	TokenType type;
-	TokenValue data;
-	size_t line;
+	TokenType type;	 /** The type of the token */
+	TokenValue data; /** The value of the token (if applicable) */
+	size_t line;	 /** The line number where the token was found */
+	size_t col;		 /** The column number where the token starts */
 } Token;
 
 /**

@@ -3,16 +3,23 @@
  * @file dstring.h
  * @brief Dstring module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
+ *
+ * @par Ownership contract
+ * Functions receiving a pointer to dstring_t operate on borrowed references;
+ * they DO NOT take ownership of the instance or its allocated buffer.
+ * The caller retains full ownership and is strictly responsible for calling dstring_free().
+ *
+ * If any function fails (e.g. realloc failure or invalid arguments), the dstring_t
+ * is guaranteed to remain in a valid, consistent, and destructible state.
  * @note Standard: ISO C11
  */
 
 #ifndef IFJ26_DSTRING_H
 #define IFJ26_DSTRING_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
-
 
 /**
  * @brief Dynamic string structure.
@@ -22,7 +29,6 @@ typedef struct {
 	size_t length;
 	size_t capacity;
 } dstring_t;
-
 
 /**
  * @brief Initialize a dstring.

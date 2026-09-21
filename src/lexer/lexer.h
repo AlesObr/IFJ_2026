@@ -9,8 +9,9 @@
 #ifndef IFJ26_LEXER_H
 #define IFJ26_LEXER_H
 
-#include <stdio.h>
+#include "../_utils/error.h"
 #include "../_utils/token.h"
+#include <stdio.h>
 
 /**
  * @brief Initializes the lexer with an input stream.
@@ -22,11 +23,11 @@ void lexer_init(FILE *input);
  * @brief Reads characters from the input stream and returns the next token.
  *
  * Functions on a pull principle. Advances input until a full token is recognized.
- * If a lexical error occurs, the implementation terminates the compiler
- * with exit code 1 (lexical error) according to IFJ specifications.
+ * If a lexical error occurs, the HErBA protocol will be involved.
  *
- * @return Recognized token with its type, value and line number.
+ * @param out_token Pointer to the token structure to be filled with the next token.
+ * @return Error code indicating success or failure of the operation.
  */
-Token lexer_get_next_token(void);
+Error lexer_get_next_token(Token *out_token);
 
 #endif /* IFJ26_LEXER_H */
