@@ -35,11 +35,14 @@ typedef enum token_type {
 	TOKEN_KEYWORD_IF,
 	TOKEN_KEYWORD_ELSE,
 	TOKEN_KEYWORD_WHILE,
+	TOKEN_KEYWORD_FOR,
+	TOKEN_KEYWORD_THEN,
+	TOKEN_KEYWORD_IMPORT,
 	TOKEN_KEYWORD_RETURN,
 
 	// Literals
 	TOKEN_LIT_INT,
-	TOKEN_LIT_FLOAT,
+	TOKEN_LIT_FLOAT, /**< In fact double */
 	TOKEN_LIT_STRING,
 
 	// Arithmetic operators
@@ -47,6 +50,9 @@ typedef enum token_type {
 	TOKEN_MINUS,
 	TOKEN_MUL,
 	TOKEN_DIV,
+	TOKEN_DOT,
+	TOKEN_AT,
+	TOKEN_EOL,
 
 	// Relational operators and assignment
 	TOKEN_ASSIGN,
@@ -56,6 +62,9 @@ typedef enum token_type {
 	TOKEN_LTE,
 	TOKEN_GT,
 	TOKEN_GTE,
+	TOKEN_AND,
+	TOKEN_OR,
+	TOKEN_NOT,
 
 	// Parentheses and punctuation
 	TOKEN_LPAREN,
