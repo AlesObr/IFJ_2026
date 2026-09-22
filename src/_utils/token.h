@@ -17,6 +17,7 @@
 #define IFJ26_TOKEN_H
 
 #include "../_utils/dstring.h"
+#include "../_utils/error.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -30,6 +31,19 @@ typedef enum token_type {
 	// Identifier and keywords
 	TOKEN_IDENTIFIER,
 	TOKEN_KEYWORD_DEF,
+	TOKEN_KEYWORD_DO,
+	TOKEN_KEYWORD_CLASS,
+	TOKEN_KEYWORD_CASE,
+	TOKEN_KEYWORD_EXT,
+	TOKEN_KEYWORD_TYPE,
+	TOKEN_KEYWORD_MATCH,
+	TOKEN_KEYWORD_BOOLEAN,
+	TOKEN_KEYWORD_LIST,
+	TOKEN_KEYWORD_FOR,
+	TOKEN_KEYWORD_INT,
+	TOKEN_KEYWORD_DOUBLE,
+	TOKEN_KEYWORD_STRING,
+	TOKEN_KEYWORD_UNIT,
 	TOKEN_KEYWORD_VAR,
 	TOKEN_KEYWORD_VAL,
 	TOKEN_KEYWORD_IF,
@@ -72,6 +86,8 @@ typedef enum token_type {
 	TOKEN_LBRACE,
 	TOKEN_RBRACE,
 	TOKEN_COLON,
+	TOKEN_LBRACKET,
+	TOKEN_RBRACKET,
 	TOKEN_SEMICOLON,
 	TOKEN_COMMA
 } TokenType;
