@@ -53,6 +53,9 @@ typedef enum token_type {
 	TOKEN_KEYWORD_THEN,
 	TOKEN_KEYWORD_IMPORT,
 	TOKEN_KEYWORD_RETURN,
+	TOKEN_KEYWORD_NULL,
+	TOKEN_KEYWORD_TRUE,
+	TOKEN_KEYWORD_FALSE,
 
 	// Literals
 	TOKEN_LIT_INT,
@@ -67,6 +70,9 @@ typedef enum token_type {
 	TOKEN_DOT,
 	TOKEN_AT,
 	TOKEN_EOL,
+	TOKEN_INDENT,
+	TOKEN_UNDERSCORE,
+	TOKEN_COLON,
 
 	// Relational operators and assignment
 	TOKEN_ASSIGN,
