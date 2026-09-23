@@ -14,6 +14,13 @@
 #include <stdio.h>
 
 /**
+ * @brief Enumeration of lexer states.
+ */
+typedef enum {
+	STATE_START,
+} LexerState;
+
+/**
  * @brief Initializes the lexer with an input stream.
  * @param input Open file stream to read source characters from (e.g. stdin).
  */

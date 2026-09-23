@@ -13,13 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/**
- * @brief Enumeration of lexer states.
- */
-typedef enum {
-	STATE_START,
-} LexerState;
-
 /*All Global vars. belove are important to keep curent state of Lexer */
 /** The current state of the lexer. */
 static LexerState current_state = STATE_START;
