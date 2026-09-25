@@ -59,20 +59,21 @@ typedef enum {
  * @brief Enumeration of binary and unary operation types.
  */
 typedef enum {
-	OP_ADD,		   // +
-	OP_SUB,		   // -
-	OP_MUL,		   // *
-	OP_DIV,		   // /
-	OP_CONCAT,	   // ~
-	OP_ASSIGN,	   // =
-	OP_EQ,		   // ==
-	OP_NEQ,		   // !=
-	OP_LT,		   // <
-	OP_LTE,		   // <=
-	OP_GT,		   // >
-	OP_GTE,		   // >=
-	OP_NOT,		   // ! (unary)
-	OP_UNARY_MINUS // - (unary)
+	OP_ADD,			// +
+	OP_SUB,			// -
+	OP_MUL,			// *
+	OP_DIV,			// /
+	OP_CONCAT,		// ~
+	OP_ASSIGN,		// =
+	OP_EQ,			// ==
+	OP_NEQ,			// !=
+	OP_LT,			// <
+	OP_LTE,			// <=
+	OP_GT,			// >
+	OP_GTE,			// >=
+	OP_NOT,			// ! (unary)
+	OP_UNARY_MINUS, // - (unary)
+	OP_UNAARY_PLUS	// + (unary)
 } OpType;
 
 typedef struct ASTNode ASTNode;
