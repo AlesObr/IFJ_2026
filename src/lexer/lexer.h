@@ -3,6 +3,7 @@
  * @file lexer.h
  * @brief Lexer module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
+ * @author Jirka Kolek (xkolekj00)
  * @note Standard: ISO C11
  */
 

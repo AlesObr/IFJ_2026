@@ -3,6 +3,7 @@
  * @file lexer.c
  * @brief Lexer module implementation for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
+ * @author Jirka Kolek (xkolekj00)
  * @note Standard: ISO C11
  */
 
@@ -38,6 +39,21 @@ Error lexer_get_next_token(Token *out_token) {
 	out_token->data.str_val = NULL;
 	out_token->line = current_line;
 	out_token->col = current_col;
+
+	switch (out_token->type) {
+		case :
+			if (/** the thing that holds the current char, out_token? */ == '\n') {
+				//getc
+				//ungetc
+				out_token->col = 0;
+				out_token->line++;
+			}
+			else
+				out_token->col++;
+			break;
+		default:
+			return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Invalid token.");
+	}
 
 	// @dev(Jirka Kolek) Při průchodu je třeba updateovat current_line a current_col podle toho,
 	// @dev kolik znaků jsme přečetli a zda jsme narazili na nový řádek.
