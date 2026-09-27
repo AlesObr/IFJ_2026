@@ -23,6 +23,15 @@ typedef enum {
 } LexerState;
 
 /**
+ * @brief Support structure for lexemes, keeps track of previous position for pushbacks
+ */
+typedef struct {
+	size_t previous_line;
+	size_t previous_col;
+	int current_lexeme;
+} LexemeState;
+
+/**
  * @brief Initializes the lexer with an input stream.
  * @param input Open file stream to read source characters from (e.g. stdin).
  */
@@ -41,18 +50,19 @@ void lexer_init(FILE *input);
 Error lexer_get_next_token(Token *out_token);
 
 /**
- * @brief Loads in a single charecter from the input stream.
+ * @brief Loads in a single character from the input stream.
  *
+ * @param lexeme The character to be read and companion information for correct pushbacks
  * @param input Opened stream to be read from
  */
-int lexer_take(FILE *input);
+int lexer_take(LexemeState *lexeme, FILE *input);
 
 /**
  * @brief Return a single character to the input stream.
  *
- * @param lexeme The character to be returned
- * @param input Opened stream where the charecter will be returned to
+ * @param lexeme The character to be returned and companion information for correct pushbacks
+ * @param input Opened stream where the character will be returned to
  */
-void lexer_give(int lexeme, FILE *input);
+void lexer_give(LexemeState *lexeme, FILE *input);
 
 #endif /* IFJ26_LEXER_H */

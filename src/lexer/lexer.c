@@ -17,6 +17,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define NEWLINE 10
+#define WHITESPACE 32
+
 /*All Global vars. Below are the important ones to keep current state of Lexer */
 static LexerState current_state = STATE_START; /** The current state of the lexer. */
 
@@ -29,24 +32,28 @@ void lexer_init(FILE *input) {
 	current_line = 1;
 }
 
-int lexer_take(FILE *source_file) {
-	int lexeme = getc(source_file);
+int lexer_take(LexemeState *lexeme, FILE *source_file) {
+	lexeme->current_lexeme = getc(source_file);
+	lexeme->previous_col = current_col;
+	lexeme->previous_line = current_line;
 	current_col++;
-	switch (lexeme) {
-		case '\10':
+	switch (lexeme->current_lexeme) {
+		case NEWLINE:
 			current_line++;
 			current_col = 0;
-			return lexeme;
+			//the moment NEWLINE needs to be a token, I kinda lose the previous col position here
+			return lexeme->current_lexeme;
 		case EOF: //possible two entries - real EOF (feof()) and read error (ferror())
 			return EOF;
 		default:
-			return lexeme;
+			return lexeme->current_lexeme;
 	}
 }
 
-void lexer_give(int lexeme, FILE *source_file) {
-	current_col--;
-	ungetc(lexeme, source_file);
+void lexer_give(LexemeState *lexeme, FILE *source_file) {
+	current_col = lexeme->previous_col;
+	current_line = lexeme->previous_line;
+	ungetc(lexeme->current_lexeme, source_file);
 }
 
 
@@ -63,12 +70,16 @@ Error lexer_get_next_token(Token *out_token) {
 	out_token->line = current_line;
 	out_token->col = current_col;
 
-	int lexeme = lexer_take(source_file);
-	while (lexeme == '\32') {
-		lexeme = lexer_take(source_file);
+	LexemeState lexeme;
+	lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+	//int lexeme rovna se lexer_take(source_file)
+	/**
+	 * cannot do this as we need to keep track of the whitespaces for matching indentation :(
+	swhile (lexeme == WHITESPACE) {
+		#lexeme = lexer_take(source_file)
 	}
-
-	switch (lexeme) {
+	*/
+	switch (lexeme.current_lexeme) {
 		case EOF:
 			out_token->type = TOKEN_EOF;
 			break;
@@ -82,7 +93,7 @@ Error lexer_get_next_token(Token *out_token) {
 	switch (out_token->type) { //this whole thing is just plain wrong
 		case TOKEN_EOF:	return ERROR_OK();
 		case '':
-			if (lexeme == '\n') {
+			if (lexeme.current_lexeme == NEWLINE) {
 				//getc
 				//ungetc
 				out_token->col = 0;
