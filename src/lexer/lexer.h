@@ -39,4 +39,18 @@ void lexer_init(FILE *input);
  */
 Error lexer_get_next_token(Token *out_token);
 
+/**
+ * @brief Loads in a single charecter from the input stream.
+ *
+ * @param input Opened stream to be read from
+ */
+void lexer_take(FILE *input);
+
+/**
+ * @brief Return a single character to the input stream.
+ *
+ * @param input Opened stream where the charecter will be returned to
+ */
+void lexer_give(FILE *input);
+
 #endif /* IFJ26_LEXER_H */
