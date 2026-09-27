@@ -19,6 +19,7 @@
  */
 typedef enum {
 	STATE_START,
+	STATE_END,
 } LexerState;
 
 /**
@@ -44,13 +45,14 @@ Error lexer_get_next_token(Token *out_token);
  *
  * @param input Opened stream to be read from
  */
-void lexer_take(FILE *input);
+int lexer_take(FILE *input);
 
 /**
  * @brief Return a single character to the input stream.
  *
+ * @param lexeme The character to be returned
  * @param input Opened stream where the charecter will be returned to
  */
-void lexer_give(FILE *input);
+void lexer_give(int lexeme, FILE *input);
 
 #endif /* IFJ26_LEXER_H */
