@@ -41,7 +41,7 @@ int lexer_take(LexemeState *lexeme, FILE *source_file) {
 		case NEWLINE:
 			current_line++;
 			current_col = 0;
-			//the moment NEWLINE needs to be a token, I kinda lose the previous col position here
+			//the moment NEWLINE needs to be a token, I kinda lose the previous col position here??
 			return lexeme->current_lexeme;
 		case EOF: //possible two entries - real EOF (feof()) and read error (ferror())
 			return EOF;
@@ -72,38 +72,8 @@ Error lexer_get_next_token(Token *out_token) {
 
 	LexemeState lexeme;
 	lexeme.current_lexeme = lexer_take(&lexeme, source_file);
-	//int lexeme rovna se lexer_take(source_file)
-	/**
-	 * cannot do this as we need to keep track of the whitespaces for matching indentation :(
-	swhile (lexeme == WHITESPACE) {
-		#lexeme = lexer_take(source_file)
-	}
-	*/
-	switch (lexeme.current_lexeme) {
-		case EOF:
-			out_token->type = TOKEN_EOF;
-			break;
-		case /*somehow cislo*/:
-			out_token->type = TOKEN_DIGIT;
-			out_token->line = current_line;
-			out_token->col = current_col;
-			break;
-	}
-
-	switch (out_token->type) { //this whole thing is just plain wrong
-		case TOKEN_EOF:	return ERROR_OK();
-		case '':
-			if (lexeme.current_lexeme == NEWLINE) {
-				//getc
-				//ungetc
-				out_token->col = 0;
-				out_token->line++;
-			}
-			else
-				out_token->col++;
-			break;
-		default:
-			return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Invalid token.");
+	if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
+		return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
 	}
 
 	// @dev(Jirka Kolek) Při průchodu je třeba updateovat current_line a current_col podle toho,
