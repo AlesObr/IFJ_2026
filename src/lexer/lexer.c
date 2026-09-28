@@ -8,9 +8,6 @@
  */
 
 #include "lexer.h"
-
-#include <ctype.h>
-
 #include "../_utils/dstring.h"
 #include "../_utils/error.h"
 #include "../_utils/token.h"
@@ -26,6 +23,9 @@ static LexerState current_state = STATE_START; /** The current state of the lexe
 static FILE *source_file = NULL; /** The input file being lexed - it will be de facto STDIN */
 static size_t current_line = 1;	 /** The current line number in the source file being lexed */
 static size_t current_col = 1;	 /** The current column number in the source file being lexed */
+
+static size_t token_start_line = 1; /** Starting line of a token */
+static size_t token_start_col = 1; /** Starting column of a token */
 
 void lexer_init(FILE *input) {
 	source_file = input;
@@ -65,16 +65,52 @@ Error lexer_get_next_token(Token *out_token) {
 	token_init(out_token);
 
 	// @dev(Jirka Kolek) Tady budeme implementovat samotnou logiku lexeru => DKA
-	out_token->type = TOKEN_EOF;
-	out_token->data.str_val = NULL;
-	out_token->line = current_line;
-	out_token->col = current_col;
+	for (;;) {
+		LexemeState lexeme;
+		lexeme.current_lexeme = lexer_take(&lexeme, source_file); //current_lexeme is INT
 
-	LexemeState lexeme;
-	lexeme.current_lexeme = lexer_take(&lexeme, source_file);
-	if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
-		return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
+		if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
+			return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
+		}
+
+		switch (current_state) {
+			case STATE_START:
+				if (lexeme.current_lexeme == EOF) {
+					out_token->type = TOKEN_EOF;
+					out_token->data.str_val = NULL;
+					out_token->line = current_line;
+					out_token->col = current_col;
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == WHITESPACE || lexeme.current_lexeme == '\t') { //not yet solved whitespace logic
+					continue;
+				}
+				if (lexeme.current_lexeme == '(') {
+					out_token->type = TOKEN_LPAREN;
+					out_token->data.str_val = NULL;
+					out_token->line = current_line;
+					out_token->col = current_col;
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '0') {
+					token_start_line = current_line;
+					token_start_col = current_col;
+					current_state = STATE_ZERO_SEEN;
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme >= '1' && lexeme.current_lexeme <= '9'){
+					token_start_line = current_line;
+					token_start_col = current_col;
+					current_state = STATE_NUMBER_SEEN;
+					return ERROR_OK();
+				}
+				//need to fill in the other possible states, structure comes first
+				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Unexpected character.");
+			default:
+				break;
+		}
 	}
+
 
 	// @dev(Jirka Kolek) Při průchodu je třeba updateovat current_line a current_col podle toho,
 	// @dev kolik znaků jsme přečetli a zda jsme narazili na nový řádek.
