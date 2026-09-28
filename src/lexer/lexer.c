@@ -96,16 +96,67 @@ Error lexer_get_next_token(Token *out_token) {
 					token_start_line = current_line;
 					token_start_col = current_col;
 					current_state = STATE_ZERO_SEEN;
+					//add it to token string
 					return ERROR_OK();
 				}
 				if (lexeme.current_lexeme >= '1' && lexeme.current_lexeme <= '9'){
 					token_start_line = current_line;
 					token_start_col = current_col;
 					current_state = STATE_NUMBER_SEEN;
+					//add it to token string
 					return ERROR_OK();
 				}
+				//ctype will probably come in handy
 				//need to fill in the other possible states, structure comes first
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Unexpected character.");
+			case STATE_NUMBER_SEEN:
+				if (lexeme.current_lexeme >= '1' && lexeme.current_lexeme <= '9') {
+					//add it to token string
+					continue;
+				}
+				if (lexeme.current_lexeme == '.') {
+					current_state = STATE_WANNA_BE_DOUBLE;
+					//add it to token string
+					continue;
+				}
+				if (lexeme.current_lexeme == 'e' || lexeme.current_lexeme == 'E') {
+					current_state = STATE_WANNA_BE_DOUBLE;
+					//add it to token string
+					continue;
+				}
+				if (lexeme.current_lexeme == '_') {
+					current_state = STATE_DIV_DEC;
+					//add it to token string
+					continue;
+				}
+				// invalid continuation handling here?
+				// lexer_give() for returning the invalid read?
+				//out_token->type = ???
+				out_token->col = token_start_col;
+				out_token->line = token_start_line;
+				// continue; / return?
+			case STATE_ZERO_SEEN:
+				continue;
+			case STATE_WANNA_BE_DOUBLE:
+				continue;
+			case STATE_DOUBLE:
+				continue;
+			case STATE_DIV_DEC:
+				continue;
+			case STATE_UNDER_SCORE:
+				continue;
+			case STATE_WANNA_BE_EXP_1:
+				continue;
+			case STATE_WANNA_BE_EXP_2:
+				continue;
+			case STATE_EXP_SIGN_1:
+				continue;
+			case STATE_EXP_SIGN_2:
+				continue;
+			case STATE_EXPONENT:
+				continue;
+			case STATE_SUFFIX:
+				continue;
 			default:
 				break;
 		}
