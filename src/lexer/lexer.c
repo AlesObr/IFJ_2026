@@ -15,7 +15,6 @@
 #include <stdlib.h>
 
 /*All Global vars. Below are the important ones to keep current state of Lexer */
-
 static FILE *source_file = NULL; /** The input file being lexed - it will be de facto STDIN */
 static size_t current_line = 1;	 /** The current line number in the source file being lexed */
 static size_t current_col = 1;	 /** The current column number in the source file being lexed */
@@ -100,6 +99,11 @@ Error lexer_get_next_token(Token *out_token) {
 				}
 				if (lexeme.current_lexeme == '(') {
 					token_make_simple(out_token, TOKEN_LPAREN, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == ')') {
+					token_make_simple(out_token, TOKEN_RPAREN, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
