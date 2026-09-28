@@ -85,7 +85,6 @@ typedef enum token_type {
 	TOKEN_LBRACE,
 	TOKEN_RBRACE,
 	TOKEN_LBRACKET,
-	//@dev(Jirka Kolek) - stane se...
 	TOKEN_RBRACKET,
 	TOKEN_SEMICOLON,
 	TOKEN_COMMA
