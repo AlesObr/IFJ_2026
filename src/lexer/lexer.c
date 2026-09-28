@@ -18,7 +18,7 @@
 static FILE *source_file = NULL; /** The input file being lexed - it will be de facto STDIN */
 static size_t current_line = 1;	 /** The current line number in the source file being lexed */
 static size_t current_col = 1;	 /** The current column number in the source file being lexed */
-static size_t last_line_len = 0;
+static size_t last_line_len = 0; /** The length of the previous line */
 
 static size_t token_start_line = 1; /** Starting line of a token */
 static size_t token_start_col = 1;	/** Starting column of a token */
@@ -79,8 +79,7 @@ Error lexer_get_next_token(Token *out_token) {
 
 		switch (current_state) {
 			case STATE_START:
-				lexeme.current_lexeme = lexer_take(
-					&lexeme, source_file); //@dev current_lexeme is INT - zbytečný komentář
+				lexeme.current_lexeme = lexer_take(&lexeme, source_file);
 
 				if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
 					dstring_free(&token_buffer);
@@ -88,8 +87,8 @@ Error lexer_get_next_token(Token *out_token) {
 						ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
 				} // will probably need to be somehow incorporated into lexer_take
 				if (lexeme.current_lexeme == EOF) {
-					dstring_free(&token_buffer);
 					token_make_simple(out_token, TOKEN_EOF, current_line, current_col);
+					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
 				//@dev isspace() will probably come in handy for whitespace handling
