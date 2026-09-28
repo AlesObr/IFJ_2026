@@ -8,8 +8,8 @@ from pathlib import Path
 
 # File paths
 REPO_ROOT = Path(__file__).resolve().parent.parent
-FIXTURES_DIR = REPO_ROOT / "test" / "lexer_test" / "fixtures"
-BINARY = REPO_ROOT / "output" / "lexer_test"
+FIXTURES_DIR = REPO_ROOT / "test" / "lexer_test" / "fixtures" 
+BINARY = REPO_ROOT / "build" / "lexer_test"
 
 GREEN = "\033[92m"
 RED = "\033[91m"
@@ -75,15 +75,16 @@ def run_single_test(test_file: Path, use_valgrind: bool = False):
 def main():
     if not BINARY.exists():
         print(f"{RED}{BOLD}Chyba: Testovací binárka neexistuje na {BINARY}!{RESET}")
-        print(f"Spusť nejdřív: make test-lexer")
+        print("Spusť nejdřív: make scanner-build")
         sys.exit(1)
 
     use_valgrind = "--valgrind" in sys.argv
-    test_files = sorted(list(FIXTURES_DIR.glob("*.ifj")))
+    # Rekurzivní vyhledání testů ve všech podsložkách (basic, advanced...)
+    test_files = sorted(list(FIXTURES_DIR.rglob("*.ifj")))
 
     if not test_files:
-        print(f"{YELLOW}Ve složce {FIXTURES_DIR} nejsou žádné testy.{RESET}")
-        print("Spusť nejprve: python3 tests/generate_testcases.py")
+        print(f"{YELLOW}Ve složce {FIXTURES_DIR} nebyly nalezeny žádné .ifj testy.{RESET}")
+        print("Spusť nejprve: python3 test/lexer_test/generate_testcases.py")
         sys.exit(1)
 
     print(f"{BOLD}Spouštím {len(test_files)} testů lexeru...{RESET}")
@@ -94,15 +95,15 @@ def main():
     failed = 0
 
     for test_path in test_files:
-        test_name = test_path.stem
+        test_display = test_path.relative_to(FIXTURES_DIR)
         ok, msg = run_single_test(test_path, use_valgrind)
 
         if ok:
             passed += 1
-            print(f"  [{GREEN}PASS{RESET}] {test_name}")
+            print(f"  [{GREEN}PASS{RESET}] {test_display}")
         else:
             failed += 1
-            print(f"  [{RED}FAIL{RESET}] {test_name}")
+            print(f"  [{RED}FAIL{RESET}] {test_display}")
             for line in msg.splitlines():
                 print(f"         {line}")
 
