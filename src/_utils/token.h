@@ -3,7 +3,7 @@
  * @file token.h
  * @brief Token module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
- * @author admiral <Jkolikovec@gmail.com>
+ * @author Admiral (xkolekj00)
  * @note Standard: ISO C11
  */
 

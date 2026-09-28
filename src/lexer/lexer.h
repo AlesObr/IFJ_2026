@@ -3,7 +3,7 @@
  * @file lexer.h
  * @brief Lexer module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
- * @author admiral <Jkolikovec@gmail.com>
+ * @author Admiral (xkolekj00)
  * @note Standard: ISO C11
  */
 
@@ -36,7 +36,7 @@ typedef enum {
 	STATE_WANNABE_INT,
 	STATE_NUMBER,
 	STATE_LEADING_ZERO,
-	STATE_FLOAT, /**< State for double */
+	STATE_FLOAT, /**< State for double */ // you already have state for double? look at your own dka???
 	STATE_STRING,
 	STATE_COMMENT,
 	STATE_ML_COMMENT,
