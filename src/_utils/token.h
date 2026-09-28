@@ -121,4 +121,72 @@ void token_init(Token *t);
  */
 void token_destroy(Token *t);
 
+#include <stdbool.h>
+
+/**
+ * Helper for simple tokens without attributes (operators, punctuation, EOF, keywords).
+ */
+static inline Error token_make_simple(Token *t, TokenType type, size_t line, size_t col) {
+	t->type = type;
+	t->line = line;
+	t->col = col;
+	t->data.str_val = NULL;
+	return ERROR_OK();
+}
+
+/**
+ * Helper for integer literals.
+ */
+static inline Error token_make_int(Token *t, int64_t val, size_t line, size_t col) {
+	t->type = TOKEN_LIT_INT;
+	t->line = line;
+	t->col = col;
+	t->data.int_val = val;
+	return ERROR_OK();
+}
+
+/**
+ * Helper for floating point literals.
+ */
+static inline Error token_make_float(Token *t, double val, size_t line, size_t col) {
+	t->type = TOKEN_LIT_FLOAT;
+	t->line = line;
+	t->col = col;
+	t->data.float_val = val;
+	return ERROR_OK();
+}
+
+/**
+ * Helper for tokens with dynamic string data (identifiers, string literals).
+ * Takes ownership of the allocated string buffer or copies it.
+ */
+/**
+ * @brief Helper constructor for tokens with dynamic string data.
+ * @param t Target token to initialize.
+ * @param type Token type (identifier, string literal, etc.).
+ * @param src Dynamic string source buffer.
+ * @param line Line position in source code.
+ * @param col Column position in source code.
+ * @return ERROR_OK on success, ERR_INTERNAL on allocation failure.
+ */
+static inline Error token_make_str(
+	Token *t, TokenType type, dstring_t *src, size_t line, size_t col) {
+	t->type = type;
+	t->line = line;
+	t->col = col;
+
+	t->data.str_val = malloc(sizeof(dstring_t));
+	if (!t->data.str_val) {
+		return ERROR_EMIT(ERR_INTERNAL, line, col, "Allocation failure for token string.");
+	}
+
+	if (!dstring_init(t->data.str_val) || !dstring_copy(t->data.str_val, src)) {
+		free(t->data.str_val);
+		t->data.str_val = NULL;
+		return ERROR_EMIT(ERR_INTERNAL, line, col, "Failed to copy dynamic string.");
+	}
+
+	return ERROR_OK();
+}
+
 #endif /* IFJ26_TOKEN_H */

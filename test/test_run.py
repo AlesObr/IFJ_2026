@@ -4,6 +4,7 @@
 import sys
 import subprocess
 import difflib
+import argparse
 from pathlib import Path
 
 # File paths
@@ -73,22 +74,38 @@ def run_single_test(test_file: Path, use_valgrind: bool = False):
     return True, ""
 
 def main():
+    parser = argparse.ArgumentParser(description="Test runner pro lexer IFJ26")
+    parser.add_argument(
+        "--suite",
+        choices=["basic", "advanced", "all"],
+        default="all",
+        help="Výběr sady testů (basic, advanced, all - výchozí all)"
+    )
+    parser.add_argument(
+        "--valgrind",
+        action="store_true",
+        help="Spustit testy pod kontrolou Valgrindu"
+    )
+    args = parser.parse_args()
+
     if not BINARY.exists():
         print(f"{RED}{BOLD}Chyba: Testovací binárka neexistuje na {BINARY}!{RESET}")
         print("Spusť nejdřív: make scanner-build")
         sys.exit(1)
 
-    use_valgrind = "--valgrind" in sys.argv
-    # Rekurzivní vyhledání testů ve všech podsložkách (basic, advanced...)
-    test_files = sorted(list(FIXTURES_DIR.rglob("*.ifj")))
+    target_dir = FIXTURES_DIR
+    if args.suite in ["basic", "advanced"]:
+        target_dir = FIXTURES_DIR / args.suite
+
+    test_files = sorted(list(target_dir.rglob("*.ifj")))
 
     if not test_files:
-        print(f"{YELLOW}Ve složce {FIXTURES_DIR} nebyly nalezeny žádné .ifj testy.{RESET}")
+        print(f"{YELLOW}Ve složce {target_dir} nebyly nalezeny žádné .ifj testy.{RESET}")
         print("Spusť nejprve: python3 test/lexer_test/generate_testcases.py")
         sys.exit(1)
 
-    print(f"{BOLD}Spouštím {len(test_files)} testů lexeru...{RESET}")
-    if use_valgrind:
+    print(f"{BOLD}Spouštím {len(test_files)} testů lexeru (sada: {args.suite})...{RESET}")
+    if args.valgrind:
         print(f"{YELLOW}Aktivní kontrola přes Valgrind{RESET}")
 
     passed = 0
@@ -96,7 +113,7 @@ def main():
 
     for test_path in test_files:
         test_display = test_path.relative_to(FIXTURES_DIR)
-        ok, msg = run_single_test(test_path, use_valgrind)
+        ok, msg = run_single_test(test_path, args.valgrind)
 
         if ok:
             passed += 1
