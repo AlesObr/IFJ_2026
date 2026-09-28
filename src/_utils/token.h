@@ -3,14 +3,8 @@
  * @file token.h
  * @brief Token module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
+ * @author admiral <Jkolikovec@gmail.com>
  * @note Standard: ISO C11
- *
- * @par Ownership contract
- * Functions receiving a Token pointer borrow the instance; they do NOT take ownership.
- * The caller retains full ownership and is strictly responsible for calling token_destroy()
- * when the token is no longer needed.
- *
- * If any operation fails, the Token is guaranteed to remain in a valid, destructible state.
  */
 
 #ifndef IFJ26_TOKEN_H
@@ -49,7 +43,6 @@ typedef enum token_type {
 	TOKEN_KEYWORD_IF,
 	TOKEN_KEYWORD_ELSE,
 	TOKEN_KEYWORD_WHILE,
-	//TOKEN_KEYWORD_FOR,
 	TOKEN_KEYWORD_THEN,
 	TOKEN_KEYWORD_IMPORT,
 	TOKEN_KEYWORD_RETURN,
@@ -91,7 +84,6 @@ typedef enum token_type {
 	TOKEN_RPAREN,
 	TOKEN_LBRACE,
 	TOKEN_RBRACE,
-	//TOKEN_COLON, //@dev(Aleš Obr) Possible naming error? You're using the same one on line 75
 	TOKEN_LBRACKET,
 	TOKEN_RBRACKET,
 	TOKEN_SEMICOLON,
