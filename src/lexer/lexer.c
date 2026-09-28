@@ -73,14 +73,14 @@ Error lexer_get_next_token(Token *out_token) {
 	// @dev(Jirka Kolek) Tady budeme implementovat samotnou logiku lexeru => DKA
 	for (;;) {
 		LexemeState lexeme;
-		lexeme.current_lexeme = lexer_take(&lexeme, source_file); //current_lexeme is INT
-
-		if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
-			return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
-		}
 
 		switch (current_state) {
 			case STATE_START:
+				lexeme.current_lexeme = lexer_take(&lexeme, source_file); //current_lexeme is INT
+
+				if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
+					return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
+				} // will probably need to be somehow incorporated into lexer_take
 				if (lexeme.current_lexeme == EOF) {
 					out_token->type = TOKEN_EOF;
 					out_token->data.str_val = NULL;
@@ -140,12 +140,27 @@ Error lexer_get_next_token(Token *out_token) {
 				//out_token->type = ???
 				out_token->col = token_start_col;
 				out_token->line = token_start_line;
+
+				// @dev(Jirka Kolek) Implementace stavu pro číslo -> pokud následuje číslice,
+				// @dev pokračujeme, pokud následuje tečka, přecházíme do stavu float, pokud
+				// @dev následuje
+				// @dev jiný znak, je to integer dané číselné hodnoty a vracíš zpátky aktuálně
+				// @dev načtený stav
+
 				// continue; / return?
-			case STATE_ZERO_SEEN:
+			case STATE_ZERO_SEEN: //renamed to LEADING_ZERO???
+				// @dev(Jirka Kolek) Implementace stavu pro číslo začínající nulou -> pokud po nule
+				// @dev následuje číslice, je to chyba, pokud následuje tečka, je to float, pokud
+				// @dev následuje jiný znak, je to integer 0
 				continue;
 			case STATE_WANNA_BE_DOUBLE:
 				continue;
 			case STATE_DOUBLE:
+
+				// @dev(Jirka Kolek) Implementace stavu pro float -> pokud následuje číslice,
+				// @dev pokračujeme, pokud následuje jiný znak, je to float dané číselné hodnoty a
+				// @dev vracíš zpátky aktuálně načtený stav
+
 				continue;
 			case STATE_DIV_DEC:
 				continue;
@@ -165,6 +180,8 @@ Error lexer_get_next_token(Token *out_token) {
 				continue;
 			default:
 				break;
+
+			// @dev(Jirka Kolek) Implementace stavu pro chybu
 		}
 	}
 
