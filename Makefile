@@ -119,8 +119,8 @@ $(TARGET_LEXER_TEST): $(LEXER_SRC) $(LEXER_TEST_SRC) | $(BUILD_DIR)
 
 scanner-build: $(TARGET_LEXER_TEST)
 
-test-scanner: scanner-build
-	@python3 test/test_run.py
+test-scanner-basic: scanner-build
+	@python3 test/test_run.py --suit basic --timeout 0.5
 
 test-scanner-valgrind: scanner-build
 	@python3 test/lexer_test/generate_testcases.py

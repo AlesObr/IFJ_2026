@@ -15,6 +15,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * @brief Enumeration of token types.

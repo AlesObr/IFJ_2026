@@ -209,11 +209,13 @@ def gen_basic_suite(out_dir: Path):
     )
 
   for i, val in enumerate(INTS):
-    write_case(out_dir, f"valid_int_{i}", val, [f"1:LIT_INT:{val}", "1:EOF"])
+    clean_val = str(val).replace("_", "")
+    write_case(out_dir, f"valid_int_{i}", val, [f"1:LIT_INT:{clean_val}", "1:EOF"])
 
   for i, (src, val) in enumerate(FLOATS):
+    clean_val = str(val).replace("_", "")
     write_case(
-        out_dir, f"valid_float_{i}", src, [f"1:LIT_FLOAT:{val}", "1:EOF"]
+        out_dir, f"valid_float_{i}", src, [f"1:LIT_FLOAT:{clean_val}", "1:EOF"]
     )
 
   for i, (src, val) in enumerate(STRINGS):

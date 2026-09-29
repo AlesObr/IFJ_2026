@@ -18,7 +18,7 @@ YELLOW = "\033[93m"
 BOLD = "\033[1m"
 RESET = "\033[0m"
 
-def run_single_test(test_file: Path, use_valgrind: bool = False):
+def run_single_test(test_file: Path, use_valgrind: bool = False, timeout_sec: float = 3.0):
     exp_file = test_file.with_suffix(".expected")
     if not exp_file.exists():
         return False, f"Chybí referenční soubor: {exp_file.name}"
@@ -42,13 +42,20 @@ def run_single_test(test_file: Path, use_valgrind: bool = False):
         ])
     cmd.append(str(BINARY))
 
-    with open(test_file, "r", encoding="utf-8") as src_in:
-        proc = subprocess.run(
-            cmd,
-            stdin=src_in,
-            text=True,
-            capture_output=True
-        )
+    # Valgrind výrazně zpomaluje běh, limit dynamicky navýšíme
+    actual_timeout = timeout_sec * 5.0 if use_valgrind else timeout_sec
+
+    try:
+        with open(test_file, "r", encoding="utf-8") as src_in:
+            proc = subprocess.run(
+                cmd,
+                stdin=src_in,
+                text=True,
+                capture_output=True,
+                timeout=actual_timeout
+            )
+    except subprocess.TimeoutExpired:
+        return False, f"Test překročil časový limit ({actual_timeout:.1f}s) – možná nekonečná smyčka v automatu!"
 
     if use_valgrind and proc.returncode == 99:
         return False, f"Valgrind Memory Leak / Error:\n{proc.stderr}"
@@ -86,6 +93,12 @@ def main():
         action="store_true",
         help="Spustit testy pod kontrolou Valgrindu"
     )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=2.0,
+        help="Základní časový limit pro jeden test v sekundách (výchozí: 2.0s, pro valgrind se automaticky násobí)"
+    )
     args = parser.parse_args()
 
     if not BINARY.exists():
@@ -106,14 +119,14 @@ def main():
 
     print(f"{BOLD}Spouštím {len(test_files)} testů lexeru (sada: {args.suite})...{RESET}")
     if args.valgrind:
-        print(f"{YELLOW}Aktivní kontrola přes Valgrind{RESET}")
+        print(f"{YELLOW}Aktivní kontrola přes Valgrind (timeout násoben 5×){RESET}")
 
     passed = 0
     failed = 0
 
     for test_path in test_files:
         test_display = test_path.relative_to(FIXTURES_DIR)
-        ok, msg = run_single_test(test_path, args.valgrind)
+        ok, msg = run_single_test(test_path, args.valgrind, args.timeout)
 
         if ok:
             passed += 1
