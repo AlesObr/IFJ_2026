@@ -76,10 +76,10 @@ Error lexer_get_next_token(Token *out_token) {
 	// @dev(Jirka Kolek) Tady budeme implementovat samotnou logiku lexeru => DKA
 	for (;;) {
 		LexemeState lexeme;
+		lexeme.current_lexeme = lexer_take(&lexeme, source_file);
 
 		switch (current_state) {
 			case STATE_START:
-				lexeme.current_lexeme = lexer_take(&lexeme, source_file);
 
 				if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
 					dstring_free(&token_buffer);
@@ -122,36 +122,50 @@ Error lexer_get_next_token(Token *out_token) {
 					continue;
 					// @dev return tady být nesmí
 				}
+				if (lexeme.current_lexeme == '_') {
+					token_start_line = current_line;
+					token_start_col = current_col;
+					current_state = STATE_UNDER_SCORE;
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
+				}
+				if (lexeme.current_lexeme == '.') {
+					token_start_line = current_line;
+					token_start_col = current_col;
+					current_state = STATE_WANNA_BE_DOUBLE;
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
+				}
 				// ctype will probably come in handy
 				// need to fill in the other possible states, structure comes first
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Unexpected character.");
 			case STATE_NUMBER_SEEN:
-				if (lexeme.current_lexeme >= '1' && lexeme.current_lexeme <= '9') {
-					// add it to token string
+				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
 				}
 				if (lexeme.current_lexeme == '.') {
 					current_state = STATE_WANNA_BE_DOUBLE;
-					// add it to token string
+					dstring_append_char(&token_buffer, '.');
 					continue;
 				}
 				if (lexeme.current_lexeme == 'e' || lexeme.current_lexeme == 'E') {
-					current_state = STATE_WANNA_BE_DOUBLE;
-					// add it to token string
+					current_state = STATE_WANNA_BE_EXP_1;
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
 				}
 				if (lexeme.current_lexeme == '_') {
 					current_state = STATE_DIV_DEC;
-					// add it to token string
 					continue;
 				}
-				// invalid continuation handling here?
-				// lexer_give() for returning the invalid read?
-				// out_token->type = ???
-				out_token->col = token_start_col;
-				out_token->line = token_start_line;
 
+				// Return the integer token if we reach a non-digit character
+				lexer_give(&lexeme, source_file);
+				int64_t int_value = (int64_t)strtoll(dstring_get(&token_buffer), NULL, 10);
+				token_make_int(out_token, int_value, token_start_line, token_start_col);
+				dstring_free(&token_buffer);
+				return ERROR_OK();
 				// @dev(Jirka Kolek) Implementace stavu pro číslo -> pokud následuje číslice,
 				// @dev pokračujeme, pokud následuje tečka, přecházíme do stavu float, pokud
 				// @dev následuje
@@ -159,21 +173,75 @@ Error lexer_get_next_token(Token *out_token) {
 				// @dev načtený stav
 
 				// continue; / return?
-			case STATE_ZERO_SEEN: // renamed to LEADING_ZERO???
+			case STATE_ZERO_SEEN: //@dev renamed to LEADING_ZERO???
 				// @dev(Jirka Kolek) Implementace stavu pro číslo začínající nulou -> pokud po nule
 				// @dev následuje číslice, je to chyba, pokud následuje tečka, je to float, pokud
 				// @dev následuje jiný znak, je to integer 0
+				if (lexeme.current_lexeme == '.') {
+					current_state = STATE_WANNA_BE_DOUBLE;
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
+				}
+				if (lexeme.current_lexeme == 'e' || lexeme.current_lexeme == 'E') {
+					current_state = STATE_WANNA_BE_DOUBLE;
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+				}
+				if (lexeme.current_lexeme == '_') {
+					current_state = STATE_DIV_DEC;
+				};
+				lexer_give(&lexeme, source_file);
+				token_make_int(out_token, 0, token_start_line, token_start_col);
+				dstring_free(&token_buffer);
+				return ERROR_OK();
+
 				continue;
 			case STATE_WANNA_BE_DOUBLE:
+				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
+					current_state = STATE_DOUBLE;
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
+				}
 				continue;
 			case STATE_DOUBLE:
+				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
+				}
 
-				// @dev(Jirka Kolek) Implementace stavu pro float -> pokud následuje číslice,
+				// @dev(Jirka Kolek) - bude to asi chtít separátní stav pro to,
+				// @dev když doleze '_', abychom to správně vyhodnotili
+				// @dev '_' je legit i v doublu
+
+				// Exonent
+				if (lexeme.current_lexeme == 'e' || lexeme.current_lexeme == 'E') {
+					current_state = STATE_WANNA_BE_EXP_1;
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
+				}
+
+				if (lexeme.current_lexeme == 'd' || lexeme.current_lexeme == 'D') {
+					current_state = STATE_SUFFIX;
+					// We don't add the suffix to the buffer, as strtod will ignore it and we want
+					// to keep the value clean
+					continue;
+				}
+
+				lexer_give(&lexeme, source_file);
+				double double_val = strtod(dstring_get(&token_buffer), NULL);
+				token_make_float(out_token, double_val, token_start_line, token_start_col);
+				dstring_free(&token_buffer);
+				return ERROR_OK(); // @dev(Jirka Kolek) Implementace stavu pro float -> pokud
+								   // @dev následuje číslice,
 				// @dev pokračujeme, pokud následuje jiný znak, je to float dané číselné hodnoty a
 				// @dev vracíš zpátky aktuálně načtený stav
 
 				continue;
 			case STATE_DIV_DEC:
+				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					current_state = STATE_NUMBER_SEEN;
+					continue;
+				}
 				continue;
 			case STATE_UNDER_SCORE:
 				continue;
@@ -188,6 +256,11 @@ Error lexer_get_next_token(Token *out_token) {
 			case STATE_EXPONENT:
 				continue;
 			case STATE_SUFFIX:
+				lexer_give(&lexeme, source_file);
+				token_make_float(out_token, strtod(dstring_get(&token_buffer), NULL),
+					token_start_line, token_start_col);
+				dstring_free(&token_buffer);
+				return ERROR_OK();
 				continue;
 			default:
 				break;

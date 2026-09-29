@@ -36,7 +36,8 @@ typedef enum {
 	STATE_WANNABE_INT,
 	STATE_NUMBER,
 	STATE_LEADING_ZERO,
-	STATE_FLOAT, /**< State for double */ // you already have state for double? look at your own dka???
+	/**< State for double */ // you already have state for double? look at your own dka???
+	STATE_FLOAT,
 	STATE_STRING,
 	STATE_COMMENT,
 	STATE_ML_COMMENT,
