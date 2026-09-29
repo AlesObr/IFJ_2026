@@ -13,6 +13,7 @@
 #include "../_utils/token.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*All Global vars. Below are the important ones to keep current state of Lexer */
 static FILE *source_file = NULL; /** The input file being lexed - it will be de facto STDIN */
