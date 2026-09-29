@@ -136,6 +136,7 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
 				}
+
 				// ctype will probably come in handy
 				// need to fill in the other possible states, structure comes first
 				dstring_free(&token_buffer);
@@ -273,4 +274,53 @@ Error lexer_get_next_token(Token *out_token) {
 	// @dev kolik znaků jsme přečetli a zda jsme narazili na nový řádek.
 
 	return ERROR_OK();
+}
+
+TokenType is_it_keyword(const char *str) {
+	if (strcmp(str, "def") == 0) {
+		return TOKEN_KEYWORD_DEF;
+	} else if (strcmp(str, "do") == 0) {
+		return TOKEN_KEYWORD_DO;
+	} else if (strcmp(str, "class") == 0) {
+		return TOKEN_KEYWORD_CLASS;
+	} else if (strcmp(str, "case") == 0) {
+		return TOKEN_KEYWORD_CASE;
+	} else if (strcmp(str, "ext") == 0) {
+		return TOKEN_KEYWORD_EXT;
+	} else if (strcmp(str, "type") == 0) {
+		return TOKEN_KEYWORD_TYPE;
+	} else if (strcmp(str, "match") == 0) {
+		return TOKEN_KEYWORD_MATCH;
+	} else if (strcmp(str, "boolean") == 0) {
+		return TOKEN_KEYWORD_BOOLEAN;
+	} else if (strcmp(str, "list") == 0) {
+		return TOKEN_KEYWORD_LIST;
+	} else if (strcmp(str, "for") == 0) {
+		return TOKEN_KEYWORD_FOR;
+	} else if (strcmp(str, "int") == 0) {
+		return TOKEN_KEYWORD_INT;
+	} else if (strcmp(str, "double") == 0) {
+		return TOKEN_KEYWORD_DOUBLE;
+	} else if (strcmp(str, "string") == 0) {
+		return TOKEN_KEYWORD_STRING;
+	} else if (strcmp(str, "unit") == 0) {
+		return TOKEN_KEYWORD_UNIT;
+	} else if (strcmp(str, "var") == 0) {
+		return TOKEN_KEYWORD_VAR;
+	} else if (strcmp(str, "val") == 0) {
+		return TOKEN_KEYWORD_VAL;
+	} else if (strcmp(str, "if") == 0) {
+		return TOKEN_KEYWORD_IF;
+	} else if (strcmp(str, "else") == 0) {
+		return TOKEN_KEYWORD_ELSE;
+	} else if (strcmp(str, "while") == 0) {
+		return TOKEN_KEYWORD_WHILE;
+	} else if (strcmp(str, "then") == 0) {
+		return TOKEN_KEYWORD_THEN;
+	} else if (strcmp(str, "import") == 0) {
+		return TOKEN_KEYWORD_IMPORT;
+	} else if (strcmp(str, "return") == 0) {
+		return TOKEN_KEYWORD_RETURN;
+	}
+	return TOKEN_IDENTIFIER;
 }
