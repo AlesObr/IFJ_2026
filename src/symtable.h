@@ -20,6 +20,9 @@ typedef struct {
 	char* identif; /**< Name of symbol */
 } symbol;
 
+/**
+ *	@brief Public definition of inner symbol table structure
+*/
 typedef struct symtable_t symtable;
 
 /**
@@ -43,7 +46,7 @@ bool symtable_insert(symtable* htable, ASTNode* node);
  *  @param identif Name of symbol to be found
  *  @return True if symbol found, false if not
  */
-int symtable_search(symtable* htable, char* identif);
+bool symtable_search(symtable* htable, char* identif);
 
 /**
  *  @brief Retrieves data of symbol from symbol table
