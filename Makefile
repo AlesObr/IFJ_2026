@@ -24,6 +24,9 @@ DSTRING_TEST_SRC = test/dstring_test.c
 AST_SRC          = src/parser/ast.c $(DSTRING_SRC)
 AST_TEST_SRC     = test/ast_test.c
 
+SYMTABLE_SRC      = src/symtable.c $(AST_SRC)
+SYMTABLE_TEST_SRC = test/symtable_test.c
+
 LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c $(DSTRING_SRC)
 LEXER_TEST_SRC   = test/lexer_test/lexer_test.c
 
@@ -36,6 +39,9 @@ TARGET_DSTRING_VALGRIND  = $(BUILD_DIR)/test_dstring_valgrind
 TARGET_AST_ASAN          = $(BUILD_DIR)/test_ast_asan
 TARGET_AST_VALGRIND      = $(BUILD_DIR)/test_ast_valgrind
 
+TARGET_SYMTABLE_ASAN     = $(BUILD_DIR)/test_symtable_asan
+TARGET_SYMTABLE_VALGRIND = $(BUILD_DIR)/test_symtable_valgrind
+
 TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
 
 # ----------------------------------------------------------------------
@@ -44,15 +50,16 @@ TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
 .PHONY: all check clean \
         dstring-asan dstring-valgrind dstring-check \
         ast-asan ast-valgrind ast-check test_ast \
+        symtable-asan symtable-valgrind symtable-check test_symtable \
         scanner-build test-scanner test-scanner-valgrind \
-        linter linter-full linter-fix headers format \
+        linter linter-full linter-clear linter-fix headers format \
         zip make_us_happy dist-prep
 
-# Výchozí cíl: spustí všechny rychlé testy
+# Výchozí cíl: spustí všechny subsystémové testy
 all: check
 
-check: dstring-check ast-check
-	@echo "\033[32m✓ Všechny základní subsystémové testy (dstring + AST) prošly.\033[0m"
+check: dstring-check ast-check symtable-check
+	@echo "\033[32m✓ Všechny základní subsystémové testy (dstring + AST + symtable) prošly.\033[0m"
 
 # ----------------------------------------------------------------------
 # Vytvoření adresářů
@@ -112,6 +119,32 @@ ast-check: ast-asan ast-valgrind
 test_ast: ast-asan
 
 # ----------------------------------------------------------------------
+# Unit testy: symtable (ASan & Valgrind)
+# ----------------------------------------------------------------------
+$(TARGET_SYMTABLE_ASAN): $(SYMTABLE_SRC) $(SYMTABLE_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -fsanitize=address,undefined $(INCLUDES) $^ -o $@
+
+$(TARGET_SYMTABLE_VALGRIND): $(SYMTABLE_SRC) $(SYMTABLE_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+symtable-asan: $(TARGET_SYMTABLE_ASAN)
+	@echo "=== [symtable] Běh pod AddressSanitizer & UBSan ==="
+	@./$(TARGET_SYMTABLE_ASAN)
+
+symtable-valgrind: $(TARGET_SYMTABLE_VALGRIND)
+	@echo "=== [symtable] Běh pod Valgrind ==="
+	@valgrind --leak-check=full \
+	          --show-leak-kinds=all \
+	          --track-origins=yes \
+	          --error-exitcode=42 \
+	          ./$(TARGET_SYMTABLE_VALGRIND)
+
+symtable-check: symtable-asan symtable-valgrind
+	@echo "\033[32m✓ Unit testy symtable prošly.\033[0m"
+
+test_symtable: symtable-asan
+
+# ----------------------------------------------------------------------
 # Lexer / Scanner testy
 # ----------------------------------------------------------------------
 $(TARGET_LEXER_TEST): $(LEXER_SRC) $(LEXER_TEST_SRC) | $(BUILD_DIR)
@@ -119,8 +152,14 @@ $(TARGET_LEXER_TEST): $(LEXER_SRC) $(LEXER_TEST_SRC) | $(BUILD_DIR)
 
 scanner-build: $(TARGET_LEXER_TEST)
 
+test-scanner-basic: scanner-build
+	@python3 test/test_run.py --suit basic --timeout 0.5
+
+test-scanner-advanced: scanner-build
+	@python3 test/test_run.py --suit advanced --timeout 0.5
+
 test-scanner: scanner-build
-	@python3 test/test_run.py
+	@python3 test/test_run.py --timeout 0.5
 
 test-scanner-valgrind: scanner-build
 	@python3 test/lexer_test/generate_testcases.py

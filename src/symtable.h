@@ -10,27 +10,27 @@
 #ifndef IFJ26_SYMTABLE_H
 #define IFJ26_SYMTABLE_H
 
-#include "ast.h"
+#include "../src/parser/ast.h"
 #include <stdbool.h>
 
 /**
  *  @brief Element of symbol table
-*/
+ */
 typedef struct {
-	char* key; /**< Name of symbol */
+	char *key; /**< Name of symbol */
 } symbol;
 
 /**
  *	@brief Public definition of inner symbol table structure
-*/
+ */
 typedef struct symtable_t symtable;
 
 /**
  *  @brief Initializes symbol table
  *  @param capacity Number of elements in symbol table
  *  @return Pointer of allocated symtable, NULL if problem with memory allocation
-*/
-symtable* symtable_init(int capacity);
+ */
+symtable *symtable_init(int capacity);
 
 /**
  *  @brief Insert symbol into symbol table
@@ -38,7 +38,7 @@ symtable* symtable_init(int capacity);
  *  @param node AST node containing data to be saved as symbol
  *  @return 0 if success, 1 if insertion fails
  */
-bool symtable_insert(symtable* htable, ASTNode* node);
+bool symtable_insert(symtable *htable, ASTNode *node);
 
 /**
  *  @brief Checks whether symbol is already in symbol table
@@ -46,7 +46,7 @@ bool symtable_insert(symtable* htable, ASTNode* node);
  *  @param key Name of symbol to be found
  *  @return True if symbol found, false if not
  */
-bool symtable_search(symtable* htable, char* key);
+bool symtable_search(symtable *htable, char *key);
 
 /**
  *  @brief Retrieves data of symbol from symbol table
@@ -54,11 +54,11 @@ bool symtable_search(symtable* htable, char* key);
  *  @param key Name of symbol to be retrieved
  *  @return Pointer to symbol if found, NULL otherwise
  */
-const symbol* symtable_get_data(symtable* htable, char* key);
+const symbol *symtable_get_data(symtable *htable, char *key);
 
 /**
  *  @brief Frees memory allocated in symbol table
-*/
-void symtable_destroy(symtable* htable);
+ */
+void symtable_destroy(symtable *htable);
 
 #endif /* IFJ26_SYMTABLE_H */
