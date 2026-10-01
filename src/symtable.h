@@ -17,7 +17,7 @@
  *  @brief Element of symbol table
 */
 typedef struct {
-	char* identif; /**< Name of symbol */
+	char* key; /**< Name of symbol */
 } symbol;
 
 /**
@@ -43,18 +43,18 @@ bool symtable_insert(symtable* htable, ASTNode* node);
 /**
  *  @brief Checks whether symbol is already in symbol table
  *  @param htable Symbol table to find symbol in
- *  @param identif Name of symbol to be found
+ *  @param key Name of symbol to be found
  *  @return True if symbol found, false if not
  */
-bool symtable_search(symtable* htable, char* identif);
+bool symtable_search(symtable* htable, char* key);
 
 /**
  *  @brief Retrieves data of symbol from symbol table
  *  @param htable Symbol table to find symbol in
- *  @param identif Name of symbol to be retrieved
+ *  @param key Name of symbol to be retrieved
  *  @return Pointer to symbol if found, NULL otherwise
  */
-const symbol* symtable_get_data(symtable* htable, char* identif);
+const symbol* symtable_get_data(symtable* htable, char* key);
 
 /**
  *  @brief Frees memory allocated in symbol table

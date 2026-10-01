@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define MIN_TABLE_SIZE 2
+
 /**
  * @brief Inner symbol table structure
 */
@@ -21,6 +23,18 @@ struct symtable_t{
 };
 
 /** --- Symbol table inner methods --- */
+
+/**
+ * @brief Compares 2 keys of symbol table
+ * @param key1 1st key string to compare
+ * @param key2 2nd key string to compare
+ * @return true if keys are equal, false otherwise
+*/
+bool key_compare(const char* key1, const char* key2){
+	const char* key1_val = (key1 != NULL) ? key1 : "";
+	const char* key2_val = (key2 != NULL) ? key2 : "";
+	return (strcmp(key1_val, key2_val) == 0);
+}
 
 /**
  * @brief Hashes entry onto symbol table index
@@ -36,7 +50,13 @@ int hash_function(symtable* htable, AST_node* node){
  * @return Pointer to symbol containing key if found, pointer to end of synonym list if not present
 */
 symbol** find_symbol(symtable* htable, char* key){
-	return NULL;
+	int idx = hash_function(htable, key);
+	while(true){
+		if ((htable->htable[idx] == NULL) || key_compare(htable->htable[idx]->key, key)){
+			return &(htable->htable[idx]);
+		}
+		idx = (idx + 1) % (htable->capacity + 1);
+	}
 }
 
 /**
@@ -45,26 +65,14 @@ symbol** find_symbol(symtable* htable, char* key){
  * @param node AST node to be converted into symbol
  * @return 0 if success, 1 if memmory allocation problem or missing node members
 */
-int convert_to_symbol(symbol* mem, AST_node* node){
+int convert_to_symbol(symbol** mem, AST_node* node){
 	return 1;
-}
-
-/**
- * @brief Compares 2 keys of symbol table
- * @param key1 1st key string to compare
- * @param key2 2nd key string to compare
- * @return true if keys are equal, false otherwise
-*/
-bool key_compare(const char* key1, const char* key2){
-	const char* key1_val = (key1 != NULL) ? key1 : "";
-	const char* key2_val = (key2 != NULL) ? key2 : "";
-	return (strcmp(key1_val, key2_val) == 0);
 }
 
 /** --- Symbol table public methods --- */
 
 symtable* symtable_init(int capacity){
-	if (capacity <= 0){
+	if (capacity < MIN_TABLE_SIZE){
 		return NULL;
 	}
 	symtable* htable = malloc(sizeof(symtable));
@@ -72,7 +80,7 @@ symtable* symtable_init(int capacity){
 		return NULL;
 	}
 	htable->size = 0;
-	htable->capacity = capacity;
+	htable->capacity = capacity-1;
 	htable->htable = calloc(capacity, sizeof(symbol*));
 	if (htable->htable == NULL){
 		free(htable);
@@ -92,19 +100,21 @@ bool symtable_insert(symtable* htable, AST_node* node){
 	if (item == NULL || *item != NULL){
 		return false;
 	}
-	convert_to_symbol(item, node);
+	if (!(convert_to_symbol(item, node))){
+		return false;
+	}
 	htable->size += 1;
 	return true;
 }
 
-bool symtable_search(symtable* htable, char* identif){
-	symbol** item = find_symbol(htable, identif);
-	return !(item == NULL || *item == NULL || !key_compare((*item)->identif, identif));
+bool symtable_search(symtable* htable, char* key){
+	symbol** item = find_symbol(htable, key);
+	return !(item == NULL || *item == NULL || !key_compare((*item)->key, key));
 }
 
-const symbol* symtable_get_data(symtable* htable, char* identif){
-	symbol** item = find_symbol(htable, identif);
-	if (item != NULL && *item != NULL && key_compare((*item)->identif, identif)){
+const symbol* symtable_get_data(symtable* htable, char* key){
+	symbol** item = find_symbol(htable, key);
+	if (item != NULL && *item != NULL && key_compare((*item)->key, key)){
 		return *item;
 	}
 	return NULL;
