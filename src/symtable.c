@@ -9,6 +9,7 @@
 
 #include "symtable.h"
 #include <stdbool.h>
+#include <string.h>
 
 /**
  * @brief Inner symbol table structure
@@ -31,11 +32,10 @@ int hash_function(symtable* htable, AST_node* node){
 
 /**
  * @brief Find symbol containing key in symbol table
- * @param entry Entrance to synonym list
  * @param key Key to be found
  * @return Pointer to symbol containing key if found, pointer to end of synonym list if not present
 */
-symbol** find_idx(symtable* htable, int entry, char* key){
+symbol** find_symbol(symtable* htable, char* key){
 	return NULL;
 }
 
@@ -47,6 +47,18 @@ symbol** find_idx(symtable* htable, int entry, char* key){
 */
 int convert_to_symbol(symbol* mem, AST_node* node){
 	return 1;
+}
+
+/**
+ * @brief Compares 2 keys of symbol table
+ * @param key1 1st key string to compare
+ * @param key2 2nd key string to compare
+ * @return true if keys are equal, false otherwise
+*/
+bool key_compare(const char* key1, const char* key2){
+	const char* key1_val = (key1 != NULL) ? key1 : "";
+	const char* key2_val = (key2 != NULL) ? key2 : "";
+	return (strcmp(key1_val, key2_val) == 0);
 }
 
 /** --- Symbol table public methods --- */
@@ -76,9 +88,8 @@ bool symtable_insert(symtable* htable, AST_node* node){
 	if (htable->size == htable->capacity){
 		return false;
 	}
-	int idx = hash_function(htable, node);
-	symbol* item = find_idx(htable, idx);
-	if (item != NULL){
+	symbol** item = find_symbol(htable, idx);
+	if (item == NULL || *item != NULL){
 		return false;
 	}
 	convert_to_symbol(item, node);
@@ -87,10 +98,15 @@ bool symtable_insert(symtable* htable, AST_node* node){
 }
 
 bool symtable_search(symtable* htable, char* identif){
-	return false;
+	symbol** item = find_symbol(htable, identif);
+	return !(item == NULL || *item == NULL || !key_compare((*item)->identif, identif));
 }
 
 const symbol* symtable_get_data(symtable* htable, char* identif){
+	symbol** item = find_symbol(htable, identif);
+	if (item != NULL && *item != NULL && key_compare((*item)->identif, identif)){
+		return *item;
+	}
 	return NULL;
 }
 
@@ -98,7 +114,7 @@ void symtable_destroy(symtable* htable){
 	if (htable == NULL){
 		return;
 	}
-	for (int idx = 0; idx <htable->capacity; idx++){
+	for (int idx = 0; idx < htable->capacity; idx++){
 		if (htable->htable[idx] != NULL){
 			free(htable->htable[idx]);
 		}
