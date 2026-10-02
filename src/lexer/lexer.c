@@ -53,7 +53,7 @@ int lexer_take(LexemeState *lexeme, FILE *source_file) {
 void lexer_give(LexemeState *lexeme, FILE *source_file) {
 	if (lexeme->current_lexeme == EOF) {
 		return;
-	} //** Guard against eof, which should NEVER get this far */
+	} // Guard against eof, which should NEVER get this far
 	current_col = lexeme->previous_col;
 	current_line = lexeme->previous_line;
 	ungetc(lexeme->current_lexeme, source_file);
@@ -92,7 +92,7 @@ Error lexer_get_next_token(Token *out_token) {
 				}
 				// @dev isspace() will probably come in handy for whitespace handling
 				if (lexeme.current_lexeme == ' ' ||
-					lexeme.current_lexeme == '\t') { // not yet solved whitespace logic
+					lexeme.current_lexeme == '\t') { // @dev not yet solved whitespace logic
 					continue;
 				}
 				if (lexeme.current_lexeme == '(') {
@@ -195,6 +195,8 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
 				}
+				if (lexeme.current_lexeme == EOF)
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
 				continue;
 			case STATE_DOUBLE:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
@@ -236,12 +238,28 @@ Error lexer_get_next_token(Token *out_token) {
 					current_state = STATE_NUMBER_SEEN;
 					continue;
 				}
+				if (lexeme.current_lexeme == EOF)
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
 				continue;
 			case STATE_UNDER_SCORE:
 				continue;
 			case STATE_WANNA_BE_EXP_1:
+				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					current_state = STATE_EXPONENT;
+					continue;
+				}
+				if (lexeme.current_lexeme == EOF)
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
 				continue;
 			case STATE_WANNA_BE_EXP_2:
+				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					current_state = STATE_EXPONENT;
+					continue;
+				}
+				if (lexeme.current_lexeme == EOF)
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
 				continue;
 			case STATE_EXP_SIGN_1:
 				continue;
