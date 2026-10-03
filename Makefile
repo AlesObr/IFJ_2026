@@ -130,7 +130,6 @@ test-scanner: scanner-build
 
 
 test-scanner-valgrind: scanner-build
-	@python3 test/lexer_test/generate_testcases.py
 	@python3 test/test_run.py --valgrind
 
 # ----------------------------------------------------------------------
