@@ -186,7 +186,7 @@ Error lexer_get_next_token(Token *out_token) {
 					continue;
 				} // @dev toto tu dle dka být nemá ?
 				lexer_give(&lexeme, source_file);
-				token_make_int(out_token, 0, token_start_line, token_start_col);
+				token_make_int(out_token, lexeme.current_lexeme, token_start_line, token_start_col); // lexeme.current_lexeme ? 0
 				dstring_free(&token_buffer);
 				return ERROR_OK();
 
@@ -197,8 +197,10 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
 				}
-				if (lexeme.current_lexeme == EOF)
+				if (lexeme.current_lexeme == EOF){
+					dstring_free(&token_buffer);
 					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
+				}
 				continue;
 			case STATE_DOUBLE:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
@@ -256,7 +258,14 @@ Error lexer_get_next_token(Token *out_token) {
 			case STATE_WANNA_BE_EXP_1:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					// @dev printf("%s", token_buffer.data);
 					current_state = STATE_EXPONENT;
+					continue;
+				}
+				if (lexeme.current_lexeme == '+' || lexeme.current_lexeme == '-') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					// @dev printf("%s", token_buffer.data);
+					current_state = STATE_EXP_SIGN_1;
 					continue;
 				}
 				if (lexeme.current_lexeme == EOF)
@@ -265,31 +274,45 @@ Error lexer_get_next_token(Token *out_token) {
 			case STATE_WANNA_BE_EXP_2:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					// @dev printf("%s", token_buffer.data);
 					current_state = STATE_EXPONENT;
+					continue;
+				}
+				if (lexeme.current_lexeme == '+' || lexeme.current_lexeme == '-') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					// @dev printf("%s", token_buffer.data);
+					current_state = STATE_EXP_SIGN_2;
 					continue;
 				}
 				if (lexeme.current_lexeme == EOF)
 					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
 				continue;
 			case STATE_EXP_SIGN_1:
-				if (lexeme.current_lexeme == '+' || lexeme.current_lexeme == '-') {
+				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					current_state = STATE_EXPONENT;
+					continue;
 				}
-				if (lexeme.current_lexeme == EOF)
+				if (lexeme.current_lexeme == EOF) {
+					dstring_free(&token_buffer);
 					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
+				}
 				continue;
 			case STATE_EXP_SIGN_2:
-				if (lexeme.current_lexeme == '+' || lexeme.current_lexeme == '-') {
+				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					current_state = STATE_EXPONENT;
+					continue;
 				}
-				if (lexeme.current_lexeme == EOF)
+				if (lexeme.current_lexeme == EOF){
+					dstring_free(&token_buffer);
 					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
+				}
 				continue;
 			case STATE_EXPONENT:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
 					// @dev exponent je koncový stav dka
 				}
 				if (lexeme.current_lexeme == EOF)
