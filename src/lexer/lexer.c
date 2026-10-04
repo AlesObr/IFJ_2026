@@ -41,6 +41,7 @@ int lexer_take(LexemeState *lexeme, FILE *source_file) {
 			current_line++;
 			last_line_len = current_col;
 			current_col = 1;
+			//out_token -> token type = EOL
 			return lexeme->current_lexeme;
 		case EOF: //** Possible two entries - real EOF (feof()) and read error (ferror()) */
 			return EOF;
