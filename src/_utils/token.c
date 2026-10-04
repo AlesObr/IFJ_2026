@@ -24,6 +24,7 @@ void token_init(Token *t) {
 	t->type = TOKEN_EOF;
 	t->data.str_val = NULL;
 	t->line = 1;
+	t->col = 1;
 }
 
 void token_destroy(Token *t) {
