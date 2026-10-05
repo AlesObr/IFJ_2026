@@ -160,7 +160,7 @@ Error lexer_get_next_token(Token *out_token) {
 					token_make_simple(out_token, TOKEN_EOL, lexeme.previous_line, lexeme.previous_col + 1);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
-				}
+				}// @dev maybe return this only when it makes sense?
 				if (lexeme.current_lexeme == '0') {
 					token_start_line = current_line;
 					token_start_col = current_col;
