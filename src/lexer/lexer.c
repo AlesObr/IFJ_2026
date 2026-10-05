@@ -60,6 +60,61 @@ void lexer_give(LexemeState *lexeme, FILE *source_file) {
 	ungetc(lexeme->current_lexeme, source_file);
 }
 
+TokenType is_it_keyword(const char *str) {
+	if (strcmp(str, "def") == 0) {
+		return TOKEN_KEYWORD_DEF;
+	} else if (strcmp(str, "do") == 0) {
+		return TOKEN_KEYWORD_DO;
+	} else if (strcmp(str, "class") == 0) {
+		return TOKEN_KEYWORD_CLASS;
+	} else if (strcmp(str, "case") == 0) {
+		return TOKEN_KEYWORD_CASE;
+	} else if (strcmp(str, "ext") == 0) {
+		return TOKEN_KEYWORD_EXT;
+	} else if (strcmp(str, "type") == 0) {
+		return TOKEN_KEYWORD_TYPE;
+	} else if (strcmp(str, "match") == 0) {
+		return TOKEN_KEYWORD_MATCH;
+	} else if (strcmp(str, "boolean") == 0) {
+		return TOKEN_KEYWORD_BOOLEAN;
+	} else if (strcmp(str, "list") == 0) {
+		return TOKEN_KEYWORD_LIST;
+	} else if (strcmp(str, "for") == 0) {
+		return TOKEN_KEYWORD_FOR;
+	} else if (strcmp(str, "int") == 0) {
+		return TOKEN_KEYWORD_INT;
+	} else if (strcmp(str, "double") == 0) {
+		return TOKEN_KEYWORD_DOUBLE;
+	} else if (strcmp(str, "string") == 0) {
+		return TOKEN_KEYWORD_STRING;
+	} else if (strcmp(str, "unit") == 0) {
+		return TOKEN_KEYWORD_UNIT;
+	} else if (strcmp(str, "var") == 0) {
+		return TOKEN_KEYWORD_VAR;
+	} else if (strcmp(str, "val") == 0) {
+		return TOKEN_KEYWORD_VAL;
+	} else if (strcmp(str, "if") == 0) {
+		return TOKEN_KEYWORD_IF;
+	} else if (strcmp(str, "else") == 0) {
+		return TOKEN_KEYWORD_ELSE;
+	} else if (strcmp(str, "while") == 0) {
+		return TOKEN_KEYWORD_WHILE;
+	} else if (strcmp(str, "then") == 0) {
+		return TOKEN_KEYWORD_THEN;
+	} else if (strcmp(str, "import") == 0) {
+		return TOKEN_KEYWORD_IMPORT;
+	} else if (strcmp(str, "return") == 0) {
+		return TOKEN_KEYWORD_RETURN;
+	} else if (strcmp(str, "null") == 0) {
+		return TOKEN_KEYWORD_NULL;
+	} else if (strcmp(str, "true") == 0) {
+		return TOKEN_KEYWORD_TRUE;
+	} else if (strcmp(str, "false") == 0) {
+		return TOKEN_KEYWORD_FALSE;
+	}
+	return TOKEN_IDENTIFIER;
+}
+
 Error lexer_get_next_token(Token *out_token) {
 	if (!out_token) {
 		return ERROR_EMIT(ERR_INTERNAL, current_line, current_col, "Output token pointer is NULL.");
@@ -523,59 +578,4 @@ Error lexer_get_next_token(Token *out_token) {
 		}
 	}
 	return ERROR_OK();
-}
-
-TokenType is_it_keyword(const char *str) {
-	if (strcmp(str, "def") == 0) {
-		return TOKEN_KEYWORD_DEF;
-	} else if (strcmp(str, "do") == 0) {
-		return TOKEN_KEYWORD_DO;
-	} else if (strcmp(str, "class") == 0) {
-		return TOKEN_KEYWORD_CLASS;
-	} else if (strcmp(str, "case") == 0) {
-		return TOKEN_KEYWORD_CASE;
-	} else if (strcmp(str, "ext") == 0) {
-		return TOKEN_KEYWORD_EXT;
-	} else if (strcmp(str, "type") == 0) {
-		return TOKEN_KEYWORD_TYPE;
-	} else if (strcmp(str, "match") == 0) {
-		return TOKEN_KEYWORD_MATCH;
-	} else if (strcmp(str, "boolean") == 0) {
-		return TOKEN_KEYWORD_BOOLEAN;
-	} else if (strcmp(str, "list") == 0) {
-		return TOKEN_KEYWORD_LIST;
-	} else if (strcmp(str, "for") == 0) {
-		return TOKEN_KEYWORD_FOR;
-	} else if (strcmp(str, "int") == 0) {
-		return TOKEN_KEYWORD_INT;
-	} else if (strcmp(str, "double") == 0) {
-		return TOKEN_KEYWORD_DOUBLE;
-	} else if (strcmp(str, "string") == 0) {
-		return TOKEN_KEYWORD_STRING;
-	} else if (strcmp(str, "unit") == 0) {
-		return TOKEN_KEYWORD_UNIT;
-	} else if (strcmp(str, "var") == 0) {
-		return TOKEN_KEYWORD_VAR;
-	} else if (strcmp(str, "val") == 0) {
-		return TOKEN_KEYWORD_VAL;
-	} else if (strcmp(str, "if") == 0) {
-		return TOKEN_KEYWORD_IF;
-	} else if (strcmp(str, "else") == 0) {
-		return TOKEN_KEYWORD_ELSE;
-	} else if (strcmp(str, "while") == 0) {
-		return TOKEN_KEYWORD_WHILE;
-	} else if (strcmp(str, "then") == 0) {
-		return TOKEN_KEYWORD_THEN;
-	} else if (strcmp(str, "import") == 0) {
-		return TOKEN_KEYWORD_IMPORT;
-	} else if (strcmp(str, "return") == 0) {
-		return TOKEN_KEYWORD_RETURN;
-	} else if (strcmp(str, "null") == 0) {
-		return TOKEN_KEYWORD_NULL;
-	} else if (strcmp(str, "true") == 0) {
-		return TOKEN_KEYWORD_TRUE;
-	} else if (strcmp(str, "false") == 0) {
-		return TOKEN_KEYWORD_FALSE;
-	}
-	return TOKEN_IDENTIFIER;
 }
