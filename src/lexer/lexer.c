@@ -292,7 +292,6 @@ Error lexer_get_next_token(Token *out_token) {
 					token_make_simple(out_token, TOKEN_PIPE, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
-					// @dev add OR branch
 				}
 				if (lexeme.current_lexeme == '+') {
 					token_make_simple(out_token, TOKEN_PLUS, current_line, current_col);
@@ -360,15 +359,7 @@ Error lexer_get_next_token(Token *out_token) {
 				token_make_int(out_token, int_value, token_start_line, token_start_col);
 				dstring_free(&token_buffer);
 				return ERROR_OK();
-				// @dev(Jirka Kolek) Implementace stavu pro číslo -> pokud následuje číslice,
-				// @dev pokračujeme, pokud následuje tečka, přecházíme do stavu float, pokud
-				// @dev následuje
-				// @dev jiný znak, je to integer dané číselné hodnoty a vracíš zpátky aktuálně
-				// @dev načtený stav
-			case STATE_ZERO_SEEN: //@dev renamed to LEADING_ZERO???
-				// @dev(Jirka Kolek) Implementace stavu pro číslo začínající nulou -> pokud po nule
-				// @dev následuje číslice, je to chyba, pokud následuje tečka, je to float, pokud
-				// @dev následuje jiný znak, je to integer 0
+			case STATE_ZERO_SEEN:
 				if (lexeme.current_lexeme == '.') {
 					current_state = STATE_WANNA_BE_DOUBLE;
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
@@ -427,10 +418,6 @@ Error lexer_get_next_token(Token *out_token) {
 				token_make_float(out_token, double_val, token_start_line, token_start_col);
 				dstring_free(&token_buffer);
 				return ERROR_OK();
-				// @dev(Jirka Kolek) Implementace stavu pro float -> pokud následuje číslice,
-				// @dev pokračujeme, pokud následuje jiný znak, je to float dané číselné hodnoty a
-				// @dev vracíš zpátky aktuálně načtený stav
-
 				continue;
 			case STATE_DIV_DEC:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
@@ -440,6 +427,7 @@ Error lexer_get_next_token(Token *out_token) {
 				} // @dev single '_' is really a valid input? what the f am I supposed to output
 				else {
 					token_make_simple(out_token, TOKEN_UNDERSCORE, token_start_line, token_start_col);
+					dstring_free(&token_buffer);
 					return ERROR_OK();
 					continue;
 				}
@@ -527,16 +515,13 @@ Error lexer_get_next_token(Token *out_token) {
 				return ERROR_OK();
 				continue;
 			default:
+				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "DKA ERROR");
 				break;
 
 				// @dev(Jirka Kolek) Implementace stavu pro chybu
 		}
 	}
-
-	// @dev(Jirka Kolek) Při průchodu je třeba updateovat current_line a current_col podle toho,
-	// @dev kolik znaků jsme přečetli a zda jsme narazili na nový řádek.
-
 	return ERROR_OK();
 }
 
