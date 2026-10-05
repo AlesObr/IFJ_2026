@@ -240,9 +240,14 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					current_state = STATE_NUMBER_SEEN;
 					continue;
+				} // @dev single '_' is really a valid input? what the f am I supposed to output
+				else {
+					token_make_simple(out_token, TOKEN_UNDERSCORE, token_start_line, token_start_col);
+					return ERROR_OK();
+					continue;
 				}
-				if (lexeme.current_lexeme == EOF)
-					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
+				dstring_free(&token_buffer);
+				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
 				continue;
 			case STATE_UNDER_SCORE:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
@@ -250,8 +255,8 @@ Error lexer_get_next_token(Token *out_token) {
 					current_state = STATE_DOUBLE;
 					continue;
 				}
-				else //if (lexeme.current_lexeme == EOF)
-					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
+				dstring_free(&token_buffer);
+				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
 				continue;
 			case STATE_WANNA_BE_EXP_1:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
@@ -304,6 +309,12 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
 					// @dev exponent je koncový stav dka
+				}
+				if (lexeme.current_lexeme == 'd' || lexeme.current_lexeme == 'D') {
+					current_state = STATE_SUFFIX;
+					// We don't add the suffix to the buffer, as strtod will ignore it and we want
+					// to keep the value clean
+					continue;
 				}
 				lexer_give(&lexeme, source_file);
 				double_val = strtod(dstring_get(&token_buffer), NULL);
