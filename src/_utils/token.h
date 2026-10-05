@@ -66,6 +66,7 @@ typedef enum token_type {
 	// TOKEN_AT_MAIN,
 	TOKEN_EOL,
 	TOKEN_INDENT,
+	TOKEN_OUTDENT,
 	TOKEN_UNDERSCORE,
 	TOKEN_COLON,
 
