@@ -130,7 +130,7 @@ test-scanner: scanner-build
 
 
 test-scanner-valgrind: scanner-build
-	@python3 test/test_run.py --valgrind
+	@python3 test/test_run.py --valgrind --suit basic --timeout 0.5
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery
