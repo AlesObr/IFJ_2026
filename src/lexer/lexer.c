@@ -385,6 +385,12 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_free(&token_buffer);
 					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
 				}
+				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z')
+					|| (lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')) {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					current_state = STATE_CHAR;
+					continue;
+				}
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Unexpected character.");
 
@@ -480,6 +486,11 @@ Error lexer_get_next_token(Token *out_token) {
 					current_state = STATE_NUMBER_SEEN;
 					continue;
 				} // @dev single '_' is really a valid input? what the f am I supposed to output
+				else if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z')
+					|| (lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')) {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					current_state = STATE_CHAR;
+				}
 				else {
 					token_make_simple(out_token, TOKEN_UNDERSCORE, token_start_line, token_start_col);
 					dstring_free(&token_buffer);
@@ -566,6 +577,18 @@ Error lexer_get_next_token(Token *out_token) {
 				lexer_give(&lexeme, source_file);
 				token_make_float(out_token, strtod(dstring_get(&token_buffer), NULL),
 					token_start_line, token_start_col);
+				dstring_free(&token_buffer);
+				return ERROR_OK();
+				continue;
+			case STATE_CHAR:
+				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
+					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')	||
+					(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9')) {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
+				}
+				lexer_give(&lexeme, source_file);
+				token_make_str(out_token, is_it_keyword(token_buffer.data), &token_buffer, token_start_line, token_start_col);
 				dstring_free(&token_buffer);
 				return ERROR_OK();
 				continue;
