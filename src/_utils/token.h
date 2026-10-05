@@ -63,7 +63,7 @@ typedef enum token_type {
 	TOKEN_MUL,
 	TOKEN_DIV,
 	TOKEN_DOT,
-	TOKEN_AT_MAIN,
+	//TOKEN_AT_MAIN,
 	TOKEN_EOL,
 	TOKEN_INDENT,
 	TOKEN_UNDERSCORE,
@@ -90,8 +90,8 @@ typedef enum token_type {
 	TOKEN_LBRACKET,
 	TOKEN_RBRACKET,
 	TOKEN_SEMICOLON,
-	TOKEN_COMMA//,
-	//TOKEN_AT
+	TOKEN_COMMA,
+	TOKEN_AT
 } TokenType;
 
 /**

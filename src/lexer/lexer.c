@@ -140,14 +140,31 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
+
 				if (lexeme.current_lexeme == '=') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if (lexeme.current_lexeme == '=') {
+						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (lexeme.current_lexeme == '=') {
+							lexer_give(&lexeme, source_file);
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand'==='.\n");
+						}
+						lexer_give(&lexeme, source_file);
+						token_make_str(out_token, TOKEN_EQ, &token_buffer,token_start_line, token_start_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					lexer_give(&lexeme, source_file);
 					token_make_simple(out_token, TOKEN_ASSIGN, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
-					// @dev add EQ branch
 				}
+
 				if (lexeme.current_lexeme == '@') {
-					token_make_simple(out_token, TOKEN_AT_MAIN, current_line, current_col);
+					token_make_simple(out_token, TOKEN_AT, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
