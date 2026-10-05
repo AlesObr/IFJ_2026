@@ -128,6 +128,14 @@ Error lexer_get_next_token(Token *out_token) {
 					token_start_col = current_col;
 					current_state = STATE_WANNA_BE_DOUBLE;
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if (!(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9')) {
+						lexer_give(&lexeme, source_file);
+						token_make_simple(out_token, TOKEN_DOT, current_line, current_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					lexer_give(&lexeme, source_file);
 					continue;
 				}
 				if (lexeme.current_lexeme == '(') {
@@ -147,10 +155,17 @@ Error lexer_get_next_token(Token *out_token) {
 					if (lexeme.current_lexeme == '=') {
 						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
-						if (lexeme.current_lexeme == '=') {
+						if (lexeme.current_lexeme == '=' || lexeme.current_lexeme == '>'
+							|| lexeme.current_lexeme == '<' || lexeme.current_lexeme == '@'
+							|| lexeme.current_lexeme == ':' || lexeme.current_lexeme == ','
+							|| lexeme.current_lexeme == '/' || lexeme.current_lexeme == '.'
+							|| lexeme.current_lexeme == ')' || lexeme.current_lexeme == '('
+							|| lexeme.current_lexeme == ';' || lexeme.current_lexeme == '+'
+							|| lexeme.current_lexeme == '-' || lexeme.current_lexeme == '*'
+							|| lexeme.current_lexeme == '|') {
 							lexer_give(&lexeme, source_file);
 							dstring_free(&token_buffer);
-							return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand'==='.\n");
+							return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
 						}
 						lexer_give(&lexeme, source_file);
 						token_make_str(out_token, TOKEN_EQ, &token_buffer,token_start_line, token_start_col);
@@ -183,22 +198,62 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
-				if (lexeme.current_lexeme == '.') {
-					token_make_simple(out_token, TOKEN_DOT, current_line, current_col);
-					dstring_free(&token_buffer);
-					return ERROR_OK();
-				}
+
 				if (lexeme.current_lexeme == '>') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if (lexeme.current_lexeme == '=') {
+						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (lexeme.current_lexeme == '=' || lexeme.current_lexeme == '>'
+							|| lexeme.current_lexeme == '<' || lexeme.current_lexeme == '@'
+							|| lexeme.current_lexeme == ':' || lexeme.current_lexeme == ','
+							|| lexeme.current_lexeme == '/' || lexeme.current_lexeme == '.'
+							|| lexeme.current_lexeme == ')' || lexeme.current_lexeme == '('
+							|| lexeme.current_lexeme == ';' || lexeme.current_lexeme == '+'
+							|| lexeme.current_lexeme == '-' || lexeme.current_lexeme == '*'
+							|| lexeme.current_lexeme == '|') {
+							lexer_give(&lexeme, source_file);
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
+						}
+						lexer_give(&lexeme, source_file);
+						token_make_str(out_token, TOKEN_GTE, &token_buffer,current_line, current_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					lexer_give(&lexeme, source_file);
 					token_make_simple(out_token, TOKEN_GT, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
-					// @dev add GTE branch
 				}
 				if (lexeme.current_lexeme == '<') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if (lexeme.current_lexeme == '=') {
+						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (lexeme.current_lexeme == '=' || lexeme.current_lexeme == '>'
+							|| lexeme.current_lexeme == '<' || lexeme.current_lexeme == '@'
+							|| lexeme.current_lexeme == ':' || lexeme.current_lexeme == ','
+							|| lexeme.current_lexeme == '/' || lexeme.current_lexeme == '.'
+							|| lexeme.current_lexeme == ')' || lexeme.current_lexeme == '('
+							|| lexeme.current_lexeme == ';' || lexeme.current_lexeme == '+'
+							|| lexeme.current_lexeme == '-' || lexeme.current_lexeme == '*'
+							|| lexeme.current_lexeme == '|') {
+							lexer_give(&lexeme, source_file);
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
+						}
+						lexer_give(&lexeme, source_file);
+						token_make_str(out_token, TOKEN_LTE, &token_buffer,current_line, current_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					lexer_give(&lexeme, source_file);
 					token_make_simple(out_token, TOKEN_LT, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
-					// @dev add LTE branch
 				}
 				if (lexeme.current_lexeme == '-') {
 					token_make_simple(out_token, TOKEN_MINUS, current_line, current_col);
@@ -225,6 +280,33 @@ Error lexer_get_next_token(Token *out_token) {
 					token_make_simple(out_token, TOKEN_SEMICOLON, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '!') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if (lexeme.current_lexeme == '=') {
+						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (lexeme.current_lexeme == '=' || lexeme.current_lexeme == '>'
+							|| lexeme.current_lexeme == '<' || lexeme.current_lexeme == '@'
+							|| lexeme.current_lexeme == ':' || lexeme.current_lexeme == ','
+							|| lexeme.current_lexeme == '/' || lexeme.current_lexeme == '.'
+							|| lexeme.current_lexeme == ')' || lexeme.current_lexeme == '('
+							|| lexeme.current_lexeme == ';' || lexeme.current_lexeme == '+'
+							|| lexeme.current_lexeme == '-' || lexeme.current_lexeme == '*'
+							|| lexeme.current_lexeme == '|') {
+							lexer_give(&lexeme, source_file);
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
+						}
+						lexer_give(&lexeme, source_file);
+						token_make_str(out_token, TOKEN_NEQ, &token_buffer,current_line, current_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					lexer_give(&lexeme, source_file);
+					dstring_free(&token_buffer);
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
 				}
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Unexpected character.");
