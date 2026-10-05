@@ -147,9 +147,13 @@ Error lexer_get_next_token(Token *out_token) {
 					return ERROR_OK();
 				}
 				// @dev isspace() will probably come in handy for whitespace handling
-				if (lexeme.current_lexeme == ' ' ||
-					lexeme.current_lexeme == '\t') { // @dev not yet solved whitespace logic
+				if (lexeme.current_lexeme == ' ') { // @dev not yet solved whitespace logic
 					continue;
+				}
+				if (lexeme.current_lexeme == '\t') {
+					lexer_give(&lexeme, source_file);
+					dstring_free(&token_buffer);
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Tab found.\n");
 				}
 				// @dev When a trailing \n get here, shit goes down.
 				if (lexeme.current_lexeme == '\n') {
