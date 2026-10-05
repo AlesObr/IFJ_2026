@@ -75,7 +75,7 @@ TokenType is_it_keyword(const char *str) {
 		return TOKEN_KEYWORD_TYPE;
 	} else if (strcmp(str, "match") == 0) {
 		return TOKEN_KEYWORD_MATCH;
-	} else if (strcmp(str, "boolean") == 0) {
+	} else if (strcmp(str, "Boolean") == 0) {
 		return TOKEN_KEYWORD_BOOLEAN;
 	} else if (strcmp(str, "list") == 0) {
 		return TOKEN_KEYWORD_LIST;
@@ -83,11 +83,11 @@ TokenType is_it_keyword(const char *str) {
 		return TOKEN_KEYWORD_FOR;
 	} else if (strcmp(str, "int") == 0) {
 		return TOKEN_KEYWORD_INT;
-	} else if (strcmp(str, "double") == 0) {
+	} else if (strcmp(str, "Double") == 0) {
 		return TOKEN_KEYWORD_DOUBLE;
-	} else if (strcmp(str, "string") == 0) {
+	} else if (strcmp(str, "String") == 0) {
 		return TOKEN_KEYWORD_STRING;
-	} else if (strcmp(str, "unit") == 0) {
+	} else if (strcmp(str, "Unit") == 0) {
 		return TOKEN_KEYWORD_UNIT;
 	} else if (strcmp(str, "var") == 0) {
 		return TOKEN_KEYWORD_VAR;
@@ -176,6 +176,14 @@ Error lexer_get_next_token(Token *out_token) {
 					token_start_col = current_col;
 					current_state = STATE_DIV_DEC;
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if ((lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9')
+						|| lexeme.current_lexeme == '_') {
+						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+						current_state = STATE_CHAR;
+						continue;
+					}
+					lexer_give(&lexeme, source_file);
 					continue;
 				}
 				if (lexeme.current_lexeme == '.') {
