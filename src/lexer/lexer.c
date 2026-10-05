@@ -69,19 +69,19 @@ TokenType is_it_keyword(const char *str) {
 		return TOKEN_KEYWORD_CLASS;
 	} else if (strcmp(str, "case") == 0) {
 		return TOKEN_KEYWORD_CASE;
-	} else if (strcmp(str, "ext") == 0) {
-		return TOKEN_KEYWORD_EXT;
+	} else if (strcmp(str, "extension") == 0) {
+		return TOKEN_KEYWORD_EXTENSION;
 	} else if (strcmp(str, "type") == 0) {
 		return TOKEN_KEYWORD_TYPE;
 	} else if (strcmp(str, "match") == 0) {
 		return TOKEN_KEYWORD_MATCH;
 	} else if (strcmp(str, "Boolean") == 0) {
 		return TOKEN_KEYWORD_BOOLEAN;
-	} else if (strcmp(str, "list") == 0) {
+	} else if (strcmp(str, "List") == 0) {
 		return TOKEN_KEYWORD_LIST;
 	} else if (strcmp(str, "for") == 0) {
 		return TOKEN_KEYWORD_FOR;
-	} else if (strcmp(str, "int") == 0) {
+	} else if (strcmp(str, "Int") == 0) {
 		return TOKEN_KEYWORD_INT;
 	} else if (strcmp(str, "Double") == 0) {
 		return TOKEN_KEYWORD_DOUBLE;
@@ -179,6 +179,12 @@ Error lexer_get_next_token(Token *out_token) {
 					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
 					if ((lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9')
 						|| lexeme.current_lexeme == '_') {
+						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+						current_state = STATE_CHAR;
+						continue;
+					}
+					if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z')
+					|| (lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')) {
 						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 						current_state = STATE_CHAR;
 						continue;
@@ -504,11 +510,6 @@ Error lexer_get_next_token(Token *out_token) {
 					current_state = STATE_NUMBER_SEEN;
 					continue;
 				} // @dev single '_' is really a valid input? what the f am I supposed to output
-				else if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z')
-					|| (lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')) {
-					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
-					current_state = STATE_CHAR;
-				}
 				else {
 					token_make_simple(out_token, TOKEN_UNDERSCORE, token_start_line, token_start_col);
 					dstring_free(&token_buffer);
@@ -600,8 +601,9 @@ Error lexer_get_next_token(Token *out_token) {
 				continue;
 			case STATE_CHAR:
 				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
-					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')	||
-					(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9')) {
+					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z') ||
+					(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') ||
+					lexeme.current_lexeme == '_') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
 				}
