@@ -419,6 +419,23 @@ Error lexer_get_next_token(Token *out_token) {
 					current_state = STATE_CHAR;
 					continue;
 				}
+				if (lexeme.current_lexeme == '"') {
+					current_state = STATE_STRING;
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if (lexeme.current_lexeme == '"') {
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (lexeme.current_lexeme == '"') {
+							current_state = STATE_ML_STRING;
+							continue;
+						}
+						lexer_give(&lexeme, source_file);
+						token_make_str(out_token, TOKEN_LIT_STRING, &token_buffer, token_start_line, token_start_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					lexer_give(&lexeme, source_file);
+					continue;
+				}
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Unexpected character.");
 
@@ -615,6 +632,50 @@ Error lexer_get_next_token(Token *out_token) {
 				token_make_str(out_token, is_it_keyword(token_buffer.data), &token_buffer, token_start_line, token_start_col);
 				dstring_free(&token_buffer);
 				return ERROR_OK();
+				continue;
+			case STATE_STRING:
+				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
+					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z') ||
+					(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') ||
+					lexeme.current_lexeme == '_' || lexeme.current_lexeme == ' ') {
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					continue;
+					}
+				if (lexeme.current_lexeme == '"') {
+					token_make_str(out_token, TOKEN_LIT_STRING, &token_buffer, token_start_line, token_start_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				lexer_give(&lexeme, source_file);
+				dstring_free(&token_buffer);
+				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed string followed by EOF.");
+				continue;
+			case STATE_ML_STRING: // @dev this is faulty
+				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
+					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z') ||
+					(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') ||
+					lexeme.current_lexeme == '_' || lexeme.current_lexeme == ' ' ||
+					lexeme.current_lexeme == '.' || lexeme.current_lexeme == '\'') {
+				dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+				continue;
+				}
+				if (lexeme.current_lexeme == '"') {
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if (lexeme.current_lexeme == '"') {
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (lexeme.current_lexeme == '"') {
+							token_make_str(out_token, TOKEN_LIT_STRING, &token_buffer, token_start_line, token_start_col);
+							dstring_free(&token_buffer);
+							return ERROR_OK();
+						}
+						lexer_give(&lexeme, source_file);
+					}
+					lexer_give(&lexeme, source_file);
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed string followed by EOF.");
+				}
+				lexer_give(&lexeme, source_file);
+				dstring_free(&token_buffer);
+				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Malformed string followed by EOF.");
 				continue;
 			default:
 				dstring_free(&token_buffer);
