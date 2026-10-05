@@ -27,7 +27,7 @@ static size_t token_start_col = 1;	/** Starting column of a token */
 void lexer_init(FILE *input) {
 	source_file = input;
 	current_line = 1;
-	current_col = 1;
+	current_col = 0;
 	last_line_len = 0;
 }
 
@@ -40,7 +40,7 @@ int lexer_take(LexemeState *lexeme, FILE *source_file) {
 		case '\n':
 			current_line++;
 			last_line_len = current_col;
-			current_col = 1;
+			current_col = 0;
 			//out_token -> token type = EOL
 			return lexeme->current_lexeme;
 		case EOF: //** Possible two entries - real EOF (feof()) and read error (ferror()) */
@@ -95,6 +95,12 @@ Error lexer_get_next_token(Token *out_token) {
 				if (lexeme.current_lexeme == ' ' ||
 					lexeme.current_lexeme == '\t') { // @dev not yet solved whitespace logic
 					continue;
+				}
+				// @dev When a trailing \n get here, shit goes down.
+				if (lexeme.current_lexeme == '\n') {
+					token_make_simple(out_token, TOKEN_EOL, lexeme.previous_line, lexeme.previous_col + 1);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
 				}
 				if (lexeme.current_lexeme == '(') {
 					token_make_simple(out_token, TOKEN_LPAREN, current_line, current_col);
@@ -330,6 +336,7 @@ Error lexer_get_next_token(Token *out_token) {
 				return ERROR_OK();
 				continue;
 			default:
+				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "DKA ERROR");
 				break;
 
 				// @dev(Jirka Kolek) Implementace stavu pro chybu
