@@ -1,0 +1,60 @@
+readInt "escape: \t tabulator" do 3.14159 0.5 42 // line 1 comment
+_1 , 999_999_999
+type var // line 3 comment
+case 1_000_000
+999_999_999
+extension / - - . /
+veryLongIdentifierNameThatShouldStillWorkInDynamicString ,
+* 123_456_789 for extension 0.125e+2 2.5E-3
+    "hello" "escape: \r carriage return" 999_999_999 1e10 == 999_999_999
+    10_20_30 1e10 while "escape: \r carriage return" // line 10 comment
+    x def 100.5e+2
+        case 1e10 readInt ; with123Numbers // line 12 comment
+        "escape: \\ lomitko" return
+        __private
+        factorial 42
+        <= 0.5 then camelCase
+        factorial return
+        >= 42.0d camelCase
+        readInt .
+        1
+        __private
+        with123Numbers >= var val __private 999_999_999
+        "escape: \n nova radka"
+        snake_case List 0.0 veryLongIdentifierNameThatShouldStillWorkInDynamicString if
+        999_999_999
+        < 100.5e+2 : 1e10 1e10 else
+    != def while _1 10_20_30 then
+    class "escape: \t tabulator"
+        camelCase _ "hello" with123Numbers
+_1 def while
+    thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 2147483647 0 "text s mezerami"
+"" factorial 1_000_000
+__private "escape: \" uvozovka" do >= "hello"
+"text s mezerami" 0.0 42 factorial
+) "hello" 999_999_999 // line 35 comment
+    42 readInt Unit
+    100.5e+2 / 0.125e+2 val "hello" camelCase
+    "hello" <
+    2147483647 match Int // line 39 comment
+    0.0 "escape: \r carriage return" 3.14159 10_20_30 == camelCase
+    =
+    1 "text s mezerami" |
+x 2147483647 10_20_30 "escape: \\ lomitko" "text s mezerami" return
+1e10 factorial -
+then String ; 1_000_000 // line 45 comment
+42 x "kombinace: \n\t\"\\" == -
+    if factorial // line 47 comment
+    42 10_20_30 Unit
+    42.0d _ 1_000_000 999_999_999
+    extension
+    10_20_30 <=
+    3.14159
+    = readInt "escape: \t tabulator" "kombinace: \n\t\"\\" +
+    _var * 0
+    veryLongIdentifierNameThatShouldStillWorkInDynamicString _var "escape: \r carriage return" "escape: \\ lomitko" |
+    1_000_000 42.0d result < 1_000.50_1
+veryLongIdentifierNameThatShouldStillWorkInDynamicString 1
+readInt 10_20_30 import
+    10_20_30 _
+        "escape: \" uvozovka" 123_456_789 ; class

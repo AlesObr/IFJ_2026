@@ -1,0 +1,60 @@
+x ; )
+0 Int 0.6 1_000_000 1_000_000
+1_000_000 "escape: \t tabulator"
+case readInt class then
+"escape: \t tabulator" == veryLongIdentifierNameThatShouldStillWorkInDynamicString (
+_var 42 == Int )
+class
+, thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString // line 8 comment
+!= _1 0.5 // line 9 comment
+1e10
+0.125e+2 Unit result do "" +
+readInt
+< 1e10
+2147483647
+: 0 42 x
+with123Numbers "text s mezerami" "escape: \n nova radka" "escape: \n nova radka" snake_case 100.5e+2
+123_456_789 "escape: \r carriage return" "escape: \n nova radka"
+    * match "escape: \\ lomitko" // line 18 comment
+    _1
+    2147483647 "escape: \" uvozovka" thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString // line 20 comment
+        factorial 10_20_30 2147483647
+            veryLongIdentifierNameThatShouldStillWorkInDynamicString Double
+                readInt 10_20_30
+                _1
+                123_456_789
+        1_000_000 with123Numbers 42
+        __private
+        ; * Unit case 3.14159
+        42 1e5D
+        2.5E-3 __private >
+        type x "hello" 42 10_20_30 match
+        1_000_000 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString result ; 0.6
+veryLongIdentifierNameThatShouldStillWorkInDynamicString __private factorial readInt
+x __private 1e5D
+camelCase result snake_case 1 123_456_789 2.5E-3
+1 camelCase 10_20_30 Double
+    0.5 ,
+/ _ result __private extension
+readInt 1_000_000
+42 readInt ""
+"escape: \" uvozovka" return
+@ 100.5e+2 else 5e-2 // line 42 comment
+0.0 String
+    _ 1e10 x 10_20_30
+        "text s mezerami"
+_1 x 999_999_999 _
+0 0 | 1_000_000
+5e-2 // line 48 comment
+camelCase 5e-2 42 <=
+import 1e5D 0.0 __private 123_456_789 +
+( // line 51 comment
+42
+Unit 42 10_20_30
+snake_case _var _1
+    3.14159 123_456_789 * "hello" _1
+    "escape: \" uvozovka" 1_000.50_1 extension 5e-2 10_20_30
+    "kombinace: \n\t\"\\" ) <=
+        5e-2 __private result thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+        case 10_20_30 for x // line 59 comment
+        10_20_30 while 123_456_789 factorial 2147483647 _var

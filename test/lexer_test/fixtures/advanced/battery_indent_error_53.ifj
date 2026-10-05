@@ -1,0 +1,43 @@
+    readInt . 1e10 "escape: \\ lomitko" 1
+1_000.50_1 // line 2 comment
+1e10
+camelCase
+    0
+    100.5e+2 5e-2
+    case factorial 2147483647 1_000.50_1 "hello" 10_20_30
+    _var <= snake_case "escape: \\ lomitko"
+    ; type veryLongIdentifierNameThatShouldStillWorkInDynamicString : 0.0 5e-2
+        List // line 10 comment
+    camelCase
+    2147483647 "escape: \t tabulator" __private 5e-2
+    42.0d 1_000_000 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString ) camelCase _1
+    veryLongIdentifierNameThatShouldStillWorkInDynamicString "kombinace: \n\t\"\\" camelCase
+    2147483647 1e5D
+=
+else - 3.14159 var
++ _1 _var thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 100.5e+2 _1
+42 1 1 factorial "hello" 1_000.50_1 // line 19 comment
+_1 case <=
+    0.6 0 "escape: \r carriage return"
+    return 999_999_999 _ def _var 123_456_789
+    3.14159 1_000_000 10_20_30
+        10_20_30 x
+        "hello" result "escape: \\ lomitko" "escape: \t tabulator" x 1
+        2147483647 10_20_30 3.14159 with123Numbers
+    "escape: \n nova radka" = 5e-2 0.5 x _
+        3.14159 999_999_999
+        "escape: \" uvozovka" 2147483647 0.5 x then
+        0.5 0 10_20_30 _1 > >=
+        String
+        1_000_000 while 1e5D @ // line 32 comment
+        0.5
+        result veryLongIdentifierNameThatShouldStillWorkInDynamicString <= camelCase 3.14159 123_456_789 // line 34 comment
+            Unit |
+            0.125e+2 == else
+            0.125e+2 Boolean
+            thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+            return
+            Int 1_000_000 _1 extension factorial : // line 40 comment
+            _1 class snake_case with123Numbers else
+            veryLongIdentifierNameThatShouldStillWorkInDynamicString 100.5e+2
+}
