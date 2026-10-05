@@ -79,6 +79,7 @@ typedef enum token_type {
 	TOKEN_GTE,
 	TOKEN_AND,
 	TOKEN_OR,
+	TOKEN_PIPE,
 	TOKEN_NOT,
 
 	// Parentheses and punctuation
@@ -89,7 +90,8 @@ typedef enum token_type {
 	TOKEN_LBRACKET,
 	TOKEN_RBRACKET,
 	TOKEN_SEMICOLON,
-	TOKEN_COMMA
+	TOKEN_COMMA//,
+	//TOKEN_AT
 } TokenType;
 
 /**

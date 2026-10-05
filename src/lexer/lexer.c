@@ -102,16 +102,6 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
-				if (lexeme.current_lexeme == '(') {
-					token_make_simple(out_token, TOKEN_LPAREN, current_line, current_col);
-					dstring_free(&token_buffer);
-					return ERROR_OK();
-				}
-				if (lexeme.current_lexeme == ')') {
-					token_make_simple(out_token, TOKEN_RPAREN, current_line, current_col);
-					dstring_free(&token_buffer);
-					return ERROR_OK();
-				}
 				if (lexeme.current_lexeme == '0') {
 					token_start_line = current_line;
 					token_start_col = current_col;
@@ -139,6 +129,85 @@ Error lexer_get_next_token(Token *out_token) {
 					current_state = STATE_WANNA_BE_DOUBLE;
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
+				}
+				if (lexeme.current_lexeme == '(') {
+					token_make_simple(out_token, TOKEN_LPAREN, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == ')') {
+					token_make_simple(out_token, TOKEN_RPAREN, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '=') {
+					token_make_simple(out_token, TOKEN_ASSIGN, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+					// @dev add EQ branch
+				}
+				if (lexeme.current_lexeme == '@') {
+					token_make_simple(out_token, TOKEN_AT_MAIN, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == ':') {
+					token_make_simple(out_token, TOKEN_COLON, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == ',') {
+					token_make_simple(out_token, TOKEN_COMMA, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '/') {
+					token_make_simple(out_token, TOKEN_DIV, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '.') {
+					token_make_simple(out_token, TOKEN_DOT, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '>') {
+					token_make_simple(out_token, TOKEN_GT, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+					// @dev add GTE branch
+				}
+				if (lexeme.current_lexeme == '<') {
+					token_make_simple(out_token, TOKEN_LT, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+					// @dev add LTE branch
+				}
+				if (lexeme.current_lexeme == '-') {
+					token_make_simple(out_token, TOKEN_MINUS, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '*') {
+					token_make_simple(out_token, TOKEN_MUL, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '|') {
+					token_make_simple(out_token, TOKEN_PIPE, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+					// @dev add OR branch
+				}
+				if (lexeme.current_lexeme == '+') {
+					token_make_simple(out_token, TOKEN_PLUS, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == ';') {
+					token_make_simple(out_token, TOKEN_SEMICOLON, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
 				}
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Unexpected character.");
