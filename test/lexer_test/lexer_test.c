@@ -17,8 +17,8 @@ static const char *token_type_to_string(TokenType type) {
         case TOKEN_KEYWORD_EXT:     return "KEYWORD:ext";
         case TOKEN_KEYWORD_TYPE:    return "KEYWORD:type";
         case TOKEN_KEYWORD_MATCH:   return "KEYWORD:match";
-        case TOKEN_KEYWORD_BOOLEAN: return "KEYWORD:boolean";
-        case TOKEN_KEYWORD_LIST:    return "KEYWORD:list";
+        case TOKEN_KEYWORD_BOOLEAN: return "KEYWORD:Boolean";
+        case TOKEN_KEYWORD_LIST:    return "KEYWORD:List";
         case TOKEN_KEYWORD_FOR:     return "KEYWORD:for";
         case TOKEN_KEYWORD_INT:     return "KEYWORD:int";
         case TOKEN_KEYWORD_DOUBLE:  return "KEYWORD:Double";
