@@ -21,9 +21,9 @@ static const char *token_type_to_string(TokenType type) {
         case TOKEN_KEYWORD_LIST:    return "KEYWORD:list";
         case TOKEN_KEYWORD_FOR:     return "KEYWORD:for";
         case TOKEN_KEYWORD_INT:     return "KEYWORD:int";
-        case TOKEN_KEYWORD_DOUBLE:  return "KEYWORD:double";
-        case TOKEN_KEYWORD_STRING:  return "KEYWORD:string";
-        case TOKEN_KEYWORD_UNIT:    return "KEYWORD:unit";
+        case TOKEN_KEYWORD_DOUBLE:  return "KEYWORD:Double";
+        case TOKEN_KEYWORD_STRING:  return "KEYWORD:String";
+        case TOKEN_KEYWORD_UNIT:    return "KEYWORD:Unit";
         case TOKEN_KEYWORD_VAR:     return "KEYWORD:var";
         case TOKEN_KEYWORD_VAL:     return "KEYWORD:val";
         case TOKEN_KEYWORD_IF:      return "KEYWORD:if";
