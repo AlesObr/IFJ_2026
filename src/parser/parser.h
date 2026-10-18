@@ -17,8 +17,9 @@
  * @brief Inner parser flags
 */
 typedef enum {
-	PAR_SCAN_ERR,	/**< Error while getting tokens */
 	PAR_SUCC,		/**< Successful function return */
+	PAR_FAIL,		/**< Error while applying rule */
+	LEX_FAIL,		/**< Error while getting tokens */
 	PAR_EOF			/**< TOKEN_EOF reached */
 } ParserFlag;
 
@@ -27,22 +28,21 @@ typedef enum {
 */
 typedef struct {
 	Error error;			/**< Error structure containing error info */
-	TokenType last_token;		/**< Last token received, used for token consumation */
 	ParserFlag flag;		/**< Flag signalizing parser behavior */
 } ParserStatus;
 
 /**
  * @brief Constructor of successful ParserStatus structure when successful
- * @param tok Last token received from scanner
+ * @param flag Inner parser flag
 */
-#define PARSE_OK(tok) ((ParserStatus){.error = (ERR_OK()), .last_token = (tok), .flag = PAR_SUCC})
+#define PARSE_OK(flag) ((ParserStatus){.error = (ERR_OK()), .flag = (flag)})
 
 /**
  * @brief Constructor of successful ParserStatus structure when successful
  * @param err Error structure
- * @param tok Last token received from scanner
+ * @param flag Inner parser flag
 */
-#define PARSE_ERROR(err, tok) ((ParserStatus){.error = (err), .last_token = (tok), .flag = PAR_SUCC})
+#define PARSE_ERROR(err, flag) ((ParserStatus){.error = (err), .flag = (flag)})
 
 /**
  * @brief Initializes parser inner loop

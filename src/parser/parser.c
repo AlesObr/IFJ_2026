@@ -15,49 +15,64 @@
 #include <string.h>
 
 /**
+ * @brief Macro for safely fetching from scanner
+*/
+#define GET_TOKEN (tok_ptr, err, alt_err) do{ \
+	(err) = lexer_get_next_token((tok_ptr)); \
+	if (ERROR_IS_ERR((err))){ \
+		return PARSE_ERROR((err), LEX_FAIL); \
+	} \
+	if ((tok_ptr)->type == TOKEN_EOF){ \
+		if ((alt_err->type) != ERR_OK){ \
+			return PARSE_ERROR((alt_err), PAR_EOF); \
+		} else { \
+			return PARSE_OK(PAR_EOF); \
+		} \
+	} \
+} while(0)
+
+/**
  * @brief Consumes symbols until passed token type or TOKEN_EOF
+ * @param err Error that led to call
  * @param token_type Type of token to reach by consuming tokens
  * @return Status structure containing flags for caller
 */
-ParserStatus consume_tokens(TokenType token_type){
+ParserStatus consume_tokens(Error err, TokenType token_type){
 	Token* curr_token = NULL;
-	Error err = lexer_get_next_token(curr_token);
-	while(curr_token->type != token_type && curr_token->type != TOKEN_EOF && !(ERROR_IS_ERR(err))){
-		err = lexer_get_next_token(curr_token);
+	Error new_err = lexer_get_next_token(curr_token);
+	while(curr_token->type != token_type && curr_token->type != TOKEN_EOF && !(ERROR_IS_ERR(new_err))){
+		new_err = lexer_get_next_token(curr_token);
 	}
-	if (ERROR_IS_ERR){
-		return PARSE_ERROR(err, *curr_token);
-	}
-	return PARSE_OK(*curr_token);
+	return PARSE_ERROR(err, PAR_FAIL);
 }
 
 /**
  * @brief Parsing of mandatory program header
  * @return Structure containing error informations
 */
-Error parse_header(){
+ParserStatus parse_header(){
 	Token* curr_token = NULL;
 	lexer_get_next_token(curr_token);
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT){
-		return ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing mandatory import header (import ifj.*)");
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing mandatory import header (import ifj.*)"), TOKEN_EOl);
 	}
 	lexer_get_next_token(curr_token);
 	if (curr_token->type != TOKEN_KEYWORD_IDENTIFIER || strcmp(curr_token->data->str_val, "ifj") != 0){
-		return ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Wrong import library in header (ifj.*)");
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Wrong import library in header (ifj.*)"), TOKEN_EOl);
 	}
 	lexer_get_next_token(curr_token);
 	if (curr_token->type != TOKEN_KEYWORD_DOT){
-		return ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing ifj type in import (ifj.*)");
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing ifj type in import (ifj.*)"), TOKEN_EOl);
 	}
 	lexer_get_next_token(curr_token);
 	if (curr_token->type != TOKEN_KEYWORD_MUL){
-		return ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Wrong import library in header (ifj.*)");
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Wrong import library in header (ifj.*)"), TOKEN_EOl);
 	}
 	lexer_get_next_token(curr_token);
 	if (curr_token->type != TOKEN_KEYWORD_EOL){
-		return ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration");
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
 	}
-	return ERROR_OK();
+	return PARSE_OK(*curr_token);
 }
 
 /**
