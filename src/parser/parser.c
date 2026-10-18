@@ -16,8 +16,9 @@
 
 /**
  * @brief Parsing of mandatory program header
+ * @return Structure containing error information
 */
-void parse_header(){
+Error parse_header(){
 	Token* curr_token = NULL;
 	lexer_get_next_token(curr_token);
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT){
@@ -39,9 +40,37 @@ void parse_header(){
 	if (curr_token->type != TOKEN_KEYWORD_EOL){
 		return ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration");
 	}
-	return;
+	return ERROR_OK();
+}
+
+/**
+ * @brief Parsing of highest level program constructs (functions, extensions)
+ * @return Structure containing error information
+*/
+Error parse_program(){
+	Token* curr_token = NULL;
+	Error err = lexer_get_next_token(curr_token);
+	while(curr_token != EOF){
+		switch(curr_token->type){
+			case TOKEN_KEYWORD_EXTENSION:
+				err = parse_extension();
+				break;
+			case TOKEN_AT_MAIN:
+				err = parse_extension();
+				break;
+			case TOKEN_KEYWORD_DEF:
+				err = parse_extension();
+				break;
+			default:
+
+				break;
+		}
+		err = lexer_get_next_token(curr_token)
+	}
+	return err;
 }
 
 void parse(){
 	Error err = parse_header();
+	err = parse_program();
 }
