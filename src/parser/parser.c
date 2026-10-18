@@ -56,25 +56,53 @@ ParserStatus parse_header(){
 	Token* curr_token = NULL;
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT){
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing mandatory import header (import ifj.*)"), TOKEN_EOl);
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing mandatory import header (import ifj.*)"), TOKEN_EOL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IDENTIFIER || strcmp(curr_token->data->str_val, "ifj") != 0){
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Wrong import library in header (ifj.*)"), TOKEN_EOl);
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Wrong import library in header (ifj.*)"), TOKEN_EOL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_DOT){
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing ifj type in import (ifj.*)"), TOKEN_EOl);
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing ifj type in import (ifj.*)"), TOKEN_EOL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_MUL){
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Wrong import library in header (ifj.*)"), TOKEN_EOl);
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Wrong import library in header (ifj.*)"), TOKEN_EOL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_EOL){
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
+		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOL);
 	}
 	return PARSE_OK(PAR_SUCC);
+}
+
+/**
+ * @brief Function for parsing extension parameter
+ * @return Status structure containing flags for caller
+*/
+ParseStatus parse_extension_param(){
+	Token* curr_token = NULL;
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_IDENTIFIER){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing identifier in extension parameter"), PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_COLON){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing colon in extension parameter"), PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	switch(curr_token->type){
+		case TOKEN_KEYWORD_INT:
+		case TOKEN_KEYWORD_DOUBLE:
+		case TOKEN_KEYWORD_UNIT:
+		case TOKEN_KEYWORD_STRING:
+			return PARSE_OK(PAR_SUCC);
+			break;
+		default:
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing data type in extention parameter"), PAR_FAIL);
+
+	}
 }
 
 /**
@@ -129,19 +157,19 @@ ParserStatus parse_program(){
 					if (curr_token->type == TOKEN_KEYWORD_DEF){
 						err = parse_func_def();
 					} else {
-						return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
+						return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing definition token after @main"), TOKEN_EOL);
 					}
 				} else if (curr_token->type == TOKEN_KEYWORD_DEF){
 					err = parse_func_def();
 				} else {
-					return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
+					return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing definition token after @main"), TOKEN_EOL);
 				}
 				break;
 			case TOKEN_KEYWORD_DEF:
 				err = parse_func_def();
 				break;
 			default:
-				return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
+				return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOL);
 				break;
 		}
 		err = lexer_get_next_token(curr_token)
