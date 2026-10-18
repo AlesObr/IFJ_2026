@@ -50,7 +50,7 @@ ParserStatus consume_tokens(Error prev_err, TokenType token_type){
 
 /**
  * @brief Parsing of mandatory program header
- * @return Structure containing error informations
+ * @return Status structure containing flags for caller
 */
 ParserStatus parse_header(){
 	Token* curr_token = NULL;
@@ -74,16 +74,48 @@ ParserStatus parse_header(){
 	if (curr_token->type != TOKEN_KEYWORD_EOL){
 		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
 	}
-	return PARSE_OK(*curr_token);
+	return PARSE_OK(PAR_SUCC);
 }
 
 /**
- * @brief Parsing of highest level program constructs (functions, extensions)
- * @return Structure containing error informations
+ * @brief Function for parsing extension definition
+ * @return Status structure containing flags for caller
 */
-Error parse_program(){
+ParseStatus parse_extension(){
 	Token* curr_token = NULL;
-	Error err = GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_LPAREN){
+
+	}
+	parse_extension_param()
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_RPAREN){
+
+	}
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_EOL){
+
+	}
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_INDENT){
+
+	}
+	parse_extension_body();
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_OUTDENT){
+
+	}
+	return PARSE_OK(PAR_SUCC);
+}
+
+
+/**
+ * @brief Parsing of highest level program constructs (functions, extensions)
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_program(){
+	Token* curr_token = NULL;
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	while(curr_token != EOF){
 		switch(curr_token->type){
 			case TOKEN_KEYWORD_EXTENSION:
@@ -91,12 +123,25 @@ Error parse_program(){
 				break;
 			case TOKEN_AT_MAIN:
 				err = parse_extension();
+				GET_TOKEN(curr_token, (Error){0}, (Error){0});
+				if (curr_token->type == TOKEN_KEYWORD_EOL){
+					GET_TOKEN(curr_token, (Error){0}, (Error){0});
+					if (curr_token->type == TOKEN_KEYWORD_DEF){
+						err = parse_func_def();
+					} else {
+						return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
+					}
+				} else if (curr_token->type == TOKEN_KEYWORD_DEF){
+					err = parse_func_def();
+				} else {
+					return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
+				}
 				break;
 			case TOKEN_KEYWORD_DEF:
-				err = parse_extension();
+				err = parse_func_def();
 				break;
 			default:
-
+				return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOl);
 				break;
 		}
 		err = lexer_get_next_token(curr_token)
@@ -105,6 +150,23 @@ Error parse_program(){
 }
 
 void parse(){
-	Error err = parse_header();
-	err = parse_program();
+	ParserStatus status = parse_header();
+	if (status->flag == PAR_EOF){
+		// end the program
+	} else if (status->flag == LEX_FAIL){
+		// end the program
+	} else if (status->flag == PAR_FAIL){
+		// continue
+	}
+	bool end_flag = false;
+	while (!end_flag){
+		status = parse_program();
+		if (status->flag == PAR_EOF){
+			end_flag = true;
+		} else if (status->flag == LEX_FAIL){
+			// end the program
+		} else if (status->flag == PAR_FAIL){
+			// continue
+		}
+	}
 }
