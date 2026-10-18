@@ -39,13 +39,10 @@ typedef struct {
 
 /**
  * @brief Constructor of successful ParserStatus structure when successful
- * @param t Type of error
- * @param l Line of error
- * @param c Collumn of error
- * @param msg Error message
+ * @param err Error structure
  * @param tok Last token received from scanner
 */
-#define PARSE_ERROR(t, l, c, msg, tok) ((ParserStatus){.error = (ERR_EMIT((t), (l), (c), (msg))), .last_token = (tok), .flag = PAR_SUCC})
+#define PARSE_ERROR(err, tok) ((ParserStatus){.error = (err), .last_token = (tok), .flag = PAR_SUCC})
 
 /**
  * @brief Initializes parser inner loop

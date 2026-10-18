@@ -15,8 +15,25 @@
 #include <string.h>
 
 /**
+ * @brief Consumes symbols until passed token type or TOKEN_EOF
+ * @param token_type Type of token to reach by consuming tokens
+ * @return Status structure containing flags for caller
+*/
+ParserStatus consume_tokens(TokenType token_type){
+	Token* curr_token = NULL;
+	Error err = lexer_get_next_token(curr_token);
+	while(curr_token->type != token_type && curr_token->type != TOKEN_EOF && !(ERROR_IS_ERR(err))){
+		err = lexer_get_next_token(curr_token);
+	}
+	if (ERROR_IS_ERR){
+		return PARSE_ERROR(err, *curr_token);
+	}
+	return PARSE_OK(*curr_token);
+}
+
+/**
  * @brief Parsing of mandatory program header
- * @return Structure containing error information
+ * @return Structure containing error informations
 */
 Error parse_header(){
 	Token* curr_token = NULL;
@@ -45,7 +62,7 @@ Error parse_header(){
 
 /**
  * @brief Parsing of highest level program constructs (functions, extensions)
- * @return Structure containing error information
+ * @return Structure containing error informations
 */
 Error parse_program(){
 	Token* curr_token = NULL;
