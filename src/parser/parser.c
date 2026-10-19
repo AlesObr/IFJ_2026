@@ -87,15 +87,56 @@ ParserStatus parse_at_main(Token* curr_token){
 	if (curr_token->type == TOKEN_KEYWORD_EOL){
 		GET_TOKEN(curr_token, (Error){0}, (Error){0});
 		if (curr_token->type == TOKEN_KEYWORD_DEF){
-			err = parse_func_def(); // add error handler
+			err = parse_func_def(curr_token, true); // add error handler
 		} else {
 			return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing definition token after @main"), TOKEN_EOL);
 		}
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF){
-		err = parse_func_def(); // add error handler
+		err = parse_func_def(curr_token, true); // add error handler
 	} else {
 		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing definition token after @main"), TOKEN_EOL);
 	}
+}
+
+/**
+ * @brief Parsing of param sections of function declarations
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_param_section(Token* curr_token){
+	ParserStatus err = {0};
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr->token->type == TOKEN_IDENTIFIER){
+		err = parse_param_mem(curr_token);
+	}
+	if (curr_token->type == TOKEN_RPAREN){
+		return PARSE_OK(PAR_SUCC);
+	}
+}
+
+/**
+ * @brief Parsing of function declarations
+ * @param curr_token Token pointer filled with current token
+ * @param main_flag Indicates whether function is main one (for AST tree)
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_func_def(Token* curr_token, bool main_flag){
+	ParserStatus err = {0};
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_IDENTIFIER){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing identifier in function declaration"), PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type == TOKEN_LPAREN){
+		err = parse_param_section(curr_token);
+	}
+	if (curr_token->type == TOKEN_COLON){
+		err = parse_data_type(curr_token);
+	}
+	if (curr_token->type == TOKEN_EQ){
+		err = parse_func_body(curr_token);
+	}
+	return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Unexpected token in function declaration"), PAR_FAIL);
 }
 
 /**
@@ -152,9 +193,9 @@ ParseStatus parse_extension_param(Token* curr_token){
 ParseStatus parse_extension_body(Token* curr_token){
 	GET_TOKEN(curr_token, (Error){0}, Error{0});
 	if (curr_token->type == TOKEN_AT_MAIN){
-		parse_at_main(); // add error handler
+		parse_at_main(curr_token); // add error handler
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF){
-		parse_func_def(); // add error handler
+		parse_func_def(curr_token); // add error handler
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Unexpected token in function declaration inside extension"), PAR_FAIL);
 	}
@@ -203,13 +244,13 @@ ParserStatus parse_program(Token* curr_token){
 	while(curr_token->type != TOKEN_EOF){
 		switch(curr_token->type){
 			case TOKEN_KEYWORD_EXTENSION:
-				err = parse_extension(); // add error handler
+				err = parse_extension(curr_token); // add error handler
 				break;
 			case TOKEN_AT_MAIN:
-				err = parse_at_main();
+				err = parse_at_main(curr_token);
 				break;
 			case TOKEN_KEYWORD_DEF:
-				err = parse_func_def(); // add error handler
+				err = parse_func_def(curr_token); // add error handler
 				break;
 			case TOKEN_EOL:
 				break;
@@ -236,7 +277,7 @@ void parse(){
 	}
 	bool end_flag = false;
 	while (!end_flag){
-		status = parse_program();
+		status = parse_program(curr_token);
 		if (status->flag == PAR_EOF){
 			end_flag = true;
 		} else if (status->flag == LEX_FAIL){
