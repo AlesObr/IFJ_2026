@@ -35,6 +35,19 @@
 } while(0)
 
 /**
+ * @brief Macro for checking status flags
+ * @param status Status structure to be checked
+ * @param cons_token Token until which tokens will be consumed if PAR_FAIL
+*/
+#define CHECK_STATUS (status, cons_token) do { \
+	if ((status)->flag == PAR_EOF || (status)->flag == LEX_FAIL){ \
+		return (status); \
+	} else if ((status)->flag == PAR_FAIL){ \
+		consume_tokens((status)->error, (cons_token)); \
+	} \
+} while(0)
+
+/**
  * @brief Consumes symbols until passed token type or TOKEN_EOF
  * @param prev_err Error that led to call of this method
  * @param token_type Type of token to reach by consuming tokens
@@ -95,6 +108,36 @@ ParserStatus parse_at_main(Token* curr_token){
 		err = parse_func_def(curr_token, true); // add error handler
 	} else {
 		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing definition token after @main"), TOKEN_EOL);
+	}
+}
+
+/**
+ * @brief Parsing of param member of function declaration
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_param_mem(Token* curr_token){
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type == TOKEN_RBRACE){
+		return PAR_OK(PAR_SUCC);
+	}
+	if (curr_token->type != TOKEN_IDENTIFIER){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing identifier of parameter in function declaration"), PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type != TOKEN_COLON){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing colon after identifier of parameter in function declaration"), PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	switch(curr_token->type){
+		case TOKEN_KEYWORD_INT:
+		case TOKEN_KEYWORD_DOUBLE:
+		case TOKEN_KEYWORD_UNIT:
+		case TOKEN_KEYWORD_STRING:
+			err = parse_param_tail(curr_token);
+			break;
+		default:
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing data type in function parameter"), PAR_FAIL);
 	}
 }
 
