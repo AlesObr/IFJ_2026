@@ -112,15 +112,28 @@ ParserStatus parse_at_main(Token* curr_token){
 }
 
 /**
+ * @brief Parsing tail of mutliple function parameters
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_param_tail(Token* curr_token){
+	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	if (curr_token->type == TOKEN_EOL){
+		return PARSE_OK(PAR_SUCC);
+	} else if (curr_token->type == TOKEN_IDENTIFIER){
+		GET_TOKEN(curr_token, (Error){0}, (Error){0});
+		parse_param_mem(curr_token); // err handle
+	} else {
+		// err handle
+	}
+}
+
+/**
  * @brief Parsing of param member of function declaration
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
 */
 ParserStatus parse_param_mem(Token* curr_token){
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
-	if (curr_token->type == TOKEN_RBRACE){
-		return PAR_OK(PAR_SUCC);
-	}
 	if (curr_token->type != TOKEN_IDENTIFIER){
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing identifier of parameter in function declaration"), PAR_FAIL);
 	}
@@ -134,7 +147,13 @@ ParserStatus parse_param_mem(Token* curr_token){
 		case TOKEN_KEYWORD_DOUBLE:
 		case TOKEN_KEYWORD_UNIT:
 		case TOKEN_KEYWORD_STRING:
-			err = parse_param_tail(curr_token);
+			GET_TOKEN(curr_token, (Error){0}, (Error){0});
+			if (curr_token->type == TOKEN_COLON){
+				parse_param_tail(curr_token);
+				if (curr_token->type == TOKEN_RBRACE){
+					return PARSE_OK(PAR_SUCC);
+				}
+			}
 			break;
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing data type in function parameter"), PAR_FAIL);
@@ -290,13 +309,13 @@ ParserStatus parse_program(Token* curr_token){
 				err = parse_extension(curr_token); // add error handler
 				break;
 			case TOKEN_AT_MAIN:
-				err = parse_at_main(curr_token);
+				err = parse_at_main(curr_token); // add error handler
 				break;
 			case TOKEN_KEYWORD_DEF:
 				err = parse_func_def(curr_token); // add error handler
 				break;
 			case TOKEN_EOL:
-				break;
+				break; // consumes empty lines
 			default:
 				return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Missing EOL after header declaration"), TOKEN_EOL);\
 		}
