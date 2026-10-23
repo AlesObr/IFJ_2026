@@ -10,9 +10,7 @@
 #include "lexer.h"
 #include "../_utils/dstring.h"
 #include "../_utils/error.h"
-#include "../_utils/stack.h"
 #include "../_utils/token.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,43 +19,16 @@
 static FILE *source_file = NULL; /** The input file being lexed - it will be de facto STDIN */
 static size_t current_line = 1;	 /** The current line number in the source file being lexed */
 static size_t current_col = 1;	 /** The current column number in the source file being lexed */
-static int last_line_len = 0;	 /** The length of the previous line */
+static size_t last_line_len = 0; /** The length of the previous line */
 
 static size_t token_start_line = 1; /** Starting line of a token */
 static size_t token_start_col = 1;	/** Starting column of a token */
-
-static unsigned int indent_level = 0; /**< Current indentation level (number of spaces) */
-static Stack indent_stack;			  /**< Stack to keep track of indentation levels */
-static bool indent_initialized =
-	false; /**< Flag to indicate if the indentation stack has been initialized */
-static int paren_depth =
-	0; /**< Depth of nested parentheses, used to determine if indentation is relevant */
-static int pending_outdents = 0;  /**< Number of pending outdent tokens to emit */
-static bool at_line_start = true; /**< Flag to indicate if we are at the start of a new line, used
-									 for indentation handling */
 
 void lexer_init(FILE *input) {
 	source_file = input;
 	current_line = 1;
 	current_col = 0;
 	last_line_len = 0;
-
-	indent_level = 0;
-	paren_depth = 0;
-	pending_outdents = 0;
-	at_line_start = true;
-
-	if (indent_initialized) {
-		while (indent_stack.size > 0) {
-			StackElement *elem = stack_pop(&indent_stack);
-			free(elem);
-		}
-		stack_free(&indent_stack);
-	}
-
-	stack_init(&indent_stack);
-	indent_initialized = true;
-	stack_push(&indent_stack, (void *)(uintptr_t)0);
 }
 
 int lexer_take(LexemeState *lexeme, FILE *source_file) {
@@ -70,7 +41,8 @@ int lexer_take(LexemeState *lexeme, FILE *source_file) {
 			current_line++;
 			last_line_len = current_col;
 			current_col = 0;
-			at_line_start = true;
+
+			// out_token -> token type = EOL
 			return lexeme->current_lexeme;
 		case EOF: //** Possible two entries - real EOF (feof()) and read error (ferror()) */
 			return EOF;
@@ -151,11 +123,6 @@ Error lexer_get_next_token(Token *out_token) {
 
 	token_init(out_token);
 
-	if (pending_outdents > 0) {
-		pending_outdents--;
-		return token_make_simple(out_token, TOKEN_OUTDENT, current_line, current_col);
-	}
-
 	LexerState current_state = STATE_START;
 	dstring_t token_buffer;
 	if (!dstring_init(&token_buffer)) {
@@ -166,113 +133,16 @@ Error lexer_get_next_token(Token *out_token) {
 	for (;;) {
 		LexemeState lexeme;
 		lexeme.current_lexeme = lexer_take(&lexeme, source_file);
-		int current_indent_level = 0;
-
-		if (at_line_start && lexeme.current_lexeme != EOF && paren_depth == 0) {
-			while (lexeme.current_lexeme == ' ') {
-				current_indent_level++;
-				lexeme.current_lexeme = lexer_take(&lexeme, source_file);
-			}
-
-			if (lexeme.current_lexeme == '\t') {
-				dstring_free(&token_buffer);
-				return ERROR_EMIT(
-					ERR_LEXICAL, current_line, current_col, "Tab found in indentation.\n");
-			}
-
-			if (lexeme.current_lexeme == '\n') {
-				current_indent_level = 0;
-				continue;
-			}
-
-			if (lexeme.current_lexeme == '/') {
-				LexemeState next_lex;
-				next_lex.current_lexeme = lexer_take(&next_lex, source_file);
-				if (next_lex.current_lexeme == '/') {
-					while (lexeme.current_lexeme != '\n' && lexeme.current_lexeme != EOF) {
-						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
-					}
-					continue;
-				} else {
-					lexer_give(&next_lex, source_file);
-				}
-			}
-
-			if (lexeme.current_lexeme != EOF) {
-				ungetc(lexeme.current_lexeme, source_file);
-				current_col--;
-			}
-			at_line_start = false;
-
-			if ((unsigned int)current_indent_level > indent_level) {
-				indent_level = current_indent_level;
-				stack_push(&indent_stack, (void *)(uintptr_t)indent_level);
-				token_make_simple(out_token, TOKEN_INDENT, current_line, current_col + 1);
-				dstring_free(&token_buffer);
-				return ERROR_OK();
-			} else if ((unsigned int)current_indent_level < indent_level) {
-				while (indent_stack.size > 1 &&
-					   (unsigned int)(uintptr_t)stack_top(&indent_stack)->data >
-						   (unsigned int)current_indent_level) {
-					StackElement *elem = stack_pop(&indent_stack);
-					free(elem);
-					pending_outdents++;
-				}
-
-				StackElement *top = stack_top(&indent_stack);
-				if (!top ||
-					(unsigned int)(uintptr_t)top->data != (unsigned int)current_indent_level) {
-					dstring_free(&token_buffer);
-					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col,
-						"Indentation level does not match any previous level.");
-				}
-
-				indent_level = current_indent_level;
-				pending_outdents--;
-				token_make_simple(out_token, TOKEN_OUTDENT, current_line, current_col + 1);
-				dstring_free(&token_buffer);
-				return ERROR_OK();
-			}
-
-			lexeme.current_lexeme = lexer_take(&lexeme, source_file);
-		}
 
 		switch (current_state) {
 			case STATE_START:
-				if (lexeme.current_lexeme == '\n') {
-					if (paren_depth > 0) {
-						continue;
-					}
-					out_token->type = TOKEN_EOL;
-					out_token->line = lexeme.previous_line;
-					out_token->col = lexeme.previous_col + 1;
+
+				if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
 					dstring_free(&token_buffer);
-					return ERROR_OK();
-				}
-				if (lexeme.current_lexeme == EOF) {
-					if (indent_stack.size > 1) {
-						StackElement *elem = stack_pop(&indent_stack);
-						free(elem);
-						pending_outdents = (int)indent_stack.size - 1;
-						indent_level = (indent_stack.size > 0)
-										   ? (unsigned int)(uintptr_t)stack_top(&indent_stack)->data
-										   : 0;
-						token_make_simple(out_token, TOKEN_OUTDENT, current_line, current_col);
-						dstring_free(&token_buffer);
-						return ERROR_OK();
-					}
-					token_make_simple(out_token, TOKEN_EOF, current_line, current_col);
-					dstring_free(&token_buffer);
-					return ERROR_OK();
+					return ERROR_EMIT(
+						ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
 				} // @dev will probably need to be somehow incorporated into lexer_take
 				if (lexeme.current_lexeme == EOF) {
-					if (indent_stack.size > 1) {
-						StackElement *elem = stack_pop(&indent_stack);
-						free(elem);
-						token_make_simple(out_token, TOKEN_OUTDENT, current_line, current_col);
-						dstring_free(&token_buffer);
-						return ERROR_OK();
-					}
 					token_make_simple(out_token, TOKEN_EOF, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
@@ -286,6 +156,13 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_free(&token_buffer);
 					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Tab found.\n");
 				}
+				// @dev When a trailing \n get here, shit goes down.
+				if (lexeme.current_lexeme == '\n') {
+					token_make_simple(
+						out_token, TOKEN_EOL, lexeme.previous_line, lexeme.previous_col + 1);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				} // @dev maybe return this only when it makes sense?
 				if (lexeme.current_lexeme == '0') {
 					token_start_line = current_line;
 					token_start_col = current_col;
@@ -337,14 +214,11 @@ Error lexer_get_next_token(Token *out_token) {
 					continue;
 				}
 				if (lexeme.current_lexeme == '(') {
-					paren_depth++;
 					token_make_simple(out_token, TOKEN_LPAREN, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
 				if (lexeme.current_lexeme == ')') {
-					if (paren_depth > 0)
-						paren_depth--;
 					token_make_simple(out_token, TOKEN_RPAREN, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
@@ -383,10 +257,6 @@ Error lexer_get_next_token(Token *out_token) {
 					return ERROR_OK();
 				}
 
-				if (lexeme.current_lexeme == '@') {
-					dstring_free(&token_buffer);
-					return ERROR_OK();
-				}
 				if (lexeme.current_lexeme == ':') {
 					token_make_simple(out_token, TOKEN_COLON, current_line, current_col);
 					dstring_free(&token_buffer);
@@ -836,11 +706,6 @@ Error lexer_get_next_token(Token *out_token) {
 				return ERROR_EMIT(
 					ERR_LEXICAL, current_line, current_col, "Malformed string followed by EOF.");
 				continue;
-			case STATE_INDENT:
-				if (lexeme.current_lexeme == ' ') {
-					continue;
-				}
-				break;
 			default:
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "DKA ERROR");

@@ -24,7 +24,8 @@ DSTRING_TEST_SRC = test/dstring_test.c
 AST_SRC          = src/parser/ast.c $(DSTRING_SRC)
 AST_TEST_SRC     = test/ast_test.c
 
-LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c $(DSTRING_SRC)
+# Doplněn src/_utils/stack.c pro obsluhu odsazení v lexeru
+LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c src/_utils/stack.c $(DSTRING_SRC)
 LEXER_TEST_SRC   = test/lexer_test/lexer_test.c
 
 # ----------------------------------------------------------------------
@@ -44,8 +45,8 @@ TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
 .PHONY: all check clean \
         dstring-asan dstring-valgrind dstring-check \
         ast-asan ast-valgrind ast-check test_ast \
-        scanner-build test-scanner test-scanner-valgrind \
-        linter linter-full linter-fix headers format \
+        scanner-build test-scanner test-scanner-basic test-scanner-advanced test-scanner-valgrind \
+        linter linter-full linter-clear linter-fix headers format \
         zip make_us_happy dist-prep
 
 # Výchozí cíl: spustí všechny rychlé testy
@@ -127,7 +128,6 @@ test-scanner-advanced: scanner-build
 
 test-scanner: scanner-build
 	@python3 test/test_run.py --timeout 0.5
-
 
 test-scanner-valgrind: scanner-build
 	@python3 test/test_run.py --valgrind --suit advanced --timeout 0.5
