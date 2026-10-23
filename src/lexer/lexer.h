@@ -46,7 +46,9 @@ typedef enum {
 	STATE_ERROR,
 
 	STATE_CHAR,
-	STATE_ML_STRING
+	STATE_ML_STRING,
+
+	STATE_INDENT
 } LexerState;
 
 /**

@@ -43,7 +43,6 @@ static const char *token_type_to_string(TokenType type) {
         case TOKEN_MUL:             return "MUL";
         case TOKEN_DIV:             return "DIV";
         case TOKEN_DOT:             return "DOT";
-	    case TOKEN_AT:              return "AT";
         case TOKEN_EOL:             return "EOL";
         case TOKEN_INDENT:          return "INDENT";
         case TOKEN_UNDERSCORE:      return "UNDERSCORE";

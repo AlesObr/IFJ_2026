@@ -24,6 +24,8 @@ static size_t last_line_len = 0; /** The length of the previous line */
 static size_t token_start_line = 1; /** Starting line of a token */
 static size_t token_start_col = 1;	/** Starting column of a token */
 
+static uint indent_level = 0; /**< Current indentation level (number of spaces) */
+
 void lexer_init(FILE *input) {
 	source_file = input;
 	current_line = 1;
@@ -135,7 +137,10 @@ Error lexer_get_next_token(Token *out_token) {
 
 		switch (current_state) {
 			case STATE_START:
-
+				if (lexeme.current_lexeme == '\n') {
+					current_state = STATE_INDENT;
+					continue;
+				}
 				if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
 					dstring_free(&token_buffer);
 					return ERROR_EMIT(
@@ -257,7 +262,6 @@ Error lexer_get_next_token(Token *out_token) {
 				}
 
 				if (lexeme.current_lexeme == '@') {
-					token_make_simple(out_token, TOKEN_AT, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
@@ -710,6 +714,10 @@ Error lexer_get_next_token(Token *out_token) {
 				return ERROR_EMIT(
 					ERR_LEXICAL, current_line, current_col, "Malformed string followed by EOF.");
 				continue;
+			case STATE_INDENT:
+				if (lexeme.current_lexeme == ' ') {
+					continue;
+				}
 			default:
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "DKA ERROR");
