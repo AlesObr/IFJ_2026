@@ -16,7 +16,7 @@
 /**
  * @brief Represents an element in the stack.
  */
-struct Stack_Element {
+typedef struct Stack_Element {
 	void *data;					/**< Pointer to the data of the stack element */
 	struct Stack_Element *next; /**< Pointer to the next element in the stack */
 } StackElement;
@@ -24,14 +24,12 @@ struct Stack_Element {
 /**
  * @brief Represents a stack data structure.
  */
-struct Stack {
+
+typedef struct Stack {
 	struct Stack_Element *data; /**< Pointer to the stack data array */
 	struct Stack_Element *top;	/**< Pointer to the top element of the stack */
 	size_t size;				/**< Current number of elements in the stack */
-};
-
-typedef struct Stack_Element StackElement;
-typedef struct Stack Stack;
+} Stack;
 
 /**
  * @brief Initializes a stack.
