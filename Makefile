@@ -27,6 +27,10 @@ AST_TEST_SRC     = test/ast_test.c
 LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c $(DSTRING_SRC)
 LEXER_TEST_SRC   = test/lexer_test/lexer_test.c
 
+# Parser moduly (případně doplňte další pomocné soubory, např. error.c)
+PARSER_SRC       = src/parser/parser.c $(AST_SRC) $(LEXER_SRC)
+PARSER_TEST_SRC  = test/syntax_test/test_parser.c
+
 # ----------------------------------------------------------------------
 # Cílové binárky (vše konzistentně do BUILD_DIR)
 # ----------------------------------------------------------------------
@@ -37,6 +41,7 @@ TARGET_AST_ASAN          = $(BUILD_DIR)/test_ast_asan
 TARGET_AST_VALGRIND      = $(BUILD_DIR)/test_ast_valgrind
 
 TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
+TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
 
 # ----------------------------------------------------------------------
 # Phony cíle
@@ -45,11 +50,12 @@ TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
         dstring-asan dstring-valgrind dstring-check \
         ast-asan ast-valgrind ast-check test_ast \
         scanner-build test-scanner test-scanner-valgrind \
+        parser-build test-parser test-parser-valgrind \
         linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep
 
-# Výchozí cíl: spustí všechny rychlé testy
-all: check
+# Výchozí cíl: spustí rychlé jednotkové i parser testy
+all: check test-parser
 
 check: dstring-check ast-check
 	@echo "\033[32m✓ Všechny základní subsystémové testy (dstring + AST) prošly.\033[0m"
@@ -108,7 +114,6 @@ ast-valgrind: $(TARGET_AST_VALGRIND)
 ast-check: ast-asan ast-valgrind
 	@echo "\033[32m✓ Unit testy AST prošly.\033[0m"
 
-# Alias pro zpětnou kompatibilitu
 test_ast: ast-asan
 
 # ----------------------------------------------------------------------
@@ -125,6 +130,22 @@ test-scanner: scanner-build
 test-scanner-valgrind: scanner-build
 	@python3 test/lexer_test/generate_testcases.py
 	@python3 test/test_run.py --valgrind
+
+# ----------------------------------------------------------------------
+# Parser & AST testy
+# ----------------------------------------------------------------------
+$(TARGET_PARSER_TEST): $(PARSER_SRC) $(PARSER_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+parser-build: $(TARGET_PARSER_TEST)
+
+test-parser: parser-build
+	@echo "=== Spuštění parser testů (rychlý běh) ==="
+	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast
+
+test-parser-valgrind: parser-build
+	@echo "=== Spuštění parser testů pod Valgrindem ==="
+	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery

@@ -63,7 +63,8 @@ typedef enum token_type {
 	TOKEN_RBRACE,
 	TOKEN_COLON,
 	TOKEN_SEMICOLON,
-	TOKEN_COMMA
+	TOKEN_COMMA,
+	TOKEN_EOL
 } TokenType;
 
 /**

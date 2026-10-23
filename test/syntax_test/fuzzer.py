@@ -1,223 +1,167 @@
 #!/usr/bin/env python3
-"""Grammar-based fuzzer pro IFJ26 s ukládáním do souborů."""
+"""
+Fuzzer pro IFJ26 pracující se sadami souborů (.scala, .in, .out).
+Generuje validní varianty i syntaktické chyby pro parser.
+Soubor byl vygenerován nástrojem generativní umělé inteligence (Gemini 3.8 flash)
+"""
 
 import argparse
-import json
 import random
-import subprocess
-import sys
+import re
+import shutil
 from pathlib import Path
 
-DEFAULT_GRAMMAR = {
-	"<program>": [["<stmt_list>"]],
-	"<stmt_list>": [
-		["<stmt>", "\n", "<stmt_list>"],
-		["<stmt>"]
-	],
-	"<stmt>": [
-		["<var_decl>"],
-		["<assignment>"],
-		["<if_stmt>"],
-		["<while_stmt>"],
-		["<expr_stmt>"]
-	],
-	"<var_decl>": [
-		["var ", "<id>", " : ", "<type>", " = ", "<expr>", ";"],
-		["let ", "<id>", " = ", "<expr>", ";"]
-	],
-	"<assignment>": [["<id>", " = ", "<expr>", ";"]],
-	"<if_stmt>": [
-		["if (", "<expr>", ") {\n", "<stmt_list>", "\n} else {\n", "<stmt_list>", "\n}"]
-	],
-	"<while_stmt>": [
-		["while (", "<expr>", ") {\n", "<stmt_list>", "\n}"]
-	],
-	"<expr_stmt>": [["<expr>", ";"]],
-	"<expr>": [
-		["<expr>", " + ", "<term>"],
-		["<expr>", " - ", "<term>"],
-		["<term>"]
-	],
-	"<term>": [
-		["<term>", " * ", "<factor>"],
-		["<term>", " / ", "<factor>"],
-		["<factor>"]
-	],
-	"<factor>": [
-		["(", "<expr>", ")"],
-		["<id>"],
-		["<literal>"]
-	],
-	"<type>": [["Int"], ["Float"], ["String"], ["Bool"]],
-	"<id>": [["x"], ["y"], ["idx"], ["total_sum"], ["foo_bar"]],
-	"<literal>": [["0"], ["42"], ["1337"], ["3.14"], ['"test"'], ["true"], ["false"]]
-}
 
+class IFJCodeMutator:
+    def __init__(self, code: str):
+        self.code = code
+        self.lines = code.splitlines(keepends=True)
 
-class GrammarFuzzer:
-	def __init__(self, grammar: dict, max_depth: int = 15, mutation_rate: float = 0.05):
-		self.grammar = grammar
-		self.max_depth = max_depth
-		self.mutation_rate = mutation_rate
-		self.has_mutated = False
-		self.terminal_depths = self._calc_terminal_depths()
+    # --- Validní mutace (zachovávají syntaktickou správnost) ---
 
-	def _is_terminal(self, symbol: str) -> bool:
-		return not (symbol.startswith("<") and symbol.endswith(">"))
+    def mutate_identifiers(self) -> str:
+        """Přejmenuje bezpečné identifikátory proměnných či funkcí."""
+        reserved = {
+            "def", "val", "var", "if", "then", "else", "while", "do",
+            "return", "import", "Int", "Double", "String", "Unit", "Boolean",
+            "main", "true", "false", "print", "readLine", "readInt", "readDouble",
+            "toStr", "toInt", "strLength", "subStr", "ord", "chr"
+        }
+        tokens = re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b", self.code)
+        candidates = list({t for t in tokens if t not in reserved and not t.startswith("@")})
+        if not candidates:
+            return self.code
 
-	def _calc_terminal_depths(self) -> dict[str, int]:
-		depths = {}
-		changed = True
-		while changed:
-			changed = False
-			for nt, productions in self.grammar.items():
-				min_p_depth = float("inf")
-				for prod in productions:
-					nt_symbols = [s for s in prod if not self._is_terminal(s)]
-					if not nt_symbols:
-						p_depth = 1
-					elif all(s in depths for s in nt_symbols):
-						p_depth = 1 + max(depths[s] for s in nt_symbols)
-					else:
-						p_depth = float("inf")
+        target = random.choice(candidates)
+        replacement = f"{target}_fuzz{random.randint(10, 99)}"
+        return re.sub(rf"\b{re.escape(target)}\b", replacement, self.code)
 
-					if p_depth < min_p_depth:
-						min_p_depth = p_depth
+    def mutate_formatting(self) -> str:
+        """Vkládá povolené komentáře a prázdné řádky."""
+        res = []
+        for line in self.lines:
+            if random.random() < 0.15:
+                res.append("// Fuzz vložený komentář\n")
+            if random.random() < 0.1:
+                res.append("\n")
+            if line.strip() and not line.strip().startswith("//") and random.random() < 0.15:
+                line = line.rstrip("\r\n") + " /* inline */\n"
+            res.append(line)
+        return "".join(res)
 
-				if min_p_depth < depths.get(nt, float("inf")):
-					depths[nt] = min_p_depth
-					changed = True
-		return depths
+    def generate_valid(self) -> str:
+        res = self.code
+        for fn in [self.mutate_identifiers, self.mutate_formatting]:
+            if random.random() < 0.7:
+                res = getattr(IFJCodeMutator(res), fn.__name__)()
+        return res
 
-	def _get_terminating_production(self, non_terminal: str) -> list[str]:
-		productions = self.grammar.get(non_terminal, [])
-		if not productions:
-			return []
+    # --- Syntaktické a lexikální chyby (pro testování chybových stavů parseru) ---
 
-		def prod_cost(prod):
-			cost = 0
-			for s in prod:
-				if not self._is_terminal(s):
-					cost += self.terminal_depths.get(s, 999)
-			return cost
+    def err_indentation(self) -> str:
+        """Naruší striktní odsazení bloku mezerami."""
+        res = []
+        mutated = False
+        for line in self.lines:
+            match = re.match(r"^( +)(\S.*)$", line)
+            if match and not mutated and random.random() < 0.35:
+                spaces, rest = match.groups()
+                # Změna počtu mezer na nevalidní úroveň
+                new_len = max(0, len(spaces) + random.choice([-3, -1, 1, 3]))
+                res.append(" " * new_len + rest + "\n")
+                mutated = True
+            else:
+                res.append(line)
+        return "".join(res) if mutated else self.code + "\n   x = 1\n"
 
-		return min(productions, key=prod_cost)
+    def err_unbalanced_delimiters(self) -> str:
+        """Smaže nebo vloží přebytečnou závorku."""
+        tokens = ["(", ")", "{", "}"]
+        t = random.choice(tokens)
+        if random.random() < 0.5 and t in self.code:
+            pos = self.code.rfind(t)
+            return self.code[:pos] + self.code[pos + 1:]
+        idx = random.randint(0, len(self.code) - 1)
+        return self.code[:idx] + t + self.code[idx:]
 
-	def generate(self, symbol: str = "<program>", depth: int = 0) -> str:
-		if self._is_terminal(symbol):
-			if self.mutation_rate > 0 and random.random() < self.mutation_rate:
-				self.has_mutated = True
-				mutation_type = random.choice(["drop", "duplicate", "swap_syntax"])
-				if mutation_type == "drop":
-					return ""
-				elif mutation_type == "duplicate":
-					return symbol + symbol
-				elif mutation_type == "swap_syntax":
-					return random.choice([";", ")", "{", "}", "=", "+"])
-			return symbol
+    def err_drop_keyword(self) -> str:
+        """Odstraní povinné klíčové slovo (then, do, def, =)."""
+        kws = [r"\bthen\b", r"\bdo\b", r"\bdef\b", r"="]
+        kw = random.choice(kws)
+        if re.search(kw, self.code):
+            return re.sub(kw, "", self.code, count=1)
+        return self.code + " def"
 
-		productions = self.grammar.get(symbol)
-		if not productions:
-			return ""
+    def err_operator_line_start(self) -> str:
+        """Začne logický řádek operátorem (zakázáno dle specifikace)."""
+        ops = ["+", "*", "-", "/", "=="]
+        for i, line in enumerate(self.lines):
+            match = re.match(r"^(\s*)(\S.*)$", line)
+            if match and not line.strip().startswith("//") and not line.strip().startswith("import"):
+                indent, rest = match.groups()
+                return "".join(self.lines[:i] + [f"{indent}{random.choice(ops)} {rest}\n"] + self.lines[i+1:])
+        return self.code
 
-		if depth >= self.max_depth:
-			chosen_rule = self._get_terminating_production(symbol)
-		else:
-			chosen_rule = random.choice(productions)
-
-		result = []
-		for sym in chosen_rule:
-			result.append(self.generate(sym, depth + 1))
-
-		return "".join(result)
-
-
-def run_test(compiler_bin: str, code: str, expect_syntax_error: bool) -> tuple[bool, str]:
-	cmd = [
-		"valgrind",
-		"--leak-check=full",
-		"--show-leak-kinds=all",
-		"--error-exitcode=99",
-		"-q",
-		compiler_bin
-	]
-
-	try:
-		proc = subprocess.run(
-			cmd,
-			input=code,
-			text=True,
-			capture_output=True,
-			timeout=2
-		)
-	except subprocess.TimeoutExpired:
-		return False, "TIMEOUT (nekonečný cyklus)"
-
-	if proc.returncode == 99:
-		return False, f"VALGRIND ERROR:\n{proc.stderr}"
-
-	if proc.returncode < 0:
-		return False, f"CRASH: signál {-proc.returncode}"
-
-	if expect_syntax_error and proc.returncode != 2:
-		return False, f"Očekáván exit kód 2, vráceno: {proc.returncode}"
-
-	if not expect_syntax_error and proc.returncode not in (0, 3, 4, 5):
-		return False, f"Neočekávaná syntaktická chyba: {proc.returncode}"
-
-	return True, "OK"
+    def generate_error(self) -> tuple[str, str]:
+        errors = [
+            (self.err_indentation, "indent_err"),
+            (self.err_unbalanced_delimiters, "delim_err"),
+            (self.err_drop_keyword, "missing_kw"),
+            (self.err_operator_line_start, "op_start_err"),
+        ]
+        fn, name = random.choice(errors)
+        return fn(), name
 
 
 def main():
-	parser = argparse.ArgumentParser(description="Grammar-based syntaktický fuzzer pro IFJ26")
-	parser.add_argument("--bin", type=str, default="./compiler", help="Cesta k binárce překladače")
-	parser.add_argument("--count", type=int, default=50, help="Počet generovaných testů")
-	parser.add_argument("--mutations", action="store_true", help="Povolit generování chybné syntaxe")
-	parser.add_argument("--grammar", type=str, help="Cesta k JSON souboru s gramatikou")
-	parser.add_argument("--out-dir", type=str, default="test_samples", help="Adresář pro ukládání testů")
-	parser.add_argument("--save-failed-only", action="store_true", help="Ukládat pouze testy, které selhaly")
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="IFJ26 Seed-based Fuzzer")
+    parser.add_argument("--seeds-dir", type=str, default=".", help="Adresář se soubory .scala a .in")
+    parser.add_argument("--out-dir", type=str, default="generated_tests", help="Výstupní adresář")
+    parser.add_argument("--valid-count", type=int, default=15, help="Počet validních testů")
+    parser.add_argument("--invalid-count", type=int, default=30, help="Počet syntaktických chyb")
+    args = parser.parse_args()
 
-	grammar = DEFAULT_GRAMMAR
-	if args.grammar:
-		with open(args.grammar, "r", encoding="utf-8") as f:
-			grammar = json.load(f)
+    seeds_dir = Path(args.seeds_dir)
+    scala_files = list(seeds_dir.glob("*.scala"))
+    if not scala_files:
+        print(f"❌ Žádné .scala soubory v '{seeds_dir}'.")
+        return
 
-	out_path = Path(args.out_dir)
-	out_path.mkdir(parents=True, exist_ok=True)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-	rate = 0.05 if args.mutations else 0.0
-	bin_exists = Path(args.bin).is_file()
+    print(f" Nalezeno {len(scala_files)} seedů: {[f.name for f in scala_files]}")
 
-	print(f"🚀 Fuzzer startuje: {args.count} vzorků (výstup: {out_path}/)...")
+    # 1. Generování validních vzorků
+    for i in range(1, args.valid_count + 1):
+        src = random.choice(scala_files)
+        mutator = IFJCodeMutator(src.read_text(encoding="utf-8"))
+        code = mutator.generate_valid()
 
-	saved_count = 0
-	for i in range(1, args.count + 1):
-		fuzzer = GrammarFuzzer(grammar, max_depth=12, mutation_rate=rate)
-		code = fuzzer.generate()
-		expect_error = fuzzer.has_mutated
+        base_name = f"test_valid_{i:03d}_{src.stem}"
+        (out_dir / f"{base_name}.scala").write_text(code, encoding="utf-8")
 
-		tag = "syntax_err" if expect_error else "valid"
-		file_name = f"test_{i:04d}_{tag}.ifj"
-		file_path = out_path / file_name
+        # Zkopírování příslušného .in souboru, pokud existuje
+        in_file = src.with_suffix(".in")
+        if in_file.exists():
+            shutil.copy(in_file, out_dir / f"{base_name}.in")
+        else:
+            (out_dir / f"{base_name}.in").touch()
 
-		if bin_exists:
-			ok, msg = run_test(args.bin, code, expect_error)
-			if not ok or not args.save_failed_only:
-				header = f"// Test: {file_name}\n// Expect error: {expect_error}\n// Result: {msg}\n\n"
-				file_path.write_text(header + code, encoding="utf-8")
-				saved_count += 1
+    # 2. Generování syntakticky chybných vzorků
+    for i in range(1, args.invalid_count + 1):
+        src = random.choice(scala_files)
+        mutator = IFJCodeMutator(src.read_text(encoding="utf-8"))
+        code, err_tag = mutator.generate_error()
 
-			if not ok:
-				print(f"❌ Selhal test #{i} ({file_name}): {msg}")
-		else:
-			# Režim bez binárky: uložení vzorků pro inspekci
-			header = f"// Test: {file_name}\n// Expect error: {expect_error}\n\n"
-			file_path.write_text(header + code, encoding="utf-8")
-			saved_count += 1
+        base_name = f"test_error_{i:03d}_{err_tag}_{src.stem}"
+        (out_dir / f"{base_name}.scala").write_text(code, encoding="utf-8")
+        
+        # Pro chybné testy stačí prázdný .in soubor
+        (out_dir / f"{base_name}.in").touch()
 
-	print(f"✨ Hotovo. Uloženo {saved_count} souborů do adresáře '{out_path}'.")
+    print(f" Hotovo. Vygenerováno {args.valid_count + args.invalid_count} testů v '{out_dir}/'.")
 
 
 if __name__ == "__main__":
-	main()
+    main()
