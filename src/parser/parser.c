@@ -52,32 +52,32 @@ ParserStatus parse_header(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing mandatory import header (import ifj.*)"),
+								  "Missing mandatory import header (import ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IDENTIFIER ||
 		strcmp(curr_token->data->str_val, "ifj") != 0) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Wrong import library in header (ifj.*)"),
+								  "Wrong import library in header (ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_DOT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing ifj type in import (ifj.*)"),
+								  "Missing ifj type in import (ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_MUL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Wrong import library in header (ifj.*)"),
+								  "Wrong import library in header (ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing EOL after header declaration"),
+								  "Missing EOL after header declaration\n"),
 			PAR_FAIL);
 	}
 	return PARSE_OK(PAR_SUCC);
@@ -96,14 +96,14 @@ ParserStatus parse_at_main(Token *curr_token) {
 			CHECK_STATUS(parse_func_def(curr_token, true));
 		} else {
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									  "Missing definition token after @main"),
+									  "Missing definition token after @main\n"),
 				PAR_FAIL);
 		}
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
 		CHECK_STATUS(parse_func_def(curr_token, true));
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing definition token after @main"),
+								  "Missing definition token after @main\n"),
 			PAR_FAIL);
 	}
 }
@@ -133,14 +133,14 @@ ParserStatus parse_param_tail(Token *curr_token) {
 ParserStatus parse_param_mem(Token *curr_token) {
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing identifier of parameter in function declaration"),
+							   "Missing identifier of parameter in function declaration\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_COLON) {
 		return PARSE_ERROR(
 			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-				"Missing colon after identifier of parameter in function declaration"),
+				"Missing colon after identifier of parameter in function declaration\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
@@ -150,7 +150,7 @@ ParserStatus parse_param_mem(Token *curr_token) {
 		case TOKEN_KEYWORD_UNIT:
 		case TOKEN_KEYWORD_STRING:
 			GET_TOKEN(curr_token, (Error){0});
-			if (curr_token->type == TOKEN_COLON) {
+			if (curr_token->type == TOKEN_COMMA) {
 				parse_param_tail(curr_token);
 				if (curr_token->type == TOKEN_RBRACE) {
 					return PARSE_OK(PAR_SUCC);
@@ -159,7 +159,7 @@ ParserStatus parse_param_mem(Token *curr_token) {
 			break;
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								   "Missing data type in function parameter"),
+								   "Missing data type in function parameter\n"),
 				PAR_FAIL);
 	}
 }
@@ -170,10 +170,9 @@ ParserStatus parse_param_mem(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_param_section(Token *curr_token) {
-	ParserStatus err = {0};
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr->token->type == TOKEN_IDENTIFIER) {
-		err = parse_param_mem(curr_token);
+		CHECK_STATUS(parse_param_mem(curr_token));
 	}
 	if (curr_token->type == TOKEN_RPAREN) {
 		return PARSE_OK(PAR_SUCC);
@@ -187,11 +186,9 @@ ParserStatus parse_param_section(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
-	ParserStatus err = {0};
-	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing identifier in function declaration"),
+							   "Missing identifier in function declaration\n"),
 			PAR_FAIL);
 	}
 	while (true) {
@@ -213,14 +210,16 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 			case TOKEN_EQ:
 				break;
 			default:
-				// error
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_toke->col,
+										"Invalid function return type\n"),
+					PAR_FAIL);
 		}
 	}
 	if (curr_token->type == TOKEN_EQ) {
-		err = parse_func_body(curr_token);
+		CHECK_STATUS(parse_func_body(curr_token));
 	}
 	return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-						   "Unexpected token in function declaration"),
+						   "Unexpected token in function declaration\n"),
 		PAR_FAIL);
 }
 
@@ -233,13 +232,13 @@ ParseStatus parse_extension_param(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing identifier in extension parameter"),
+							   "Missing identifier in extension parameter\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_COLON) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing colon in extension parameter"),
+							   "Missing colon in extension parameter\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
@@ -252,7 +251,7 @@ ParseStatus parse_extension_param(Token *curr_token) {
 			break;
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								   "Missing data type in extention parameter"),
+								   "Missing data type in extention parameter\n"),
 				PAR_FAIL);
 	}
 }
@@ -267,10 +266,10 @@ ParseStatus parse_extension_body(Token *curr_token) {
 	if (curr_token->type == TOKEN_AT_MAIN) {
 		CHECK_STATUS(parse_at_main(curr_token));
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
-		CHECK_STATUS(parse_func_def(curr_token));
+		CHECK_STATUS(parse_func_def(curr_token, false));
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Unexpected token in function declaration inside extension"),
+							   "Unexpected token in function declaration inside extension\n"),
 			PAR_FAIL);
 	}
 	while (curr_token->type != TOKEN_OUTDENT) {
@@ -279,10 +278,10 @@ ParseStatus parse_extension_body(Token *curr_token) {
 			case TOKEN_AT_MAIN:
 				CHECK_STATUS(parse_at_main(curr_token));
 			case TOKEN_KEYWORD_DEF:
-				CHECK_STATUS(parse_func_def(curr_token));
+				CHECK_STATUS(parse_func_def(curr_token, false));
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									   "Invalid token at end of extension declaration"),
+									   "Invalid token at end of extension declaration\n"),
 					PAR_FAIL);
 		}
 	}
@@ -298,32 +297,32 @@ ParseStatus parse_extension(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_LPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing left bracket of extension parameter"),
+							   "Missing left bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
 	CHECK_STATUS(parse_extension_param(curr_token));
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_RPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing right bracket of extension parameter"),
+							   "Missing right bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing EOL after extension parameter bracket"),
+							   "Missing EOL after extension parameter bracket\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_INDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing left bracket of extension parameter"),
+							   "Missing left bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
 	CHECK_STATUS(parse_extension_body(curr_token));
 	if (curr_token->type != TOKEN_OUTDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing outdent at the end of extension"),
+							   "Missing outdent at the end of extension\n"),
 			PAR_FAIL);
 	}
 	return PARSE_OK(PAR_SUCC);
@@ -345,13 +344,13 @@ ParserStatus parse_program(Token *curr_token) {
 				CHECK_STATUS(parse_at_main(curr_token));
 				break;
 			case TOKEN_KEYWORD_DEF:
-				CHECK_STATUS(parse_func_def(curr_token));
+				CHECK_STATUS(parse_func_def(curr_token, false));
 				break;
 			case TOKEN_EOL:
 				break; // consumes empty lines
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-										  "Missing EOL after header declaration"),
+										  "Missing EOL after header declaration\n"),
 					PAR_FAIL);
 		}
 		GET_TOKEN(curr_token, (Error){0}, (Error){0});
@@ -373,7 +372,7 @@ void parse() {
 		// end the program
 	} else if (status->flag == PAR_FAIL) {
 		free(curr_token);
-		// continue
+		// end the program
 	}
 	while (true) {
 		status = parse_program(curr_token);
