@@ -109,13 +109,82 @@ ParserStatus parse_at_main(Token *curr_token) {
 }
 
 /**
+ * @brief Parsing of declarations
+ * @param curr_token Token pointer filled with current token
+ * @param mutability Flag whether declared variable is mutable (true for var, false for val)
+ * @return Status structure containing flags for caller
+*/
+ParseStatus parse_declaration(Token* curr_token, bool mutability){
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type != TOKEN_IDENTIFIER){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								  "Missing identifier name after function declaration\n"),
+			PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type == TOKEN_COLON){
+		GET_TOKEN(curr_token, (Error){0});
+		switch (curr_token->type) {
+			case TOKEN_KEYWORD_INT:
+			case TOKEN_KEYWORD_DOUBLE:
+			case TOKEN_KEYWORD_UNIT:
+			case TOKEN_KEYWORD_STRING:
+				break;
+			default:
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing data type in function parameter\n"),
+					PAR_FAIL);
+		}
+	}
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type == TOKEN_EQ){
+		CHECK_STATUS(parse_expression(curr_token));
+	} else {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing assignment after variable declaration\n"),
+					PAR_FAIL);
+	}
+}
+
+/**
+ * @brief Parsing of statements
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_statement(Token *curr_token) {
+	switch(curr_token->type){
+		case TOKEN_KEYWORD_VAL:
+			CHECK_STATUS(parse_declaration(curr_token, false));
+			break;
+		case TOKEN_KEYWORD_VAR:
+			CHECK_STATUS(parse_declaration(curr_token, true));
+			break;
+		case TOKEN_KEYWORD_IF:
+			CHECK_STATUS(parse_if_statement(curr_token));
+			break;
+		case TOKEN_KEYWORD_WHILE:
+			CHECK_STATUS(parse_while_statement(curr_token));
+			break;
+		case TOKEN_KEYWORD_FOR:
+			CHECK_STATUS(parse_while_statement(curr_token));
+			break;
+		case TOKEN_KEYWORD_RETURN:
+			// add check for next variable
+		case TOKEN_IDENTIFIER:
+			// add parsing of expression
+		default:
+			// error?
+	}
+}
+
+/**
  * @brief Parsing of inner function body
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
 */
-ParserStatus parse_func_body(Token* curr_token) {
+ParserStatus parse_func_body(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
-	CHECK_STATUS(parse_expression(curr_token));
+	CHECK_STATUS(parse_statement(curr_token));
 	if (curr_token->type == TOKEN_EOL){
 		CHECK_STATUS(parse_code_block(curr_token));
 	}
