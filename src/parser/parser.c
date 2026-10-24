@@ -40,31 +40,14 @@
 /**
  * @brief Macro for checking status flags
  * @param status Status structure to be checked
- * @param cons_token Token until which tokens will be consumed if PAR_FAIL
  */
 #define CHECK_STATUS                                                                               \
-	(status, cons_token) do {                                                                      \
-		if ((status)->flag == PAR_EOF || (status)->flag == LEX_FAIL) {                             \
+	(status) do {                                                                      			   \
+		if ((status)->flag != PAR_SUCC) {														   \
 			return (status);                                                                       \
-		} else if ((status)->flag == PAR_FAIL) {                                                   \
-			consume_tokens((status)->error, (cons_token));                                         \
 		}                                                                                          \
 	}                                                                                              \
 	while (0)
-
-/**
- * @brief Consumes symbols until passed token type or TOKEN_EOF
- * @param prev_err Error that led to call of this method
- * @param token_type Type of token to reach by consuming tokens
- * @return Status structure containing flags for caller
- */
-ParserStatus consume_tokens(Error prev_err, TokenType token_type) {
-	Token *curr_token = NULL;
-	do {
-		GET_TOKEN(curr_token, (Error){0}, prev_err);
-	} while (curr_token->type != token_type);
-	return PARSE_ERROR(prev_err, PAR_FAIL);
-}
 
 /**
  * @brief Parsing of mandatory program header
@@ -74,34 +57,34 @@ ParserStatus consume_tokens(Error prev_err, TokenType token_type) {
 ParserStatus parse_header(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT) {
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing mandatory import header (import ifj.*)"),
-			TOKEN_EOL);
+			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IDENTIFIER ||
 		strcmp(curr_token->data->str_val, "ifj") != 0) {
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Wrong import library in header (ifj.*)"),
-			TOKEN_EOL);
+			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_DOT) {
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing ifj type in import (ifj.*)"),
-			TOKEN_EOL);
+			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_MUL) {
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Wrong import library in header (ifj.*)"),
-			TOKEN_EOL);
+			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_EOL) {
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing EOL after header declaration"),
-			TOKEN_EOL);
+			PAR_FAIL);
 	}
 	return PARSE_OK(PAR_SUCC);
 }
@@ -118,16 +101,16 @@ ParserStatus parse_at_main(Token *curr_token) {
 		if (curr_token->type == TOKEN_KEYWORD_DEF) {
 			err = parse_func_def(curr_token, true); // add error handler
 		} else {
-			return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									  "Missing definition token after @main"),
-				TOKEN_EOL);
+				PAR_FAIL);
 		}
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
 		err = parse_func_def(curr_token, true); // add error handler
 	} else {
-		return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing definition token after @main"),
-			TOKEN_EOL);
+			PAR_FAIL);
 	}
 }
 
@@ -372,9 +355,9 @@ ParserStatus parse_program(Token *curr_token) {
 			case TOKEN_EOL:
 				break; // consumes empty lines
 			default:
-				return consume_tokens(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 										  "Missing EOL after header declaration"),
-					TOKEN_EOL);
+					PAR_FAIL);
 		}
 		GET_TOKEN(curr_token, (Error){0}, (Error){0});
 	}
