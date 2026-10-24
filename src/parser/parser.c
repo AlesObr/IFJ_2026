@@ -116,19 +116,20 @@ ParserStatus parse_at_main(Token *curr_token) {
 */
 ParseStatus parse_declaration(Token* curr_token, bool mutability){
 	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type != TOKEN_IDENTIFIER){
+	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing identifier name after function declaration\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type == TOKEN_COLON){
+	if (curr_token->type == TOKEN_COLON) {
 		GET_TOKEN(curr_token, (Error){0});
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
 			case TOKEN_KEYWORD_DOUBLE:
 			case TOKEN_KEYWORD_UNIT:
 			case TOKEN_KEYWORD_STRING:
+			case TOKEN_KEYWORD_BOOLEAN:
 				break;
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -137,7 +138,7 @@ ParseStatus parse_declaration(Token* curr_token, bool mutability){
 		}
 	}
 	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type == TOKEN_EQ){
+	if (curr_token->type == TOKEN_EQ) {
 		CHECK_STATUS(parse_expression(curr_token));
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -147,12 +148,59 @@ ParseStatus parse_declaration(Token* curr_token, bool mutability){
 }
 
 /**
+ * @brief Parsiong of else decision branch
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_else_statement(Token *curr_token) {
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type == TOKEN_EOL){
+		return PARSE_OK(PAR_SUCC);
+	} else if (curr_token->type == TOKEN_KEYWORD_IF){
+		CHECK_STATUS(parse_if_statement(curr_token));
+		return PARSE_OK(PAR_SUCC);
+	} else {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Unexpected token after else statemenent (expected if or EOL)\n"),
+					PAR_FAIL);
+	}
+}
+
+/**
+ * @brief Parsing of if decision statement
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_if_statement(Token* curr_token){
+	CHECK_STATUS(parse_expression(curr_token, TOKEN_KEYWORD_THEN));
+	if (curr_token->type != TOKEN_KEYWORD_THEN) {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing then after if statement condition\n"),
+					PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token != TOKEN_EOL) {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing EOL after then of if statement\n"),
+					PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0});
+	CHECK_STATUS(parse_code_block(curr_token));
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type == TOKEN_KEYWORD_ELSE) {
+		CHECK_STATUS(parse_else_statement);
+	} else {
+		return PARSE_OK(PARSE_SUCC);
+	}
+}
+
+/**
  * @brief Parsing of statements
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
 */
 ParserStatus parse_statement(Token *curr_token) {
-	switch(curr_token->type){
+	switch(curr_token->type) {
 		case TOKEN_KEYWORD_VAL:
 			CHECK_STATUS(parse_declaration(curr_token, false));
 			break;
@@ -173,7 +221,9 @@ ParserStatus parse_statement(Token *curr_token) {
 		case TOKEN_IDENTIFIER:
 			// add parsing of expression
 		default:
-			// error?
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Invalid token at the start of statement\n"),
+					PAR_FAIL);
 	}
 }
 
@@ -236,6 +286,7 @@ ParserStatus parse_param_mem(Token *curr_token) {
 		case TOKEN_KEYWORD_DOUBLE:
 		case TOKEN_KEYWORD_UNIT:
 		case TOKEN_KEYWORD_STRING:
+		case TOKEN_KEYWORD_BOOLEAN:
 			GET_TOKEN(curr_token, (Error){0});
 			if (curr_token->type == TOKEN_COMMA) {
 				CHECK_STATUS(parse_param_tail(curr_token));
@@ -297,6 +348,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 			case TOKEN_KEYWORD_DOUBLE:
 			case TOKEN_KEYWORD_UNIT:
 			case TOKEN_KEYWORD_STRING:
+			case TOKEN_KEYWORD_BOOLEAN:
 				break;
 			case TOKEN_EQ:
 				break;
@@ -338,6 +390,7 @@ ParseStatus parse_extension_param(Token *curr_token) {
 		case TOKEN_KEYWORD_DOUBLE:
 		case TOKEN_KEYWORD_UNIT:
 		case TOKEN_KEYWORD_STRING:
+		case TOKEN_KEYWORD_BOOLEAN:
 			return PARSE_OK(PAR_SUCC);
 			break;
 		default:
