@@ -93,14 +93,14 @@ ParserStatus parse_at_main(Token *curr_token) {
 	if (curr_token->type == TOKEN_KEYWORD_EOL) {
 		GET_TOKEN(curr_token, (Error){0});
 		if (curr_token->type == TOKEN_KEYWORD_DEF) {
-			err = parse_func_def(curr_token, true); // add error handler
+			CHECK_STATUS(parse_func_def(curr_token, true));
 		} else {
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									  "Missing definition token after @main"),
 				PAR_FAIL);
 		}
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
-		err = parse_func_def(curr_token, true); // add error handler
+		CHECK_STATUS(parse_func_def(curr_token, true));
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing definition token after @main"),
@@ -119,7 +119,7 @@ ParserStatus parse_param_tail(Token *curr_token) {
 		return PARSE_OK(PAR_SUCC);
 	} else if (curr_token->type == TOKEN_IDENTIFIER) {
 		GET_TOKEN(curr_token, (Error){0});
-		parse_param_mem(curr_token); // err handle
+		CHECK_STATUS(parse_param_mem(curr_token));
 	} else {
 		// err handle
 	}
@@ -197,7 +197,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	while (true) {
 		GET_TOKEN(curr_token, (Error){0});
 		if (curr_token->type == TOKEN_LPAREN) {
-			err = parse_param_section(curr_token); // error handle
+			CHECK_STATUS(parse_param_section(curr_token));
 		} else {
 			break;
 		}
@@ -210,7 +210,9 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 			case TOKEN_KEYWORD_UNIT:
 			case TOKEN_KEYWORD_STRING:
 				break;
-			case TOKEN_EQ break; default:
+			case TOKEN_EQ:
+				break;
+			default:
 				// error
 		}
 	}
@@ -263,9 +265,9 @@ ParseStatus parse_extension_param(Token *curr_token) {
 ParseStatus parse_extension_body(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_AT_MAIN) {
-		parse_at_main(curr_token); // add error handler
+		CHECK_STATUS(parse_at_main(curr_token));
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
-		parse_func_def(curr_token); // add error handler
+		CHECK_STATUS(parse_func_def(curr_token));
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Unexpected token in function declaration inside extension"),
@@ -275,9 +277,9 @@ ParseStatus parse_extension_body(Token *curr_token) {
 		GET_TOKEN(curr_token, (Error){0});
 		switch (curr_token->type) {
 			case TOKEN_AT_MAIN:
-				parse_at_main(curr_token); // add error handler
+				CHECK_STATUS(parse_at_main(curr_token));
 			case TOKEN_KEYWORD_DEF:
-				parse_func_def(curr_token); // add error handler
+				CHECK_STATUS(parse_func_def(curr_token));
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									   "Invalid token at end of extension declaration"),
@@ -299,7 +301,7 @@ ParseStatus parse_extension(Token *curr_token) {
 							   "Missing left bracket of extension parameter"),
 			PAR_FAIL);
 	}
-	parse_extension_param(); // add error handler
+	CHECK_STATUS(parse_extension_param(curr_token));
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_RPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -318,7 +320,7 @@ ParseStatus parse_extension(Token *curr_token) {
 							   "Missing left bracket of extension parameter"),
 			PAR_FAIL);
 	}
-	parse_extension_body(); // add error handler
+	CHECK_STATUS(parse_extension_body(curr_token));
 	if (curr_token->type != TOKEN_OUTDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing outdent at the end of extension"),
@@ -333,18 +335,17 @@ ParseStatus parse_extension(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_program(Token *curr_token) {
-	ParserStatus err = {0};
 	GET_TOKEN(curr_token, (Error){0});
 	while (curr_token->type != TOKEN_EOF) {
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_EXTENSION:
-				err = parse_extension(curr_token); // add error handler
+				CHECK_STATUS(parse_extension(curr_token));
 				break;
 			case TOKEN_AT_MAIN:
-				err = parse_at_main(curr_token); // add error handler
+				CHECK_STATUS(parse_at_main(curr_token));
 				break;
 			case TOKEN_KEYWORD_DEF:
-				err = parse_func_def(curr_token); // add error handler
+				CHECK_STATUS(parse_func_def(curr_token));
 				break;
 			case TOKEN_EOL:
 				break; // consumes empty lines
@@ -365,21 +366,27 @@ void parse() {
 	}
 	ParserStatus status = parse_header(curr_token);
 	if (status->flag == PAR_EOF) {
+		free(curr_token);
 		// end the program
 	} else if (status->flag == LEX_FAIL) {
+		free(curr_token);
 		// end the program
 	} else if (status->flag == PAR_FAIL) {
+		free(curr_token);
 		// continue
 	}
-	bool end_flag = false;
-	while (!end_flag) {
+	while (true) {
 		status = parse_program(curr_token);
-		if (status->flag == PAR_EOF) {
-			end_flag = true;
-		} else if (status->flag == LEX_FAIL) {
-			end_flag = true;
-		} else if (status->flag == PAR_FAIL) {
-			// continue
+		if (status->flag != PAR_SUCC) {
+			break;
 		}
 	}
+	switch(status->flag){
+		case PAR_FAIL:
+		case LEX_FAIL:
+		case PAR_EOF:
+			break;
+	}
+	free(curr_token);
+	return;
 }
