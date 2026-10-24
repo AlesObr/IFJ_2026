@@ -109,6 +109,20 @@ ParserStatus parse_at_main(Token *curr_token) {
 }
 
 /**
+ * @brief Parsing of inner function body
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_func_body(Token* curr_token) {
+	GET_TOKEN(curr_token, (Error){0});
+	CHECK_STATUS(parse_expression(curr_token));
+	if (curr_token->type == TOKEN_EOL){
+		CHECK_STATUS(parse_code_block(curr_token));
+	}
+	return PARSE_OK;
+}
+
+/**
  * @brief Parsing tail of mutliple function parameters
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
@@ -116,12 +130,16 @@ ParserStatus parse_at_main(Token *curr_token) {
 ParserStatus parse_param_tail(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_EOL) {
+		GET_TOKEN(curr_token, (Error){0});
 		return PARSE_OK(PAR_SUCC);
 	} else if (curr_token->type == TOKEN_IDENTIFIER) {
 		GET_TOKEN(curr_token, (Error){0});
 		CHECK_STATUS(parse_param_mem(curr_token));
+		return PARSE_OK(PAR_SUCC);
 	} else {
-		// err handle
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Unexpected token in function parameter tail\n"),
+			PAR_FAIL);
 	}
 }
 
@@ -151,10 +169,10 @@ ParserStatus parse_param_mem(Token *curr_token) {
 		case TOKEN_KEYWORD_STRING:
 			GET_TOKEN(curr_token, (Error){0});
 			if (curr_token->type == TOKEN_COMMA) {
-				parse_param_tail(curr_token);
-				if (curr_token->type == TOKEN_RBRACE) {
-					return PARSE_OK(PAR_SUCC);
-				}
+				CHECK_STATUS(parse_param_tail(curr_token));
+			}
+			if (curr_token->type == TOKEN_RBRACE) {
+				return PARSE_OK(PAR_SUCC);
 			}
 			break;
 		default:
@@ -176,6 +194,10 @@ ParserStatus parse_param_section(Token *curr_token) {
 	}
 	if (curr_token->type == TOKEN_RPAREN) {
 		return PARSE_OK(PAR_SUCC);
+	} else {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Invalid parameter list in function declaration (missing right brace)\n"),
+			PAR_FAIL);
 	}
 }
 
@@ -210,7 +232,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 			case TOKEN_EQ:
 				break;
 			default:
-				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_toke->col,
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 										"Invalid function return type\n"),
 					PAR_FAIL);
 		}
