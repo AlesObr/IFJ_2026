@@ -18,21 +18,15 @@
  * @brief Macro for safely fetching from scanner
  * @param tok_ptr Token pointer to fetch into
  * @param err Error variable to catch scanner errors
- * @param prev_err Optional parameter to not lose initial error when consuming rest of rule and
- * reaching EOF
  */
 #define GET_TOKEN                                                                                  \
-	(tok_ptr, err, prev_err) do {                                                                  \
+	(tok_ptr, err) do {                                                                  		   \
 		(err) = lexer_get_next_token((tok_ptr));                                                   \
 		if (ERROR_IS_ERR((err))) {                                                                 \
 			return PARSE_ERROR((err), LEX_FAIL);                                                   \
 		}                                                                                          \
-		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \
-			if ((prev_err->type) != ERR_OK) {                                                      \
-				return PARSE_ERROR((prev_err), PAR_EOF);                                           \
-			} else {                                                                               \
-				return PARSE_OK(PAR_EOF);                                                          \
-			}                                                                                      \
+		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \                                                                             \
+			return PARSE_OK(PAR_EOF);                                                          	   \
 		}                                                                                          \
 	}                                                                                              \
 	while (0)
@@ -55,32 +49,32 @@
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_header(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing mandatory import header (import ifj.*)"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IDENTIFIER ||
 		strcmp(curr_token->data->str_val, "ifj") != 0) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Wrong import library in header (ifj.*)"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_DOT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing ifj type in import (ifj.*)"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_MUL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Wrong import library in header (ifj.*)"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing EOL after header declaration"),
@@ -95,9 +89,9 @@ ParserStatus parse_header(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_at_main(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_KEYWORD_EOL) {
-		GET_TOKEN(curr_token, (Error){0}, (Error){0});
+		GET_TOKEN(curr_token, (Error){0});
 		if (curr_token->type == TOKEN_KEYWORD_DEF) {
 			err = parse_func_def(curr_token, true); // add error handler
 		} else {
@@ -120,11 +114,11 @@ ParserStatus parse_at_main(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_param_tail(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_EOL) {
 		return PARSE_OK(PAR_SUCC);
 	} else if (curr_token->type == TOKEN_IDENTIFIER) {
-		GET_TOKEN(curr_token, (Error){0}, (Error){0});
+		GET_TOKEN(curr_token, (Error){0});
 		parse_param_mem(curr_token); // err handle
 	} else {
 		// err handle
@@ -142,20 +136,20 @@ ParserStatus parse_param_mem(Token *curr_token) {
 							   "Missing identifier of parameter in function declaration"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_COLON) {
 		return PARSE_ERROR(
 			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 				"Missing colon after identifier of parameter in function declaration"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_INT:
 		case TOKEN_KEYWORD_DOUBLE:
 		case TOKEN_KEYWORD_UNIT:
 		case TOKEN_KEYWORD_STRING:
-			GET_TOKEN(curr_token, (Error){0}, (Error){0});
+			GET_TOKEN(curr_token, (Error){0});
 			if (curr_token->type == TOKEN_COLON) {
 				parse_param_tail(curr_token);
 				if (curr_token->type == TOKEN_RBRACE) {
@@ -177,7 +171,7 @@ ParserStatus parse_param_mem(Token *curr_token) {
  */
 ParserStatus parse_param_section(Token *curr_token) {
 	ParserStatus err = {0};
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr->token->type == TOKEN_IDENTIFIER) {
 		err = parse_param_mem(curr_token);
 	}
@@ -194,14 +188,14 @@ ParserStatus parse_param_section(Token *curr_token) {
  */
 ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	ParserStatus err = {0};
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier in function declaration"),
 			PAR_FAIL);
 	}
 	while (true) {
-		GET_TOKEN(curr_token, (Error){0}, (Error){0});
+		GET_TOKEN(curr_token, (Error){0});
 		if (curr_token->type == TOKEN_LPAREN) {
 			err = parse_param_section(curr_token); // error handle
 		} else {
@@ -209,7 +203,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 		}
 	}
 	if (curr_token->type == TOKEN_COLON) {
-		GET_TOKEN(curr_token, (Error){0}, (Error){0});
+		GET_TOKEN(curr_token, (Error){0});
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
 			case TOKEN_KEYWORD_DOUBLE:
@@ -234,19 +228,19 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
  * @return Status structure containing flags for caller
  */
 ParseStatus parse_extension_param(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier in extension parameter"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_COLON) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing colon in extension parameter"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_INT:
 		case TOKEN_KEYWORD_DOUBLE:
@@ -267,7 +261,7 @@ ParseStatus parse_extension_param(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParseStatus parse_extension_body(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0}, Error{0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_AT_MAIN) {
 		parse_at_main(curr_token); // add error handler
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
@@ -278,7 +272,7 @@ ParseStatus parse_extension_body(Token *curr_token) {
 			PAR_FAIL);
 	}
 	while (curr_token->type != TOKEN_OUTDENT) {
-		GET_TOKEN(curr_token, (Error){0}, Error{0});
+		GET_TOKEN(curr_token, (Error){0});
 		switch (curr_token->type) {
 			case TOKEN_AT_MAIN:
 				parse_at_main(curr_token); // add error handler
@@ -299,26 +293,26 @@ ParseStatus parse_extension_body(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParseStatus parse_extension(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_LPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing left bracket of extension parameter"),
 			PAR_FAIL);
 	}
 	parse_extension_param(); // add error handler
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_RPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing right bracket of extension parameter"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing EOL after extension parameter bracket"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_INDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing left bracket of extension parameter"),
@@ -340,7 +334,7 @@ ParseStatus parse_extension(Token *curr_token) {
  */
 ParserStatus parse_program(Token *curr_token) {
 	ParserStatus err = {0};
-	GET_TOKEN(curr_token, (Error){0}, (Error){0});
+	GET_TOKEN(curr_token, (Error){0});
 	while (curr_token->type != TOKEN_EOF) {
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_EXTENSION:
