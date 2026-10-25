@@ -1,48 +1,109 @@
 #!/usr/bin/env python3
 """
-Generátor deterministických a zátěžových testů pro IFJ25 Lexer.
-Generuje sadu 'basic' pro rychlý lokální vývoj a sadu 'advanced'
-(vyšší tisíce tokenů, stres dynamické paměti a zákeřné rohy) pro CI/CD pipeline.
+Generátor deterministických a zátěžových testů pro IFJ26 Lexer.
+Tento skript byl vytvořen za užití generativní umělé inteligence (Gemini)
+a následně upraven a doplněn ručně (Aleš Obr xobrale00).
+Prompt: "Napiš deterministický generátor zátěžových a jednotkových testů pro lexer IFJ26 podle specifikace tokenů, číselných literálů a komentářů."
 """
 
 import argparse
-import random
 from pathlib import Path
+import random
 
 BASE_FIXTURES = Path("./test/lexer_test/fixtures")
 
 # ----------------------------------------------------------------------
-# Definice stavebních kamenů podle specifikace
+# Definice podle specifikace IFJ26
 # ----------------------------------------------------------------------
 
-KEYWORDS = ["def", "var", "val", "if", "else", "while", "return"]
+KEYWORDS = [
+    "def",
+    "do",
+    "else",
+    "if",
+    "import",
+    "return",
+    "then",
+    "val",
+    "var",
+    "while",
+    "Double",
+    "Int",
+    "String",
+    "Unit",
+]
+
+KEYWORDS_EXTENSIONS = [
+    "Boolean",
+    "case",
+    "class",
+    "extension",
+    "for",
+    "List",
+    "match",
+    "type",
+]
 
 IDENTIFIERS = [
-    "x", "_var", "camelCase", "snake_case", "with123Numbers",
-    "_1", "__private", "veryLongIdentifierNameThatShouldStillWorkInDynamicString"
+    "x",
+    "_var",
+    "camelCase",
+    "snake_case",
+    "with123Numbers",
+    "_1",
+    "__private",
+    "veryLongIdentifierNameThatShouldStillWorkInDynamicString",
+    (
+        "thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifier"
+        "NameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStill"
+        "WorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString"
+    ),
+    "factorial",
+    "readInt",
+    "result",
 ]
 
-INTS = ["0", "1", "42", "999999999", "1234567890123456"]
+INTS = [
+    "0",
+    "1",
+    "42",
+    "2147483647",
+    "1_000_000",
+    "999_999_999",
+    "123_456_789",
+    "10_20_30",
+]
 
 FLOATS = [
-    ("0.0", "0.0"),
-    ("3.14159", "3.14159"),
-    ("1e10", "1e10"),
-    ("2.5E-3", "2.5E-3"),
-    ("100.5e+2", "100.5e+2"),
+    "0.0",
+    "3.14159",
+    "1e10",
+    "2.5E-3",
+    "100.5e+2",
+    "1_000.50_1",
+    "42.0d",
+    "1e5D",
+    "0.5",
+    "0.6",
+    "0.125e+2",
+    "5e-2",
 ]
 
-# (raw_c_string_in_file, parsed_value_expected)
 STRINGS = [
-    ('""', ''),
-    ('"hello"', 'hello'),
-    (r'"text s mezerami"', 'text s mezerami'),
-    (r'"escape: \n nova radka"', 'escape: \n nova radka'),
-    (r'"escape: \t tabulator"', 'escape: \t tabulator'),
+    ('""', ""),
+    ('"hello"', "hello"),
+    (r'"text s mezerami"', "text s mezerami"),
+    (r'"escape: \n nova radka"', "escape: \n nova radka"),
+    (r'"escape: \t tabulator"', "escape: \t tabulator"),
+    (r'"escape: \r carriage return"', "escape: \r carriage return"),
     (r'"escape: \" uvozovka"', 'escape: " uvozovka'),
-    (r'"escape: \\ lomitko"', 'escape: \\ lomitko'),
-    (r'"hex: \x41"', 'hex: A'),
-    (r'"hex male: \x61"', 'hex male: a'),
+    (r'"escape: \\ lomitko"', "escape: \\ lomitko"),
+    (r'"kombinace: \n\t\"\\"', 'kombinace: \n\t"\\'),
+    ('"""line1\nline2\nline3"""', "line1\nline2\nline3"),
+    (
+        '"""obsahuje \\n doslova bez escape"""',
+        "obsahuje \\n doslova bez escape",
+    ),
 ]
 
 OPERATORS = [
@@ -59,38 +120,60 @@ OPERATORS = [
     (">=", "GTE"),
     ("(", "LPAREN"),
     (")", "RPAREN"),
-    ("{", "LBRACE"),
-    ("}", "RBRACE"),
     (":", "COLON"),
     (";", "SEMICOLON"),
     (",", "COMMA"),
+    (".", "DOT"),
+    ("@", "AT"),
+    ("_", "UNDERSCORE"),
+    ("|", "PIPE"),
 ]
 
-# Hraniční chyby cílené na exit code 1 (Lexikální chyba)
 CRITICAL_LEX_ERRORS = [
-    ("err_num_leading_zero", "0123"),
-    ("err_num_double_zero", "00"),
-    ("err_float_no_digits_after_dot", "42."),
     ("err_float_exp_missing_digits", "42e"),
-    ("err_float_exp_sign_missing_digits", "42e+"),
-    ("err_hex_no_digits", "0x"),
-    ("err_hex_invalid_char", "0xZ"),
-    ("err_str_incomplete_hex_escape", r'"\xA"'),
-    ("err_str_bad_hex_escape", r'"\xZZ"'),
-    ("err_str_unclosed_at_eof", '"text bez uvozovky na konci'),
-    ("err_str_raw_newline", '"prvni radek\ndruhy radek"'),
+    ("err_str_hex_escape_unsupported", r'"\x41"'),
+    ("err_str_unknown_escape", r'"\a"'),
+    ("err_str_unclosed_single_line", '"text bez uvozovky na konci'),
+    ("err_str_raw_newline_in_single", '"prvni radek\ndruhy radek"'),
+    ("err_multiline_str_unclosed", '"""neukonceny multiline'),
     ("err_comment_unclosed_at_eof", "/* neukonceny blokovy komentar"),
-    ("err_single_exclamation", "!"),
-    ("err_bad_char_at", "@"),
+    ("err_comment_nested_unclosed", "/* prvni /* vnoreny */ neukonceny"),
+    ("err_token_after_multiline_comment", "/* \n */ val x = 1"),
+    ("err_forbidden_lbrace", "{"),
+    ("err_forbidden_rbrace", "}"),
     ("err_bad_char_hash", "#"),
     ("err_bad_char_dollar", "$"),
+    ("err_bad_char_ampersand", "&"),
+    ("err_bad_char_backslash", "\\"),
+    ("err_bad_char_caret", "^"),
+    ("err_bad_char_tilde", "~"),
+]
+
+# Specifické chyby špatného odsazení (např. tabulátory nebo nekonzistentní návraty)
+INDENTATION_ERRORS = [
+    ("err_bad_tab_indent", "\tvar x = 1"),
+    ("err_bad_tab_after_spaces", "  \tvar x = 1"),
+    ("err_inconsistent_outdent", "def foo(): Unit =\n    val x = 1\n  val y = 2\n"),
 ]
 
 # ----------------------------------------------------------------------
-# Zápis testovacích případů
+# Pomocné funkce
 # ----------------------------------------------------------------------
 
-def write_case(target_dir: Path, name: str, src_content: str, expected_tokens: list[str], expected_exit: int = 0):
+
+def normalize_float_repr(src: str) -> str:
+    clean = src.replace("_", "").rstrip("dD")
+    val = float(clean)
+    return f"{val:g}"
+
+
+def write_case(
+    target_dir: Path,
+    name: str,
+    src_content: str,
+    expected_tokens: list[str],
+    expected_exit: int = 0,
+):
     target_dir.mkdir(parents=True, exist_ok=True)
     src_file = target_dir / f"{name}.ifj"
     exp_file = target_dir / f"{name}.expected"
@@ -101,23 +184,38 @@ def write_case(target_dir: Path, name: str, src_content: str, expected_tokens: l
         for t in expected_tokens:
             f.write(f"{t}\n")
 
+
 # ----------------------------------------------------------------------
-# SADA: BASIC (Rychlý lokální testovací běh)
+# SADA: BASIC & INDENTACE
 # ----------------------------------------------------------------------
 
+
 def gen_basic_suite(out_dir: Path):
-    """Základní pokrytí všech kategorií po 1 kusu pro rychlý sanity check."""
     for kw in KEYWORDS:
         write_case(out_dir, f"valid_kw_{kw}", kw, [f"1:KEYWORD:{kw}", "1:EOF"])
 
+    for kw_ext in KEYWORDS_EXTENSIONS:
+        write_case(
+            out_dir,
+            f"valid_kw_ext_{kw_ext}",
+            kw_ext,
+            [f"1:KEYWORD:{kw_ext}", "1:EOF"],
+        )
+
     for i, ident in enumerate(IDENTIFIERS):
-        write_case(out_dir, f"valid_id_{i}", ident, [f"1:IDENTIFIER:{ident}", "1:EOF"])
+        write_case(
+            out_dir, f"valid_id_{i}", ident, [f"1:IDENTIFIER:{ident}", "1:EOF"]
+        )
 
     for i, val in enumerate(INTS):
-        write_case(out_dir, f"valid_int_{i}", val, [f"1:LIT_INT:{val}", "1:EOF"])
+        clean_val = str(val).replace("_", "")
+        write_case(out_dir, f"valid_int_{i}", val, [f"1:LIT_INT:{clean_val}", "1:EOF"])
 
-    for i, (src, val) in enumerate(FLOATS):
-        write_case(out_dir, f"valid_float_{i}", src, [f"1:LIT_FLOAT:{val}", "1:EOF"])
+    for i, src in enumerate(FLOATS):
+        norm_val = normalize_float_repr(src)
+        write_case(
+            out_dir, f"valid_float_{i}", src, [f"1:LIT_FLOAT:{norm_val}", "1:EOF"]
+        )
 
     for i, (src, val) in enumerate(STRINGS):
         write_case(out_dir, f"valid_str_{i}", src, [f"1:LIT_STRING:{val}", "1:EOF"])
@@ -125,178 +223,316 @@ def gen_basic_suite(out_dir: Path):
     for op, tok in OPERATORS:
         write_case(out_dir, f"valid_op_{tok.lower()}", op, [f"1:{tok}", "1:EOF"])
 
-    # Základní ungetc bez mezer
-    write_case(out_dir, "valid_tight_expr", "x=10+y", [
-        "1:IDENTIFIER:x", "1:ASSIGN", "1:LIT_INT:10", "1:PLUS", "1:IDENTIFIER:y", "1:EOF"
-    ])
+    norm_leading = normalize_float_repr(".6")
+    write_case(
+        out_dir, "valid_float_leading_dot", ".6", [f"1:LIT_FLOAT:{norm_leading}", "1:EOF"]
+    )
 
-    # Základní chyby
-    for name, code in CRITICAL_LEX_ERRORS[:6]:
+    write_case(
+        out_dir,
+        "valid_nested_comments",
+        "/* vnejsi /* vnitrni */ vnejsi_konec */ 42",
+        ["1:LIT_INT:42", "1:EOF"],
+    )
+
+    write_case(
+        out_dir,
+        "valid_tight_expr",
+        "x=10+y.toStr()",
+        [
+            "1:IDENTIFIER:x",
+            "1:ASSIGN",
+            "1:LIT_INT:10",
+            "1:PLUS",
+            "1:IDENTIFIER:y",
+            "1:DOT",
+            "1:IDENTIFIER:toStr",
+            "1:LPAREN",
+            "1:RPAREN",
+            "1:EOF",
+        ],
+    )
+
+    write_case(
+        out_dir, "valid_unary_minus", "-42", ["1:MINUS", "1:LIT_INT:42", "1:EOF"]
+    )
+    write_case(
+        out_dir,
+        "valid_zero_and_ident",
+        "0x12",
+        ["1:LIT_INT:0", "1:IDENTIFIER:x12", "1:EOF"],
+    )
+    norm_split = normalize_float_repr("42.0")
+    write_case(
+        out_dir,
+        "valid_float_split_f",
+        "42.0f",
+        [f"1:LIT_FLOAT:{norm_split}", "1:IDENTIFIER:f", "1:EOF"],
+    )
+    write_case(out_dir, "valid_isolated_dot", " . ", ["1:DOT", "1:EOF"])
+    write_case(out_dir, "valid_underscore", " _ ", ["1:UNDERSCORE", "1:EOF"])
+
+    # ------------------------------------------------------------------
+    # Testy s INDENT / OUTDENT (Scala 3 off-side pravidlo)
+    # ------------------------------------------------------------------
+    valid_indent_src = "def foo(): Unit =\n    val x = 1\n    x\n"
+    write_case(
+        out_dir,
+        "valid_indent_spaces",
+        valid_indent_src,
+        [
+            "1:KEYWORD:def",
+            "1:IDENTIFIER:foo",
+            "1:LPAREN",
+            "1:RPAREN",
+            "1:COLON",
+            "1:KEYWORD:Unit",
+            "1:ASSIGN",
+            "1:EOL",
+            "2:INDENT",
+            "2:KEYWORD:val",
+            "2:IDENTIFIER:x",
+            "2:ASSIGN",
+            "2:LIT_INT:1",
+            "2:EOL",
+            "3:IDENTIFIER:x",
+            "3:EOL",
+            "4:OUTDENT",
+            "4:EOF",
+        ],
+    )
+
+    # Test vícenásobného outdentu na konci
+    valid_nested_indent = (
+        "def outer(): Unit =\n"
+        "    if true then\n"
+        "        val z = 42\n"
+    )
+    write_case(
+        out_dir,
+        "valid_multilevel_outdent_at_eof",
+        valid_nested_indent,
+        [
+            "1:KEYWORD:def",
+            "1:IDENTIFIER:outer",
+            "1:LPAREN",
+            "1:RPAREN",
+            "1:COLON",
+            "1:KEYWORD:Unit",
+            "1:ASSIGN",
+            "1:EOL",
+            "2:INDENT",
+            "2:KEYWORD:if",
+            "2:IDENTIFIER:true",
+            "2:KEYWORD:then",
+            "2:EOL",
+            "3:INDENT",
+            "3:KEYWORD:val",
+            "3:IDENTIFIER:z",
+            "3:ASSIGN",
+            "3:LIT_INT:42",
+            "3:EOL",
+            "4:OUTDENT",
+            "4:OUTDENT",
+            "4:EOF",
+        ],
+    )
+
+    for name, code in CRITICAL_LEX_ERRORS + INDENTATION_ERRORS:
         write_case(out_dir, name, code, [], expected_exit=1)
 
+
 # ----------------------------------------------------------------------
-# SADA: ADVANCED (Zátěž vyšších tisíců tokenů, megamixy a fuzzing)
+# SADA: ADVANCED (Strukturovaný generátor s bloky a indentací)
 # ----------------------------------------------------------------------
 
-def _pick_random_token(line: int) -> tuple[str, str, str]:
-    """Vrátí (text_do_zdroje, ocekavany_token_radek, kategorie)."""
+
+def _pick_random_token_raw() -> tuple[str, str]:
     category = random.choices(
         ["kw", "id", "int", "float", "str", "op"],
-        weights=[15, 25, 20, 15, 10, 15]
+        weights=[15, 25, 20, 15, 10, 15],
     )[0]
 
     if category == "kw":
-        val = random.choice(KEYWORDS)
-        return val, f"{line}:KEYWORD:{val}", category
+        val = random.choice(KEYWORDS + KEYWORDS_EXTENSIONS)
+        return val, f"KEYWORD:{val}"
     elif category == "id":
         val = random.choice(IDENTIFIERS)
-        return val, f"{line}:IDENTIFIER:{val}", category
+        return val, f"IDENTIFIER:{val}"
     elif category == "int":
         val = random.choice(INTS)
-        return val, f"{line}:LIT_INT:{val}", category
+        clean = val.replace("_", "")
+        return val, f"LIT_INT:{clean}"
     elif category == "float":
-        val, repr_val = random.choice(FLOATS)
-        return val, f"{line}:LIT_FLOAT:{repr_val}", category
+        src = random.choice(FLOATS)
+        norm_val = normalize_float_repr(src)
+        return src, f"LIT_FLOAT:{norm_val}"
     elif category == "str":
-        val, repr_val = random.choice(STRINGS)
-        return val, f"{line}:LIT_STRING:{repr_val}", category
+        src, repr_val = random.choice(STRINGS[:9])
+        return src, f"LIT_STRING:{repr_val}"
     else:
         val, tok_name = random.choice(OPERATORS)
-        return val, f"{line}:{tok_name}", category
+        return val, tok_name
 
 
-def gen_massive_battery(out_dir: Path, battery_id: int, target_tokens: int, inject_error: bool = False) -> int:
-    """
-    Sestaví jednu masivní baterii tokenů (stovky až tisíce v jednom souboru).
-    Bezpečně ošetřuje oddělovače, aby nedocházelo k nechtěnému splynutí lexémů.
-    Vrací skutečný počet vygenerovaných tokenů.
-    """
-    random.seed(42000 + battery_id)
+def gen_structured_battery(
+    out_dir: Path,
+    battery_id: int,
+    target_lines: int,
+    inject_error: bool = False,
+) -> int:
+    random.seed(50000 + battery_id)
 
-    source_parts = []
+    source_lines = []
     expected_tokens = []
-    line = 1
+    
+    # Zásobník odsazení v počtu mezer
+    indent_stack = [0]
+    line_num = 1
+    total_tokens = 0
 
-    error_idx = random.randint(target_tokens // 3, (2 * target_tokens) // 3) if inject_error else -1
-    tokens_count = 0
-    last_category = None
-    last_val = ""
+    error_line = random.randint(target_lines // 3, (2 * target_lines) // 3) if inject_error else -1
 
-    for i in range(target_tokens):
-        if inject_error and i == error_idx:
-            # Vstříknutí náhodné kritické chyby
-            err_name, err_payload = random.choice(CRITICAL_LEX_ERRORS)
-            source_parts.append(f" {err_payload} ")
-            # Lexer tady musí spadnout s exit 1, další tokeny se netestují
+    for curr_line_idx in range(target_lines):
+        if inject_error and curr_line_idx == error_line:
+            _, err_payload = random.choice(CRITICAL_LEX_ERRORS + INDENTATION_ERRORS)
+            source_lines.append(f"{err_payload}\n")
             break
 
-        val, tok_repr, category = _pick_random_token(line)
+        # Rozhodnutí o změně úrovně odsazení
+        # 15 % šance jít hlouběji (max 4 úrovně), 15 % šance vrátit se zpět
+        change = random.choices(["same", "indent", "outdent"], weights=[70, 15, 15])[0]
 
-        # Bezpečné oddělení proti nechtěnému splynutí
-        # (např. 'var' + 'x' -> 'varx', nebo '/' + '/' -> '//', nebo '=' + '=' -> '==')
-        need_mandatory_space = False
-        if last_category:
-            both_alphanumeric = (last_category in ["kw", "id", "int", "float"] and 
-                                 category in ["kw", "id", "int", "float"])
-            both_operators = (last_category == "op" and category == "op")
-            if both_alphanumeric or both_operators:
-                need_mandatory_space = True
+        if change == "indent" and len(indent_stack) < 5:
+            new_indent = indent_stack[-1] + 4
+            indent_stack.append(new_indent)
+            expected_tokens.append(f"{line_num}:INDENT")
+        elif change == "outdent" and len(indent_stack) > 1:
+            # Kolik úrovní vyskočíme (typicky 1, vzácně víc)
+            pop_count = random.randint(1, len(indent_stack) - 1)
+            for _ in range(pop_count):
+                indent_stack.pop()
+                expected_tokens.append(f"{line_num}:OUTDENT")
 
-        sep_type = random.choices(
-            ["space", "newline", "line_comment", "block_comment", "none"],
-            weights=[40, 25, 10, 10, 15]
-        )[0]
+        curr_indent_spaces = indent_stack[-1]
+        line_prefix = " " * curr_indent_spaces
 
-        if need_mandatory_space and sep_type == "none":
-            sep_type = "space"
+        # Vygenerujeme 1 až 6 tokenů na řádku
+        num_tokens_on_line = random.randint(1, 6)
+        line_tokens_raw = []
 
-        # Přidání oddělovače
-        if sep_type == "space":
-            source_parts.append(" " * random.randint(1, 3))
-        elif sep_type == "newline":
-            source_parts.append("\n")
-            line += 1
-        elif sep_type == "line_comment":
-            source_parts.append(f" // comment on line {line}\n")
-            line += 1
-        elif sep_type == "block_comment":
-            newlines = random.randint(0, 3)
-            newlines = random.randint(0, 3)
-            comment_newlines = "\n" * newlines
-            source_parts.append(f" /* comment {comment_newlines} */ ")
-            line += newlines
-        elif sep_type == "none":
-            source_parts.append("")
+        for t_idx in range(num_tokens_on_line):
+            val, tok_repr = _pick_random_token_raw()
+            line_tokens_raw.append(val)
+            expected_tokens.append(f"{line_num}:{tok_repr}")
+            total_tokens += 1
 
-        source_parts.append(val)
-        expected_tokens.append(tok_repr)
-        tokens_count += 1
+        line_content = line_prefix + " ".join(line_tokens_raw)
+        
+        # Občas přidáme řádkový komentář na konec
+        if random.random() < 0.15:
+            line_content += f" // line {line_num} comment"
 
-        last_category = category
-        last_val = val
+        line_content += "\n"
+        source_lines.append(line_content)
+        expected_tokens.append(f"{line_num}:EOL")
+        line_num += 1
 
     if not inject_error:
-        expected_tokens.append(f"{line}:EOF")
-        write_case(out_dir, f"battery_megamix_{battery_id}_{tokens_count}tok", "".join(source_parts), expected_tokens, expected_exit=0)
-    else:
-        write_case(out_dir, f"battery_needle_error_{battery_id}", "".join(source_parts), [], expected_exit=1)
+        # Uzavření všech visících indentací na konci souboru (EOF vyvolá zbývající OUTDENTy)
+        while len(indent_stack) > 1:
+            indent_stack.pop()
+            expected_tokens.append(f"{line_num}:OUTDENT")
 
-    return tokens_count
+        expected_tokens.append(f"{line_num}:EOF")
+
+        write_case(
+            out_dir,
+            f"battery_indent_structured_{battery_id}_{total_tokens}tok",
+            "".join(source_lines),
+            expected_tokens,
+            expected_exit=0,
+        )
+    else:
+        write_case(
+            out_dir,
+            f"battery_indent_error_{battery_id}",
+            "".join(source_lines),
+            [],
+            expected_exit=1,
+        )
+
+    return total_tokens
 
 
 def gen_advanced_suite(out_dir: Path):
-    """Vygeneruje vyšší tisíce tokenů rozdělených do validních i chybových baterií."""
     total_tokens = 0
 
-    # 1. Čtyři gigantické validní baterie (každá 2 000 až 3 000 tokenů) -> cca 10 000 tokenů
-    for b_id in range(1, 5):
-        target = random.randint(2000, 3000)
-        generated = gen_massive_battery(out_dir, b_id, target_tokens=target, inject_error=False)
-        total_tokens += generated
+    # Masivní baterie s korektním vnořováním bloků
+    for b_id in range(1, 6):
+        total_tokens += gen_structured_battery(
+            out_dir, b_id, target_lines=250, inject_error=False
+        )
 
-    # 2. Deset středních baterií (po 400 tokenech) -> cca 4 000 tokenů
     for b_id in range(10, 20):
-        generated = gen_massive_battery(out_dir, b_id, target_tokens=400, inject_error=False)
-        total_tokens += generated
+        total_tokens += gen_structured_battery(
+            out_dir, b_id, target_lines=60, inject_error=False
+        )
 
-    # 3. Pět baterií s "jehlou v kupce sena" (stovky tokenů a pak skrytý pád na exit 1)
+    # Injekce chyb do strukturovaného kódu
     for b_id in range(50, 55):
-        gen_massive_battery(out_dir, b_id, target_tokens=500, inject_error=True)
+        gen_structured_battery(out_dir, b_id, target_lines=80, inject_error=True)
 
-    # 4. Paměťový stres pro dynamický buffer (dstring)
-    huge_id = "var_" + ("a" * (128 * 1024)) # 128 KB identifikátor
-    write_case(out_dir, "stress_128k_identifier", huge_id, [f"1:IDENTIFIER:{huge_id}", "1:EOF"])
+    # Hluboké zanoření (např. 30 úrovní odsazení)
+    deep_lines = []
+    deep_expected = []
+    deep_line_num = 1
+    
+    for lvl in range(1, 25):
+        deep_lines.append(("    " * lvl) + f"val x{lvl} = {lvl}\n")
+        deep_expected.append(f"{deep_line_num}:INDENT")
+        deep_expected.append(f"{deep_line_num}:KEYWORD:val")
+        deep_expected.append(f"{deep_line_num}:IDENTIFIER:x{lvl}")
+        deep_expected.append(f"{deep_line_num}:ASSIGN")
+        deep_expected.append(f"{deep_line_num}:LIT_INT:{lvl}")
+        deep_expected.append(f"{deep_line_num}:EOL")
+        deep_line_num += 1
 
-    huge_str = "S" * (1024 * 1024) # 1 MB string literál
-    write_case(out_dir, "stress_1mb_string", f'"{huge_str}"', [f"1:LIT_STRING:{huge_str}", "1:EOF"])
+    # Na konci souboru musí interpret/lexer vychrlit všech 24 OUTDENTů
+    for _ in range(24):
+        deep_expected.append(f"{deep_line_num}:OUTDENT")
+    deep_expected.append(f"{deep_line_num}:EOF")
 
-    # 5. Extrémní hloubka vnoření komentářů (test zanořování / čítače)
-    nesting = 80
-    deep_comment = ("/* " * nesting) + "hluboko" + (" */" * nesting)
-    write_case(out_dir, "stress_deep_nested_comments", f"var {deep_comment} x = 42", [
-        "1:KEYWORD:var", "1:IDENTIFIER:x", "1:ASSIGN", "1:LIT_INT:42", "1:EOF"
-    ])
+    write_case(
+        out_dir,
+        "stress_deep_indent_ladder",
+        "".join(deep_lines),
+        deep_expected,
+    )
 
-    # 6. Všechny hraniční chyby
-    for name, code in CRITICAL_LEX_ERRORS:
-        write_case(out_dir, f"edge_{name}", code, [], expected_exit=1)
-
-    print(f"-> V Advanced sadě vygenerováno celkem ~{total_tokens} validních tokenů v bateriích.")
+    print(f"-> V Advanced sadě vygenerováno celkem ~{total_tokens} validních tokenů s odsazením.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="IFJ Lexer Test Fixture Generator")
-    parser.add_argument("--suite", choices=["basic", "advanced", "all"], default="all",
-                        help="Kterou sadu vygenerovat (basic / advanced / all)")
+    parser = argparse.ArgumentParser(
+        description="IFJ26 Lexer Test Fixture Generator"
+    )
+    parser.add_argument(
+        "--suite",
+        choices=["basic", "advanced", "all"],
+        default="all",
+        help="Kterou sadu vygenerovat (basic / advanced / all)",
+    )
     args = parser.parse_args()
 
     if args.suite in ["basic", "all"]:
         gen_basic_suite(BASE_FIXTURES / "basic")
-        print("✓ Basic suite vygenerována.")
+        print("✓ Basic suite pro IFJ26 úspěšně vygenerována.")
 
     if args.suite in ["advanced", "all"]:
         gen_advanced_suite(BASE_FIXTURES / "advanced")
-        print("✓ Advanced suite vygenerována.")
+        print("✓ Advanced suite pro IFJ26 úspěšně vygenerována.")
+
 
 if __name__ == "__main__":
     main()

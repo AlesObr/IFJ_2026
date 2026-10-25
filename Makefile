@@ -24,7 +24,8 @@ DSTRING_TEST_SRC = test/dstring_test.c
 AST_SRC          = src/parser/ast.c $(DSTRING_SRC)
 AST_TEST_SRC     = test/ast_test.c
 
-LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c $(DSTRING_SRC)
+# Doplněn src/_utils/stack.c pro obsluhu odsazení v lexeru
+LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c src/_utils/stack.c $(DSTRING_SRC)
 LEXER_TEST_SRC   = test/lexer_test/lexer_test.c
 
 # Parser moduly (případně doplňte další pomocné soubory, např. error.c)
@@ -124,12 +125,33 @@ $(TARGET_LEXER_TEST): $(LEXER_SRC) $(LEXER_TEST_SRC) | $(BUILD_DIR)
 
 scanner-build: $(TARGET_LEXER_TEST)
 
+test-scanner-basic: scanner-build
+	@python3 test/test_run.py --suit basic --timeout 0.5
+
+test-scanner-advanced: scanner-build
+	@python3 test/test_run.py --suit advanced --timeout 0.5
+
 test-scanner: scanner-build
-	@python3 test/test_run.py
+	@python3 test/test_run.py --timeout 0.5
 
 test-scanner-valgrind: scanner-build
-	@python3 test/lexer_test/generate_testcases.py
-	@python3 test/test_run.py --valgrind
+	@python3 test/test_run.py --valgrind --suit advanced --timeout 0.5
+
+# ----------------------------------------------------------------------
+# Parser & AST testy
+# ----------------------------------------------------------------------
+$(TARGET_PARSER_TEST): $(PARSER_SRC) $(PARSER_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+parser-build: $(TARGET_PARSER_TEST)
+
+test-parser: parser-build
+	@echo "=== Spuštění parser testů (rychlý běh) ==="
+	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast
+
+test-parser-valgrind: parser-build
+	@echo "=== Spuštění parser testů pod Valgrindem ==="
+	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind
 
 # ----------------------------------------------------------------------
 # Parser & AST testy
@@ -155,6 +177,11 @@ linter:
 
 linter-full:
 	@python3 scripts/generate_headers.py
+	@python3 scripts/lint_comments.py
+
+linter-clear:
+	@python3 scripts/generate_headers.py
+	@python3 scripts/lint_comments.py --strip-dev --fix
 	@python3 scripts/lint_comments.py
 
 linter-fix:

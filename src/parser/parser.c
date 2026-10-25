@@ -10,6 +10,7 @@
 #include "parser.h"
 #include "../_utils/error.h"
 #include "../_utils/token.h"
+#include "../_utils/dstring.h"
 #include "../lexer/lexer.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -66,19 +67,19 @@ ParserStatus parse_header(Token *curr_token) {
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_IDENTIFIER ||
-		strcmp(curr_token->data.str_val, "ifj") != 0) {
+		dstring_cmp_str(curr_token->data.str_val, "ifj") != 0) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Wrong import library in header (ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type != TOKEN_KEYWORD_DOT) {
+	if (curr_token->type != TOKEN_KEYWORD_DO) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Missing ifj type in import (ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type != TOKEN_KEYWORD_MUL) {
+	if (curr_token->type != TOKEN_MUL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								  "Wrong import library in header (ifj.*)\n"),
 			PAR_FAIL);
@@ -112,7 +113,7 @@ ParserStatus parse_at_main(Token *curr_token) {
 		CHECK_STATUS(parse_func_def(curr_token, true));
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing definition token after @main\n"),
+							   "Missing definition token after @main\n"),
 			PAR_FAIL);
 	}
 	return PARSE_OK(PAR_SUCC);
@@ -173,8 +174,8 @@ ParserStatus parse_else_statement(Token *curr_token) {
 		return PARSE_OK(PAR_SUCC);
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Unexpected token after else statemenent (expected if or EOL)\n"),
-					PAR_FAIL);
+							   "Unexpected token after else statemenent (expected if or EOL)\n"),
+			PAR_FAIL);
 	}
 }
 
@@ -232,9 +233,9 @@ ParserStatus parse_while_statement(Token* curr_token) {
  * @brief Parsing of statements
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
-*/
+ */
 ParserStatus parse_statement(Token *curr_token) {
-	switch(curr_token->type) {
+	switch (curr_token->type) {
 		case TOKEN_KEYWORD_VAL:
 			CHECK_STATUS(parse_declaration(curr_token, false));
 			break;
@@ -252,12 +253,14 @@ ParserStatus parse_statement(Token *curr_token) {
 			break;
 		case TOKEN_KEYWORD_RETURN:
 			// add check for next variable
+			break;
 		case TOKEN_IDENTIFIER:
 			// add parsing of expression
+			break;
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Invalid token at the start of statement\n"),
-					PAR_FAIL);
+								   "Invalid token at the start of statement\n"),
+				PAR_FAIL);
 	}
 	return PARSE_OK(PAR_SUCC);
 }
@@ -335,6 +338,7 @@ ParserStatus parse_param_mem(Token *curr_token) {
 								   "Missing data type in function parameter\n"),
 				PAR_FAIL);
 	}
+	return PARSE_OK(PAR_SUCC);
 }
 
 /**
@@ -350,8 +354,9 @@ ParserStatus parse_param_section(Token *curr_token) {
 	if (curr_token->type == TOKEN_RPAREN) {
 		return PARSE_OK(PAR_SUCC);
 	} else {
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Invalid parameter list in function declaration (missing right brace)\n"),
+		return PARSE_ERROR(
+			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+					"Invalid parameter list in function declaration (missing right brace)\n"),
 			PAR_FAIL);
 	}
 }
@@ -363,7 +368,7 @@ ParserStatus parse_param_section(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
-	(void)main_flag; // remove later
+	(void)main_flag; // @dev TODO: This is a placeholder, delete it
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier in function declaration\n"),
@@ -390,7 +395,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 				break;
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-										"Invalid function return type\n"),
+									   "Invalid function return type\n"),
 					PAR_FAIL);
 		}
 	}

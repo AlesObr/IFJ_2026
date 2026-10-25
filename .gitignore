@@ -58,7 +58,7 @@ dkms.conf
 /build/
 /.vscode/
 /.vs/
-
-cs
-/test/.scala-build/*
-/test/.bsp/*
+/test/.scala-build/
+/test/.bsp/
+/cs
+/.idea/
