@@ -8,9 +8,9 @@
  */
 
 #include "parser.h"
+#include "../_utils/dstring.h"
 #include "../_utils/error.h"
 #include "../_utils/token.h"
-#include "../_utils/dstring.h"
 #include "../lexer/lexer.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -20,38 +20,36 @@
 ParserStatus parse_param_mem(Token *curr_token);
 ParserStatus parse_func_def(Token *curr_token, bool main_flag);
 ParserStatus parse_expression(Token *curr_token, TokenType type);
-ParserStatus parse_if_statement(Token* curr_token);
-ParserStatus parse_code_block(Token* curr_token);
+ParserStatus parse_if_statement(Token *curr_token);
+ParserStatus parse_code_block(Token *curr_token);
 
 /**
  * @brief Macro for safely fetching from scanner
  * @param tok_ptr Token pointer to fetch into
  * @param err Error variable to catch scanner errors
  */
-#define GET_TOKEN(tok_ptr, err)																	   \
-	do {                                                                  		                   \
+#define GET_TOKEN(tok_ptr, err)                                                                    \
+	do {                                                                                           \
 		(err) = lexer_get_next_token((tok_ptr));                                                   \
 		if (ERROR_IS_ERR((err))) {                                                                 \
 			return PARSE_ERROR((err), LEX_FAIL);                                                   \
 		}                                                                                          \
 		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \
-			return PARSE_OK(PAR_EOF);                                                          	   \
+			return PARSE_OK(PAR_EOF);                                                              \
 		}                                                                                          \
-	}                                                                                              \
-	while (0)
+	} while (0)
 
 /**
  * @brief Macro for checking status flags
  * @param status Status structure to be checked
  */
-#define CHECK_STATUS(status)																	   \
-	do {                                                                      			   		   \
-		ParserStatus tmp = (status);															   \
-		if (tmp.flag != PAR_SUCC) {													   	   		   \
-			return tmp;                                                                       	   \
+#define CHECK_STATUS(status)                                                                       \
+	do {                                                                                           \
+		ParserStatus tmp = (status);                                                               \
+		if (tmp.flag != PAR_SUCC) {                                                                \
+			return tmp;                                                                            \
 		}                                                                                          \
-	}                                                                                              \
-	while (0)
+	} while (0)
 
 /**
  * @brief Parsing of mandatory program header
@@ -62,32 +60,32 @@ ParserStatus parse_header(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing mandatory import header (import ifj.*)\n"),
+							   "Missing mandatory import header (import ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_IDENTIFIER ||
 		dstring_cmp_str(curr_token->data.str_val, "ifj") != 0) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Wrong import library in header (ifj.*)\n"),
+							   "Wrong import library in header (ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_KEYWORD_DO) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing ifj type in import (ifj.*)\n"),
+							   "Missing ifj type in import (ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_MUL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Wrong import library in header (ifj.*)\n"),
+							   "Wrong import library in header (ifj.*)\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing EOL after header declaration\n"),
+							   "Missing EOL after header declaration\n"),
 			PAR_FAIL);
 	}
 	return PARSE_OK(PAR_SUCC);
@@ -106,7 +104,7 @@ ParserStatus parse_at_main(Token *curr_token) {
 			CHECK_STATUS(parse_func_def(curr_token, true));
 		} else {
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									  "Missing definition token after @main\n"),
+								   "Missing definition token after @main\n"),
 				PAR_FAIL);
 		}
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
@@ -124,13 +122,13 @@ ParserStatus parse_at_main(Token *curr_token) {
  * @param curr_token Token pointer filled with current token
  * @param mutability Flag whether declared variable is mutable (true for var, false for val)
  * @return Status structure containing flags for caller
-*/
-ParserStatus parse_declaration(Token* curr_token, bool mutability){
+ */
+ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 	(void)mutability; // remove later
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								  "Missing identifier name after function declaration\n"),
+							   "Missing identifier name after function declaration\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
@@ -145,7 +143,7 @@ ParserStatus parse_declaration(Token* curr_token, bool mutability){
 				break;
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Missing data type in function parameter\n"),
+									   "Missing data type in function parameter\n"),
 					PAR_FAIL);
 		}
 	}
@@ -154,8 +152,8 @@ ParserStatus parse_declaration(Token* curr_token, bool mutability){
 		CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL));
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Missing assignment after variable declaration\n"),
-					PAR_FAIL);
+							   "Missing assignment after variable declaration\n"),
+			PAR_FAIL);
 	}
 	return PARSE_OK(PAR_SUCC);
 }
@@ -164,12 +162,12 @@ ParserStatus parse_declaration(Token* curr_token, bool mutability){
  * @brief Parsiong of else decision branch
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
-*/
+ */
 ParserStatus parse_else_statement(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type == TOKEN_EOL){
+	if (curr_token->type == TOKEN_EOL) {
 		return PARSE_OK(PAR_SUCC);
-	} else if (curr_token->type == TOKEN_KEYWORD_IF){
+	} else if (curr_token->type == TOKEN_KEYWORD_IF) {
 		CHECK_STATUS(parse_if_statement(curr_token));
 		return PARSE_OK(PAR_SUCC);
 	} else {
@@ -183,19 +181,19 @@ ParserStatus parse_else_statement(Token *curr_token) {
  * @brief Parsing of if decision statement
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
-*/
-ParserStatus parse_if_statement(Token* curr_token){
+ */
+ParserStatus parse_if_statement(Token *curr_token) {
 	CHECK_STATUS(parse_expression(curr_token, TOKEN_KEYWORD_THEN));
 	if (curr_token->type != TOKEN_KEYWORD_THEN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Missing then after if statement condition\n"),
-					PAR_FAIL);
+							   "Missing then after if statement condition\n"),
+			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Missing EOL after then of if statement\n"),
-					PAR_FAIL);
+							   "Missing EOL after then of if statement\n"),
+			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	CHECK_STATUS(parse_code_block(curr_token));
@@ -210,19 +208,19 @@ ParserStatus parse_if_statement(Token* curr_token){
  * @brief Parsing of while statement
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
-*/
-ParserStatus parse_while_statement(Token* curr_token) {
+ */
+ParserStatus parse_while_statement(Token *curr_token) {
 	CHECK_STATUS(parse_expression(curr_token, TOKEN_KEYWORD_DO));
 	if (curr_token->type != TOKEN_KEYWORD_THEN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Missing do after while statement condition\n"),
-					PAR_FAIL);
+							   "Missing do after while statement condition\n"),
+			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Missing EOL after do of while statement\n"),
-					PAR_FAIL);
+							   "Missing EOL after do of while statement\n"),
+			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
 	CHECK_STATUS(parse_code_block(curr_token));
@@ -269,11 +267,11 @@ ParserStatus parse_statement(Token *curr_token) {
  * @brief Parsing of inner function body
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
-*/
+ */
 ParserStatus parse_func_body(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	CHECK_STATUS(parse_statement(curr_token));
-	if (curr_token->type == TOKEN_EOL){
+	if (curr_token->type == TOKEN_EOL) {
 		CHECK_STATUS(parse_code_block(curr_token));
 	}
 	return PARSE_OK(PAR_SUCC);
@@ -356,7 +354,7 @@ ParserStatus parse_param_section(Token *curr_token) {
 	} else {
 		return PARSE_ERROR(
 			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-					"Invalid parameter list in function declaration (missing right brace)\n"),
+				"Invalid parameter list in function declaration (missing right brace)\n"),
 			PAR_FAIL);
 	}
 }
@@ -537,7 +535,7 @@ ParserStatus parse_program(Token *curr_token) {
 				break; // consumes empty lines
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-										  "Missing EOL after header declaration\n"),
+									   "Missing EOL after header declaration\n"),
 					PAR_FAIL);
 		}
 		GET_TOKEN(curr_token, (Error){0});
@@ -560,20 +558,18 @@ void parse() {
 	} else if (status.flag == PAR_FAIL) {
 		free(curr_token);
 		// end the program
-	}
-	while (true) {
-		status = parse_program(curr_token);
-		if (status.flag != PAR_SUCC) {
-			break;
+	} else if (status.flag == LEX_FAIL) {
+		free(curr_token);
+		// end the program
+	} else if (status.flag == PAR_FAIL) {
+		switch (status.flag) {
+			case PAR_FAIL:
+			case LEX_FAIL:
+			case PAR_EOF:
+			case PAR_SUCC:
+				break;
 		}
+		free(curr_token);
+		return;
 	}
-	switch(status.flag){
-		case PAR_FAIL:
-		case LEX_FAIL:
-		case PAR_EOF:
-		case PAR_SUCC:
-			break;
-	}
-	free(curr_token);
-	return;
 }
