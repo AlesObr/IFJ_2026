@@ -154,22 +154,6 @@ test-parser-valgrind: parser-build
 	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind
 
 # ----------------------------------------------------------------------
-# Parser & AST testy
-# ----------------------------------------------------------------------
-$(TARGET_PARSER_TEST): $(PARSER_SRC) $(PARSER_TEST_SRC) | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
-
-parser-build: $(TARGET_PARSER_TEST)
-
-test-parser: parser-build
-	@echo "=== Spuštění parser testů (rychlý běh) ==="
-	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast
-
-test-parser-valgrind: parser-build
-	@echo "=== Spuštění parser testů pod Valgrindem ==="
-	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind
-
-# ----------------------------------------------------------------------
 # Formátování a Lintery
 # ----------------------------------------------------------------------
 linter:
