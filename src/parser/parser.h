@@ -11,6 +11,7 @@
 #define IFJ26_PARSER_H
 
 #include "../lexer/lexer.h"
+#include "../_utils/error.h"
 #include <stdbool.h>
 
 /**
@@ -35,14 +36,14 @@ typedef struct {
  * @brief Constructor of successful ParserStatus structure when successful
  * @param flag Inner parser flag
 */
-#define PARSE_OK(flag) ((ParserStatus){.error = (ERR_OK()), .flag = (flag)})
+#define PARSE_OK(flag_val) ((ParserStatus){.error = (ERROR_OK()), .flag = (flag_val)})
 
 /**
  * @brief Constructor of successful ParserStatus structure when successful
  * @param err Error structure
  * @param flag Inner parser flag
 */
-#define PARSE_ERROR(err, flag) ((ParserStatus){.error = (err), .flag = (flag)})
+#define PARSE_ERROR(err, flag_val) ((ParserStatus){.error = (err), .flag = (flag_val)})
 
 /**
  * @brief Initializes parser inner loop
