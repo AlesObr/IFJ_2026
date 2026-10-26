@@ -256,6 +256,14 @@ ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col) {
 	return node;
 }
 
+bool ast_call_set_main(ASTNode *func_node, bool is_main){
+	if (func_node == NULL || func_node->type != NODE_CALL){
+		return false;
+	}
+	func_node->call.main_flag = is_main;
+	return true;
+}
+
 bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
 	if (!call_node || call_node->type != NODE_CALL || !arg) {
 		ast_destroy(arg);

@@ -124,6 +124,7 @@ struct ASTNode {
 		/** @brief Structure for function call nodes. */
 		struct {
 			dstring_t func_name; /**< Identifier of the called function. */
+			bool main_flag;		 /**< Flag whether function is main one */
 			ASTNodeList args;	 /**< List of argument expressions. */
 		} call;
 
@@ -250,6 +251,14 @@ ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t li
  * @return Allocated ASTNode pointer or NULL on failure.
  */
 ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col);
+
+/**
+ * @brief Sets main flag of function call
+ * @param call_node Function call node created via ast_create_call.
+ * @param is_main Flag to set, true if is main, false if not
+ * @return True if success, false if attempt to set NULL or wrong type of node passed
+ */
+bool ast_call_set_main(ASTNode *func_node, bool is_main);
 
 /**
  * @brief Appends an argument expression node to a function call ASTNode.
