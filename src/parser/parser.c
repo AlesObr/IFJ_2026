@@ -40,6 +40,16 @@ ParserStatus parse_func_body(Token *curr_token);
 		}                                                                                          \
 	} while (0)
 
+#define CHECK_NODE(node, alloc_expr)															   \
+	do {																						   \
+		(node) = (alloc_expr);																	   \
+		if ((node) == NULL){																	   \
+			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,		   \
+							   "Failed to allocate node for AST tree\n"),						   \
+			AST_FAIL,																			   \
+			NULL);																			   	   \
+		}																						   \
+	} while (0)
 /**
  * @brief Macro for checking status flags
  * @param status Status structure to be checked

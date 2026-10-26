@@ -21,6 +21,7 @@ typedef enum {
 	PAR_SUCC, /**< Successful function return */
 	PAR_FAIL, /**< Error while applying rule */
 	LEX_FAIL, /**< Error while getting tokens */
+	AST_FAIL, /**< Error during allocating AST nodes */
 	PAR_EOF	  /**< TOKEN_EOF reached */
 } ParserFlag;
 
@@ -28,19 +29,21 @@ typedef enum {
  * @brief Structure for passing status between parser functions
  */
 typedef struct {
-	Error error;	 /**< Error structure containing error info */
-	ParserFlag flag; /**< Flag signalizing parser behavior */
+	Error error;	 	/**< Error structure containing error info */
+	ParserFlag flag; 	/**< Flag signalizing parser behavior */
+	ASTNode* new_node;  /**< Node created by function to be connected to AST tree by caller */
 } ParserStatus;
 
 /**
  * @brief Constructor of successful ParserStatus structure when successful
- * @param flag Inner parser flag
+ * @param f Inner parser flag
+ * @param n New node to return to caller of function
  */
-#define PARSE_OK(f) ((ParserStatus){.error = ERROR_OK(), .flag = (f)})
+#define PARSE_OK(f, n) ((ParserStatus){.error = ERROR_OK(), .flag = (f), .new_node = (n)})
 /**
  * @brief Constructor of successful ParserStatus structure when successful
- * @param err Error structure
- * @param flag Inner parser flag
+ * @param e Error structure
+ * @param f Inner parser flag
  */
 #define PARSE_ERROR(e, f) ((ParserStatus){.error = (e), .flag = (f)})
 /**
