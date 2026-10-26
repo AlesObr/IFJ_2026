@@ -20,8 +20,9 @@
 ParserStatus parse_param_mem(Token *curr_token);
 ParserStatus parse_func_def(Token *curr_token, bool main_flag);
 ParserStatus parse_expression(Token *curr_token, TokenType type);
-ParserStatus parse_if_statement(Token *curr_token);
-ParserStatus parse_code_block(Token *curr_token);
+ParserStatus parse_if_statement(Token* curr_token);
+ParserStatus parse_code_block(Token* curr_token);
+ParserStatus parse_func_body(Token *curr_token);
 
 /**
  * @brief Macro for safely fetching from scanner
@@ -228,6 +229,94 @@ ParserStatus parse_while_statement(Token *curr_token) {
 }
 
 /**
+ * @brief Parsing of for statement generator
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_for_generator(Token *curr_token){
+	CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL));
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type == TOKEN_EOL){
+		GET_TOKEN(curr_token, (Error){0});
+	}
+	if (dstring_cmp_str(curr_token->data.str_val, "to") == 0) {
+		GET_TOKEN(curr_token, (Error){0});
+		CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL)); //change
+		if (dstring_cmp_str(curr_token->data.str_val, "by") != 0) {
+			GET_TOKEN(curr_token, (Error){0});
+			CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL)); //change
+		} else {
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Unexpected token after end of for statement generator\n"),
+					PAR_FAIL);
+		}
+	} else if (dstring_cmp_str(curr_token->data.str_val, "until") == 0) {
+		GET_TOKEN(curr_token, (Error){0});
+		CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL)); //change
+	} else {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Unexpected token inside of for statement generator\n"),
+					PAR_FAIL);
+	}
+	if (curr_token->type != TOKEN_EOL || dstring_cmp_str(curr_token->data.str_val, "do") != 0 || curr_token->type != TOKEN_KEYWORD_IF) {
+			return PARSE_OK(PAR_SUCC);
+	} else {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Unexpected token after end of for statement generator\n"),
+					PAR_FAIL);
+	}
+}
+
+/**
+ * @brief Parsing of for statement
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_for_statement(Token* curr_token){
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type == TOKEN_EOL) {
+		GET_TOKEN(curr_token, (Error){0});
+	}
+	if (curr_token->type != TOKEN_IDENTIFIER) {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing generator after for statement\n"),
+					PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type != TOKEN_LT) {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing < after for statement generator\n"),
+					PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type != TOKEN_MINUS) {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing - after < in for statement generator\n"),
+					PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0});
+	CHECK_STATUS(parse_for_generator(curr_token));
+	if (curr_token->type == TOKEN_EOL){
+		while (true) {
+			GET_TOKEN(curr_token, (Error){0});
+			if (curr_token->type == TOKEN_KEYWORD_IF){
+				CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL)); // change
+			}
+			if (dstring_cmp_str(curr_token->data.str_val, "do") == 0){
+				break;
+			}
+		}
+	}
+	if (dstring_cmp_str(curr_token->data.str_val, "do") != 0) {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Expected 'do' at the end of for statement, got different token\n"),
+					PAR_FAIL);
+	}
+	CHECK_STATUS(parse_func_body(curr_token));
+	return PARSE_OK(PAR_SUCC);
+}
+
+/**
  * @brief Parsing of statements
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
@@ -247,7 +336,7 @@ ParserStatus parse_statement(Token *curr_token) {
 			CHECK_STATUS(parse_while_statement(curr_token));
 			break;
 		case TOKEN_KEYWORD_FOR:
-			CHECK_STATUS(parse_while_statement(curr_token));
+			CHECK_STATUS(parse_for_statement(curr_token));
 			break;
 		case TOKEN_KEYWORD_RETURN:
 			// add check for next variable
