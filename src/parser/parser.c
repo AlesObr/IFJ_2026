@@ -119,6 +119,25 @@ ParserStatus parse_at_main(Token *curr_token) {
 }
 
 /**
+ * @brief Parsing of code blocks
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
+ParserStatus parse_code_block(Token* curr_token){
+	if (curr_token->type != TOKEN_INDENT){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Expected start of indented block, got something else\n"),
+			PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, (Error){0});
+	while (curr_token->type != TOKEN_OUTDENT){
+		CHECK_STATUS(parse_statement(curr_token));
+		GET_TOKEN(curr_token, (Error){0});
+	}
+	return PARSE_OK(PAR_SUCC);
+}
+
+/**
  * @brief Parsing of declarations
  * @param curr_token Token pointer filled with current token
  * @param mutability Flag whether declared variable is mutable (true for var, false for val)
@@ -302,10 +321,13 @@ ParserStatus parse_for_statement(Token* curr_token){
 			if (curr_token->type == TOKEN_KEYWORD_IF){
 				CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL)); // change
 			}
-			if (dstring_cmp_str(curr_token->data.str_val, "do") == 0){
+			if (dstring_cmp_str(curr_token->data.str_val, "do") == 0 || curr_token->type == TOKEN_OUTDENT){
 				break;
 			}
 		}
+	}
+	if (curr_token->type == TOKEN_OUTDENT){
+		GET_TOKEN(curr_token);
 	}
 	if (dstring_cmp_str(curr_token->data.str_val, "do") != 0) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -361,6 +383,7 @@ ParserStatus parse_func_body(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	CHECK_STATUS(parse_statement(curr_token));
 	if (curr_token->type == TOKEN_EOL) {
+		GET_TOKEN(curr_token, (Error){0});
 		CHECK_STATUS(parse_code_block(curr_token));
 	}
 	return PARSE_OK(PAR_SUCC);
@@ -650,15 +673,15 @@ void parse() {
 	} else if (status.flag == LEX_FAIL) {
 		free(curr_token);
 		// end the program
-	} else if (status.flag == PAR_FAIL) {
-		switch (status.flag) {
-			case PAR_FAIL:
-			case LEX_FAIL:
-			case PAR_EOF:
-			case PAR_SUCC:
-				break;
-		}
-		free(curr_token);
-		return;
 	}
+	status = parse_program(curr_token);
+	switch (status.flag) {
+		case PAR_FAIL:
+		case LEX_FAIL:
+		case PAR_EOF:
+		case PAR_SUCC:
+			break;
+	}
+	free(curr_token);
+	return;
 }
