@@ -8,6 +8,7 @@
  */
 
 #include "parser.h"
+#inluc
 #include "../_utils/dstring.h"
 #include "../_utils/error.h"
 #include "../_utils/token.h"
@@ -40,7 +41,12 @@ ParserStatus parse_func_body(Token *curr_token);
 		}                                                                                          \
 	} while (0)
 
-#define CHECK_NODE(node, alloc_expr)															   \
+/**
+ * @brief Macro for checking whether AST node allocation was successful
+ * @param node Node to asign the result of AST node allocation into
+ * @param alloc_expr Function call for generating AST nodes
+ */
+#define ALLOC_NODE(node, alloc_expr)															   \
 	do {																						   \
 		(node) = (alloc_expr);																	   \
 		if ((node) == NULL){																	   \
@@ -56,9 +62,8 @@ ParserStatus parse_func_body(Token *curr_token);
  */
 #define CHECK_STATUS(status)                                                                       \
 	do {                                                                                           \
-		ParserStatus tmp = (status);                                                               \
-		if (tmp.flag != PAR_SUCC) {                                                                \
-			return tmp;                                                                            \
+		if ((status).flag != PAR_SUCC) {                                                           \
+			return (status);                                                                       \
 		}                                                                                          \
 	} while (0)
 
@@ -132,7 +137,7 @@ ParserStatus parse_at_main(Token *curr_token) {
  * @brief Parsing of code blocks
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
-*/
+ */
 ParserStatus parse_code_block(Token* curr_token){
 	if (curr_token->type != TOKEN_INDENT){
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -261,7 +266,7 @@ ParserStatus parse_while_statement(Token *curr_token) {
  * @brief Parsing of for statement generator
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
-*/
+ */
 ParserStatus parse_for_generator(Token *curr_token){
 	CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL));
 	GET_TOKEN(curr_token, (Error){0});
@@ -300,7 +305,7 @@ ParserStatus parse_for_generator(Token *curr_token){
  * @brief Parsing of for statement
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
-*/
+ */
 ParserStatus parse_for_statement(Token* curr_token){
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_EOL) {
@@ -641,24 +646,46 @@ ParserStatus parse_extension(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_program(Token *curr_token) {
+	ParserStatus status = {0};
 	GET_TOKEN(curr_token, (Error){0});
+	dstring_t* prog_name = malloc(sizeof(dstring_t));
+	if ((dstring_init(prog_name)) == false){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									   "Failed to allocate memory for name of progam AST node\n"),
+					AST_FAIL);
+	}
+	if ((dstring_append_char(prog_name, "0")) == false){
+		dstring_free(prog_name);
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									   "Failed to allocate memory for name of progam AST node\n"),
+					AST_FAIL);
+	}
+	AST_Node *program = NULL;
+	ALLOC_NODE(program, ast_create_call(prog_name, curr_token->line, curr_token->col));
 	while (curr_token->type != TOKEN_EOF) {
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_EXTENSION:
-				CHECK_STATUS(parse_extension(curr_token));
+				status = parse_extension(curr_token);
+				CHECK_STATUS(status);
+				ALLOC_NODE(ast_call_add_arg(program, status.new_node));
 				break;
 			case TOKEN_AT_MAIN:
-				CHECK_STATUS(parse_at_main(curr_token));
+				status = parse_at_main(curr_token);
+				CHECK_STATUS(status);
+				ALLOC_NODE(ast_call_add_arg(program, status.new_node);)
 				break;
 			case TOKEN_KEYWORD_DEF:
-				CHECK_STATUS(parse_func_def(curr_token, false));
+				status = parse_func_def(curr_token, false);
+				CHECK_STATUS(status);
+				ALLOC_NODE(ast_call_add_arg(program, status.new_node);)
 				break;
 			case TOKEN_EOL:
 				break; // consumes empty lines
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									   "Missing EOL after header declaration\n"),
-					PAR_FAIL);
+					PAR_FAIL,
+					program);
 		}
 		GET_TOKEN(curr_token, (Error){0});
 	}
@@ -685,13 +712,15 @@ void parse() {
 		// end the program
 	}
 	status = parse_program(curr_token);
+	free(curr_token);
 	switch (status.flag) {
 		case PAR_FAIL:
+			ast_destroy(status.new_node);
 		case LEX_FAIL:
+			ast_destroy(status.new_node);
 		case PAR_EOF:
 		case PAR_SUCC:
 			break;
 	}
-	free(curr_token);
 	return;
 }
