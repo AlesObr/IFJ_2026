@@ -38,6 +38,7 @@ typedef enum {
 	NODE_CALL,
 
 	/* Control Flow and Statements */
+	NODE_FUNC_PARAM,
 	NODE_FUNC_DECL,
 	NODE_EXT_DECL,
 	NODE_BLOCK,
@@ -118,6 +119,12 @@ struct ASTNode {
 			dstring_t func_name; /**< Identifier of the called function. */
 			ASTNodeList args;	 /**< List of argument expressions. */
 		} call;
+
+		/** @brief Structure for function parameters */
+		struct {
+			dstring_t param_name; /**< Name of the function parameter. */
+			dstring_t param_type; /**< Type of the function parameter. */
+		} func_param;
 
 		/** @brief Structure for function declaration */
 		struct {
@@ -308,6 +315,15 @@ ASTNode *ast_create_while(ASTNode *cond, ASTNode *body, size_t line, size_t col)
  * @return Allocated ASTNode pointer or NULL on failure.
  */
 ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for a function parameter.
+ * @param param_name Identifier of funtion param
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_func_param(const dstring_t *param_name, const dstring_t *param_type, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for a function declaration.

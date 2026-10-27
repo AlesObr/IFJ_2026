@@ -173,7 +173,7 @@ ASTNode *ast_create_var_decl(const dstring_t *name, const dstring_t *type_name, 
 	ASTNode *init_expr, size_t line, size_t col) {
 	ASTNode *node = NULL;
 
-	if (!name) {
+	if (!name || !type_name) {
 		goto fail;
 	}
 	node = ast_alloc(NODE_VAR_DECL, line, col);
@@ -251,6 +251,27 @@ bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
 	return true;
 }
 
+ASTNode *ast_create_func_param(const dstring_t *param_name, const dstring_t *param_type, size_t line, size_t col){
+	ASTNode *node = NULL;
+	if (!func_param || !param_type) {
+		return NULL;
+	}
+	node = ast_alloc(NODE_FUNC_PARAM, line, col);
+	if (!node) {
+		return NULL;
+	}
+	if (!ast_dstring_clone(&node->func_param.param_name, param_name)) {
+		free(node);
+		return NULL;
+	}
+	if (!ast_dstring_clone(&node->func_param.param_name, param_type)) {
+		dstring_free(&node->func_param.param_name);
+		free(node);
+		return NULL;
+	}
+	return node;
+}
+
 ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, size_t col) {
 	if (!func_name) {
 		return NULL;
@@ -270,7 +291,7 @@ ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, 
 }
 
 bool ast_func_add_param(ASTNode *func_node, ASTNode *param){
-	if (!func_node || call_node->type != NODE_FUNC_DECL || !param) {
+	if (!func_node || func_node->type != NODE_FUNC_DECL || !param || param->type != NODE_FUNC_PARAM) {
 		ast_destroy(param);
 		return false;
 	}
@@ -282,7 +303,7 @@ bool ast_func_add_param(ASTNode *func_node, ASTNode *param){
 }
 
 bool ast_func_add_expr(ASTNode *func_node, ASTNode *expr){
-	if (!func_node || call_node->type != NODE_FUNC_DECL || !expr) {
+	if (!func_node || func_node->type != NODE_FUNC_DECL || !expr) {
 		ast_destroy(expr);
 		return false;
 	}
@@ -307,7 +328,7 @@ ASTNode *ast_create_ext(const dstring_t *type_name, size_t line, size_t col) {
 }
 
 bool ast_ext_add_func(ASTNode *ext_node, ASTNode *func_node){
-	if (!ext_node || call_node->type != NODE_EXT_DECL || !func_node) {
+	if (!ext_node || ext_node->type != NODE_EXT_DECL || !func_node || func_node->type != NODE_FUNC_DECL) {
 		ast_destroy(func_node);
 		return false;
 	}
@@ -416,7 +437,7 @@ static const char *op_to_str(OpType op) {
 	}
 }
 
-void ast_dump_sexpr(const ASTNode *node, FILE *out) {
+void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this thing????
 	if (!out) {
 		return;
 	}
@@ -580,6 +601,22 @@ void ast_destroy(ASTNode *node) {
 
 		case NODE_BLOCK:
 			ast_nodelist_destroy(&node->block.stmts);
+			break;
+
+		case NODE_FUNC_PARAM:
+			dstring_free(&node->func_param.param_name);
+			dstring_free(&node->func_param.param_type);
+			break;
+
+		case NODE_FUNC_DECL:
+			dstring_free(&node->func_decl.func_name);
+			ast_nodelist_destroy(&node->func_decl.params);
+			ast_nodelist_destroy(&node->func_decl.exprs);
+			break;
+
+		case NODE_EXT_DECL:
+			dstring_free(&node->ext_decl.type_name);
+			ast_nodelist_destroy(&node->ext_decl.funcs);
 			break;
 
 		case NODE_IF:
