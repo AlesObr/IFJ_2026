@@ -312,11 +312,26 @@ ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col);
 /**
  * @brief Creates a new AST node for a function declaration.
  * @param func_name Function declaration node.
+ * @param is_main Flag whether function is main one
  * @param line Source line index.
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_func_def(const dstring_t *func_name, size_t line, size_t col);
+ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, size_t col);
+
+/**
+ * @brief Appends an parameter to function declaration AST_NODE
+ * @param func_node Function declaration node created via ast_create_func_decl
+ * @param param Parameter AST Node to be appended
+ */
+bool ast_func_add_param(ASTNode *func_node, ASTNode *param);
+
+/**
+ * @brief Appends an expression to end of function body AST_NODE
+ * @param func_node Function node created via ast_create_func_decl
+ * @param expr Expression AST Node to be appended
+ */
+bool ast_func_add_expr(ASTNode *func_node, ASTNode *expr);
 
 /**
  * @brief Creates a new AST node for a extension declaration.
@@ -326,6 +341,13 @@ ASTNode *ast_create_func_def(const dstring_t *func_name, size_t line, size_t col
  * @return Allocated ASTNode pointer or NULL on failure.
  */
 ASTNode *ast_create_ext(const dstring_t *type_name, size_t line, size_t col);
+
+/**
+ * @brief Appends a function to extension AST_NODE
+ * @param ext_node Extension node created via ast_create_func_decl
+ * @param func_node Function declaration AST Node to be appended
+ */
+bool ast_ext_add_func(ASTNode *ext_node, ASTNode *func_node);
 
 /**
  * @brief Dumps the AST in S-expression format to the specified output stream.

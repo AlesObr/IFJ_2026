@@ -239,7 +239,19 @@ ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col) {
 	return node;
 }
 
-ASTNode *ast_create_func_def(const dstring_t *func_name, size_t line, size_t col) {
+bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
+	if (!call_node || call_node->type != NODE_CALL || !arg) {
+		ast_destroy(arg);
+		return false;
+	}
+	if (!ast_nodelist_append(&call_node->call.args, arg)) {
+		ast_destroy(arg);
+		return false;
+	}
+	return true;
+}
+
+ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, size_t col) {
 	if (!func_name) {
 		return NULL;
 	}
@@ -251,9 +263,34 @@ ASTNode *ast_create_func_def(const dstring_t *func_name, size_t line, size_t col
 		free(node);
 		return NULL;
 	}
+	node->func_decl.is_main = is_main;
 	ast_nodelist_init(&node->func_decl.params);
 	ast_nodelist_init(&node->func_decl.exprs);
 	return node;
+}
+
+bool ast_func_add_param(ASTNode *func_node, ASTNode *param){
+	if (!func_node || call_node->type != NODE_FUNC_DECL || !param) {
+		ast_destroy(param);
+		return false;
+	}
+	if (!ast_nodelist_append(&func_node->func_decl.params, param)) {
+		ast_destroy(param);
+		return false;
+	}
+	return true;
+}
+
+bool ast_func_add_expr(ASTNode *func_node, ASTNode *expr){
+	if (!func_node || call_node->type != NODE_FUNC_DECL || !expr) {
+		ast_destroy(expr);
+		return false;
+	}
+	if (!ast_nodelist_append(&func_node->func_decl.exprs, expr)) {
+		ast_destroy(expr);
+		return false;
+	}
+	return true;
 }
 
 ASTNode *ast_create_ext(const dstring_t *type_name, size_t line, size_t col) {
@@ -269,13 +306,13 @@ ASTNode *ast_create_ext(const dstring_t *type_name, size_t line, size_t col) {
 	return node;
 }
 
-bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
-	if (!call_node || call_node->type != NODE_CALL || !arg) {
-		ast_destroy(arg);
+bool ast_ext_add_func(ASTNode *ext_node, ASTNode *func_node){
+	if (!ext_node || call_node->type != NODE_EXT_DECL || !func_node) {
+		ast_destroy(func_node);
 		return false;
 	}
-	if (!ast_nodelist_append(&call_node->call.args, arg)) {
-		ast_destroy(arg);
+	if (!ast_nodelist_append(&func_node->ext_decl.funcs, func_node)) {
+		ast_destroy(func_node);
 		return false;
 	}
 	return true;
