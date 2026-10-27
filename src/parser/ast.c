@@ -251,7 +251,7 @@ bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
 	return true;
 }
 
-ASTNode *ast_create_func_param(const dstring_t *param_name, const dstring_t *param_type, size_t line, size_t col){
+ASTNode *ast_create_func_param(const dstring_t *param_name, size_t line, size_t col){
 	ASTNode *node = NULL;
 	if (!func_param || !param_type) {
 		return NULL;
@@ -264,11 +264,7 @@ ASTNode *ast_create_func_param(const dstring_t *param_name, const dstring_t *par
 		free(node);
 		return NULL;
 	}
-	if (!ast_dstring_clone(&node->func_param.param_name, param_type)) {
-		dstring_free(&node->func_param.param_name);
-		free(node);
-		return NULL;
-	}
+	node->func_param.param_type = type_name;
 	return node;
 }
 

@@ -32,12 +32,13 @@ ParserStatus parse_func_body(Token *curr_token);
  */
 #define GET_TOKEN(tok_ptr, err)                                                                    \
 	do {                                                                                           \
+		token_destroy(tok_ptr);																	   \
 		(err) = lexer_get_next_token((tok_ptr));                                                   \
 		if (ERROR_IS_ERR((err))) {                                                                 \
 			return PARSE_ERROR((err), LEX_FAIL);                                                   \
 		}                                                                                          \
 		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \
-			return PARSE_OK(PAR_EOF, NULL);                                                              \
+			return PARSE_OK(PAR_EOF, NULL);                                                        \
 		}                                                                                          \
 	} while (0)
 
@@ -418,7 +419,6 @@ ParserStatus parse_param_tail(Token *curr_token) {
 		GET_TOKEN(curr_token, (Error){0});
 		return PARSE_OK(PAR_SUCC);
 	} else if (curr_token->type == TOKEN_IDENTIFIER) {
-		GET_TOKEN(curr_token, (Error){0});
 		CHECK_STATUS(parse_param_mem(curr_token));
 		return PARSE_OK(PAR_SUCC);
 	} else {
@@ -562,6 +562,8 @@ ParserStatus parse_extension_param(Token *curr_token) {
 							   "Missing identifier in extension parameter\n"),
 			PAR_FAIL);
 	}
+	ASTNode* new_node;
+	ALLOC_NODE(new_node, ast_ext_create(curr_token->data.str_val, curr_token->line, curr_token->col));
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_COLON) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -569,19 +571,31 @@ ParserStatus parse_extension_param(Token *curr_token) {
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
+	ValType type = UNDEF;
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_INT:
+			type = INT;
+			break;
 		case TOKEN_KEYWORD_DOUBLE:
+			type = DOUBLE;
+			break;
 		case TOKEN_KEYWORD_UNIT:
+			type = UNIT;
+			break;
 		case TOKEN_KEYWORD_STRING:
+			type = STRING;
+			break;
 		case TOKEN_KEYWORD_BOOLEAN:
-			return PARSE_OK(PAR_SUCC);
+			type = BOOLEAN;
+			break;
 			break;
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Missing data type in extention parameter\n"),
 				PAR_FAIL);
 	}
+	ast_add_type(new_node, type);
+	return PARSE_OK(PAR_SUCC, new_node);
 }
 
 /**
@@ -591,10 +605,14 @@ ParserStatus parse_extension_param(Token *curr_token) {
  */
 ParserStatus parse_extension_body(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
+	ASTNode* new_node;
+	ALLOC_NODE(new_node, ast_create_block(curr_token->line, curr_token->col));
 	if (curr_token->type == TOKEN_AT_MAIN) {
-		CHECK_STATUS(parse_at_main(curr_token));
+		status = parse_at_main(curr_token);
+		CHECK_STATUS(status);
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
-		CHECK_STATUS(parse_func_def(curr_token, false));
+		status = parse_func_def(curr_token, false);
+		CHECK_STATUS(status);
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Unexpected token in function declaration inside extension\n"),
@@ -624,13 +642,17 @@ ParserStatus parse_extension_body(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_extension(Token *curr_token) {
+	ParserStatus status = {0};
+	AST_Node *ext_header;
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_LPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing left bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
-	CHECK_STATUS(parse_extension_param(curr_token));
+	status = parse_extension_param(curr_token);
+	CHECK_STATUS(status);
+	ext_header = status.new_node;
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_RPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -649,7 +671,8 @@ ParserStatus parse_extension(Token *curr_token) {
 							   "Missing left bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
-	CHECK_STATUS(parse_extension_body(curr_token));
+	status = parse_extension_body(curr_token);
+	CHECK_STATUS(status);
 	if (curr_token->type != TOKEN_OUTDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing outdent at the end of extension\n"),
@@ -678,12 +701,12 @@ ParserStatus parse_program(Token *curr_token) {
 			case TOKEN_AT_MAIN:
 				status = parse_at_main(curr_token);
 				CHECK_STATUS(status);
-				ALLOC_NODE(ast_call_add_stmt(program, status.new_node);)
+				ALLOC_NODE(ast_block_add_stmt(program, status.new_node);)
 				break;
 			case TOKEN_KEYWORD_DEF:
 				status = parse_func_def(curr_token, false);
 				CHECK_STATUS(status);
-				ALLOC_NODE(ast_call_add_stmt(program, status.new_node);)
+				ALLOC_NODE(ast_block_add_stmt(program, status.new_node);)
 				break;
 			case TOKEN_EOL:
 				break; // consumes empty lines
@@ -713,7 +736,7 @@ void parse() {
 	} else if (status.flag == PAR_FAIL) {
 		free(curr_token);
 		// end the program
-	} else if (status.flag == LEX_FAIL) {
+	} else if (status.flag == AST_FAIL) {
 		free(curr_token);
 		// end the program
 	}
@@ -725,6 +748,7 @@ void parse() {
 		case LEX_FAIL:
 			ast_destroy(status.new_node);
 		case PAR_EOF:
+		case AST_FAIL:
 		case PAR_SUCC:
 			break;
 	}
