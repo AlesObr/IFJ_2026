@@ -69,6 +69,18 @@ typedef enum {
 	OP_UNARY_PLUS	// + (unary)
 } OpType;
 
+/**
+ * @brief Enumeration for function and parameter types
+ */
+typedef enum {
+	UNDEF,
+	INT,
+	DOUBLE,
+	UNIT,
+	STRING,
+	BOOLEN,
+} ValType;
+
 typedef struct ASTNode ASTNode;
 
 /**
@@ -123,12 +135,13 @@ struct ASTNode {
 		/** @brief Structure for function parameters */
 		struct {
 			dstring_t param_name; /**< Name of the function parameter. */
-			dstring_t param_type; /**< Type of the function parameter. */
+			ValType param_type; /**< Type of the function parameter. */
 		} func_param;
 
 		/** @brief Structure for function declaration */
 		struct {
 			dstring_t func_name; /**< Identifier of declared function */
+			ValType return_type; /**< Type that function should return */
 			bool is_main;		 /**< Flag tracking whether function is the main one */
 			ASTNodeList params;	 /**< List of node parameters */
 			ASTNodeList exprs;	 /**< Expressions inside function body */
@@ -136,8 +149,9 @@ struct ASTNode {
 
 		/** @brief Structure for extension declaration */
 		struct {
-			dstring_t type_name; /**< Dynamic string holding explicit type name. */
-			ASTNodeList funcs;	 /**< List of functions inside said extension */
+			dstring_t param_name; /**< Dynamic string holding extension parameter  */
+			ValType type_name;    /**< Type that extension extension */
+			ASTNodeList funcs;	  /**< List of functions inside said extension */
 		} ext_decl;
 
 		/** @brief Structure for composite statement blocks. */
@@ -339,6 +353,7 @@ ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, 
  * @brief Appends an parameter to function declaration AST_NODE
  * @param func_node Function declaration node created via ast_create_func_decl
  * @param param Parameter AST Node to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
  */
 bool ast_func_add_param(ASTNode *func_node, ASTNode *param);
 
@@ -346,22 +361,31 @@ bool ast_func_add_param(ASTNode *func_node, ASTNode *param);
  * @brief Appends an expression to end of function body AST_NODE
  * @param func_node Function node created via ast_create_func_decl
  * @param expr Expression AST Node to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
  */
 bool ast_func_add_expr(ASTNode *func_node, ASTNode *expr);
 
 /**
  * @brief Creates a new AST node for a extension declaration.
- * @param type_name Name of type the extension extends
+ * @param param_name Name of type the extension extends
  * @param line Source line index.
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_ext(const dstring_t *type_name, size_t line, size_t col);
+ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col);
+
+/**
+ * @brief Addes a type AST node if node is valid (compatible only with some nodes)
+ * @param node ASTNode to add type into
+ * @param type_name Name of type the extension extends
+ */
+void ast_add_type(ASTNode *node, ValType type_name);
 
 /**
  * @brief Appends a function to extension AST_NODE
  * @param ext_node Extension node created via ast_create_func_decl
  * @param func_node Function declaration AST Node to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
  */
 bool ast_ext_add_func(ASTNode *ext_node, ASTNode *func_node);
 

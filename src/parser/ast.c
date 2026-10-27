@@ -285,6 +285,7 @@ ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, 
 		return NULL;
 	}
 	node->func_decl.is_main = is_main;
+	node->func_decl.return_type = UNDEF;
 	ast_nodelist_init(&node->func_decl.params);
 	ast_nodelist_init(&node->func_decl.exprs);
 	return node;
@@ -299,6 +300,7 @@ bool ast_func_add_param(ASTNode *func_node, ASTNode *param){
 		ast_destroy(param);
 		return false;
 	}
+	node->func_param.param_type = UNDEF;
 	return true;
 }
 
@@ -314,17 +316,30 @@ bool ast_func_add_expr(ASTNode *func_node, ASTNode *expr){
 	return true;
 }
 
-ASTNode *ast_create_ext(const dstring_t *type_name, size_t line, size_t col) {
+ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col) {
 	ASTNode *node = ast_alloc(NODE_EXT_DECL, line, col);
 	if (!node) {
 		return NULL;
 	}
-	if (!ast_dstring_clone(&node->ext_decl.type_name, func_name)) {
+	if (!ast_dstring_clone(&node->ext_decl.param_name, param_name)) {
 		free(node);
 		return NULL;
 	}
+	node->ext_decl.type_name = UNDEF;
 	ast_nodelist_init(&node->ext_decl.funcs);
 	return node;
+}
+
+void ast_add_type(ASTNode *node, ValType *type_name){
+	if (node != NULL){
+		if (node->type == NODE_EXT_DECL){
+			node->ext_decl.type_name = type_name;
+		} else if (node->type == NODE_FUNC_PARAM){
+			node->func_param.param_type = type_name;
+		} else if (node->type == NODE_FUNC_DECL){
+			node->func_decl.return_type = type_name;
+		}
+	}
 }
 
 bool ast_ext_add_func(ASTNode *ext_node, ASTNode *func_node){
@@ -605,7 +620,6 @@ void ast_destroy(ASTNode *node) {
 
 		case NODE_FUNC_PARAM:
 			dstring_free(&node->func_param.param_name);
-			dstring_free(&node->func_param.param_type);
 			break;
 
 		case NODE_FUNC_DECL:
@@ -615,7 +629,7 @@ void ast_destroy(ASTNode *node) {
 			break;
 
 		case NODE_EXT_DECL:
-			dstring_free(&node->ext_decl.type_name);
+			dstring_free(&node->ext_decl.param_name);
 			ast_nodelist_destroy(&node->ext_decl.funcs);
 			break;
 
