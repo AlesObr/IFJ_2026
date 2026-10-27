@@ -502,52 +502,63 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 							   "Missing identifier in function declaration\n"),
 			PAR_FAIL);
 	}
-	AST_Node *func_block;
-	ALLOC_NODE(func_block, ast_create_block(curr_token->line, curr_token->col));
 	AST_Node *new_func;
-	ALLOC_NODE(new_func, ast_create_call(curr_token->data.str_val, curr_token->line, curr_token->col));
-	ALLOC_NODE(ast_block_add_stmt(func_block, new_func));
-	if (!(ast_call_set_main(new_func, main_flag))){
-		ast_destroy(func_block);
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Failed to set main flag on function AST node\n"),
-				AST_FAIL);
-	}
+	ALLOC_NODE(new_func, ast_create_func(curr_token->data.str_val, main_flag, curr_token->data.str_val, curr_token->line, curr_token->col));
 	while (true) {
 		GET_TOKEN(curr_token, (Error){0});
 		if (curr_token->type == TOKEN_LPAREN) {
 			status = parse_param_section(curr_token);
 			CHECK_STATUS(status);
-			ast_call_add_arg(new_func, status.new_node);
+			if (!ast_func_add_param(new_func, status.new_node)){
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   			"Failed to add function parameter into AST\n"),
+					AST_FAIL);
+			}
 		} else {
 			break;
 		}
 	}
 	if (curr_token->type == TOKEN_COLON) {
 		GET_TOKEN(curr_token, (Error){0});
-		if (curr_token->type == TOKEN_KEYWORD_INT) {
-
-		} else if (curr_token->type == TOKEN_KEYWORD_DOUBLE) {
-
-		} else if (curr_token->type == TOKEN_KEYWORD_UNIT) {
-
-		} else if (curr_token->type == TOKEN_KEYWORD_STRING) {
-
-		} else if (curr_token->type == TOKEN_KEYWORD_BOOLEAN) {
-
-		} else if (curr_token->type != TOKEN_EQ) {
-			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+		switch (curr_token->type) {
+			case TOKEN_KEYWORD_INT:
+				type = INT;
+				break;
+			case TOKEN_KEYWORD_DOUBLE:
+				type = DOUBLE;
+				break;
+			case TOKEN_KEYWORD_UNIT:
+				type = UNIT;
+				break;
+			case TOKEN_KEYWORD_STRING:
+				type = STRING;
+				break;
+			case TOKEN_KEYWORD_BOOLEAN:
+				type = BOOLEAN;
+				break;
+			case TOKEN_EQ:
+				break;
+			default:
+				ast_destroy(new_func);
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									"Invalid function return type\n"),
 				PAR_FAIL);
 		}
+		if (curr_token->type != TOKEN_EQ){
+			ast_add_type(new_node, type);
+		}
 	}
+	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_EQ) {
 		status = parse_func_body(curr_token);
 		CHECK_STATUS(status);
+	} else {
+		ast_destroy(new_func);
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							"Unexpected token in function declaration\n"),
+			PAR_FAIL);
 	}
-	return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-						   "Unexpected token in function declaration\n"),
-		PAR_FAIL);
+	return PARSE_OK(PAR_SUCC, new_func);
 }
 
 /**
@@ -588,7 +599,6 @@ ParserStatus parse_extension_param(Token *curr_token) {
 		case TOKEN_KEYWORD_BOOLEAN:
 			type = BOOLEAN;
 			break;
-			break;
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Missing data type in extention parameter\n"),
@@ -601,12 +611,12 @@ ParserStatus parse_extension_param(Token *curr_token) {
 /**
  * @brief Function for parsing functions defined in extensions
  * @param curr_token Token pointer filled with current token
+ * @param ext_node Extension node to add functions into
  * @return Status structure containing flags for caller
  */
-ParserStatus parse_extension_body(Token *curr_token) {
+ParserStatus parse_extension_body(Token *curr_token, ASTNode* ext_node) {
 	GET_TOKEN(curr_token, (Error){0});
 	ASTNode* new_node;
-	ALLOC_NODE(new_node, ast_create_block(curr_token->line, curr_token->col));
 	if (curr_token->type == TOKEN_AT_MAIN) {
 		status = parse_at_main(curr_token);
 		CHECK_STATUS(status);
@@ -618,19 +628,31 @@ ParserStatus parse_extension_body(Token *curr_token) {
 							   "Unexpected token in function declaration inside extension\n"),
 			PAR_FAIL);
 	}
+	if (!ast_ext_add_func(ext_node, status.new_node)){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							"Failed to add function into extension\n"),
+		AST_FAIL);
+	}
 	while (curr_token->type != TOKEN_OUTDENT) {
 		GET_TOKEN(curr_token, (Error){0});
 		switch (curr_token->type) {
 			case TOKEN_AT_MAIN:
-				CHECK_STATUS(parse_at_main(curr_token));
+				status = parse_at_main(curr_token);
+				CHECK_STATUS(status);
 				break;
 			case TOKEN_KEYWORD_DEF:
-				CHECK_STATUS(parse_func_def(curr_token, false));
+				status = parse_func_def(curr_token, false);
+				CHECK_STATUS(status);
 				break;
 			default:
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									   "Invalid token at end of extension declaration\n"),
 					PAR_FAIL);
+		}
+		if (!ast_ext_add_func(ext_node, status.new_node)){
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								"Failed to add function into extension\n"),
+			AST_FAIL);
 		}
 	}
 	return PARSE_OK(PAR_SUCC);
@@ -671,7 +693,7 @@ ParserStatus parse_extension(Token *curr_token) {
 							   "Missing left bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
-	status = parse_extension_body(curr_token);
+	status = parse_extension_body(curr_token, ext_node);
 	CHECK_STATUS(status);
 	if (curr_token->type != TOKEN_OUTDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -711,6 +733,7 @@ ParserStatus parse_program(Token *curr_token) {
 			case TOKEN_EOL:
 				break; // consumes empty lines
 			default:
+				ast_destroy(program);
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									   "Missing EOL after header declaration\n"),
 					PAR_FAIL,
@@ -744,9 +767,7 @@ void parse() {
 	free(curr_token);
 	switch (status.flag) {
 		case PAR_FAIL:
-			ast_destroy(status.new_node);
 		case LEX_FAIL:
-			ast_destroy(status.new_node);
 		case PAR_EOF:
 		case AST_FAIL:
 		case PAR_SUCC:
