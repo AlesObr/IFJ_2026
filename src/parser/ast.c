@@ -3,25 +3,8 @@
  * @file ast.c
  * @brief AST node constructors, recursive destructor and S-expression dumper.
  * @author Aleš Obr (xobrale00)
+ * @author Štěpán Hořenek (xhorens00)
  * @note Standard: ISO C11
- *
- * @par Ownership contract
- * Every constructor that receives child ASTNode pointers takes ownership of
- * them unconditionally. If the constructor fails (allocation error or invalid
- * argument), it destroys the children it was given and returns NULL. The
- * caller therefore never has to clean up arguments it already handed over --
- * it only destroys the nodes it still holds itself.
- *
- * The same rule applies to ast_call_add_arg() and ast_block_add_stmt():
- * on failure the appended node is destroyed and false is returned.
- *
- * @see Architectural design & tagged-union implementation pattern:
- *      Vladimir Keleshev: "Abstract Syntax Tree: An Example in C" (2022)
- *      https://keleshev.com/abstract-syntax-tree-an-example-in-c/
- *
- * @see Conceptual inspiration for AST scope & intermediate representation:
- *      Flux Research Group, University of Utah: "C Abstract Syntax Tree (CAST) Representation",
- *      The Flick IDL Compiler Project.
  */
 
 #include "ast.h"
@@ -256,12 +239,34 @@ ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col) {
 	return node;
 }
 
-bool ast_call_set_main(ASTNode *func_node, bool is_main){
-	if (func_node == NULL || func_node->type != NODE_CALL){
-		return false;
+ASTNode *ast_create_func_def(const dstring_t *func_name, size_t line, size_t col) {
+	if (!func_name) {
+		return NULL;
 	}
-	func_node->call.main_flag = is_main;
-	return true;
+	ASTNode *node = ast_alloc(NODE_FUNC_DECL, line, col);
+	if (!node) {
+		return NULL;
+	}
+	if (!ast_dstring_clone(&node->func_decl.func_name, func_name)) {
+		free(node);
+		return NULL;
+	}
+	ast_nodelist_init(&node->func_decl.params);
+	ast_nodelist_init(&node->func_decl.exprs);
+	return node;
+}
+
+ASTNode *ast_create_ext(const dstring_t *type_name, size_t line, size_t col) {
+	ASTNode *node = ast_alloc(NODE_EXT_DECL, line, col);
+	if (!node) {
+		return NULL;
+	}
+	if (!ast_dstring_clone(&node->ext_decl.type_name, func_name)) {
+		free(node);
+		return NULL;
+	}
+	ast_nodelist_init(&node->ext_decl.funcs);
+	return node;
 }
 
 bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {

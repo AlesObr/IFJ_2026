@@ -3,19 +3,8 @@
  * @file ast.h
  * @brief Abstract syntax tree data structures and interface using dstring.
  * @author Aleš Obr (xobrale00)
+ * @author Štěpán Hořenek (xhorens00)
  * @note Standard: ISO C11
- * @cite https://keleshev.com/abstract-syntax-tree-an-example-in-c/ by Vladimir Keleshev 20. 6. 2022
- * available online
- *
- * @par Ownership contract
- * Every constructor that receives child ASTNode pointers takes ownership of
- * them unconditionally. If the constructor fails (allocation error or invalid
- * argument), it destroys the children it was given and returns NULL. The
- * caller therefore never has to clean up arguments it already handed over --
- * it only destroys the nodes it still holds itself.
- *
- * The same rule applies to ast_call_add_arg() and ast_block_add_stmt():
- * on failure the appended node is destroyed and false is returned.
  */
 
 #ifndef IFJ26_AST_H
@@ -49,9 +38,12 @@ typedef enum {
 	NODE_CALL,
 
 	/* Control Flow and Statements */
+	NODE_FUNC_DECL,
+	NODE_EXT_DECL,
 	NODE_BLOCK,
 	NODE_IF,
 	NODE_WHILE,
+	NODE_FOR,
 	NODE_RETURN
 } ASTNodeType;
 
@@ -73,7 +65,7 @@ typedef enum {
 	OP_GTE,			// >=
 	OP_NOT,			// ! (unary)
 	OP_UNARY_MINUS, // - (unary)
-	OP_UNAARY_PLUS	// + (unary)
+	OP_UNARY_PLUS	// + (unary)
 } OpType;
 
 typedef struct ASTNode ASTNode;
@@ -124,9 +116,22 @@ struct ASTNode {
 		/** @brief Structure for function call nodes. */
 		struct {
 			dstring_t func_name; /**< Identifier of the called function. */
-			bool main_flag;		 /**< Flag whether function is main one */
 			ASTNodeList args;	 /**< List of argument expressions. */
 		} call;
+
+		/** @brief Structure for function declaration */
+		struct {
+			dstring_t func_name; /**< Identifier of declared function */
+			bool is_main;		 /**< Flag tracking whether function is the main one */
+			ASTNodeList params;	 /**< List of node parameters */
+			ASTNodeList exprs;	 /**< Expressions inside function body */
+		} func_decl;
+
+		/** @brief Structure for extension declaration */
+		struct {
+			dstring_t type_name; /**< Dynamic string holding explicit type name. */
+			ASTNodeList funcs;	 /**< List of functions inside said extension */
+		} ext_decl;
 
 		/** @brief Structure for composite statement blocks. */
 		struct {
@@ -253,14 +258,6 @@ ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t li
 ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col);
 
 /**
- * @brief Sets main flag of function call
- * @param call_node Function call node created via ast_create_call.
- * @param is_main Flag to set, true if is main, false if not
- * @return True if success, false if attempt to set NULL or wrong type of node passed
- */
-bool ast_call_set_main(ASTNode *func_node, bool is_main);
-
-/**
  * @brief Appends an argument expression node to a function call ASTNode.
  * @param call_node Function call node created via ast_create_call.
  * @param arg Evaluated argument expression node.
@@ -311,6 +308,24 @@ ASTNode *ast_create_while(ASTNode *cond, ASTNode *body, size_t line, size_t col)
  * @return Allocated ASTNode pointer or NULL on failure.
  */
 ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for a function declaration.
+ * @param func_name Function declaration node.
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_func_def(const dstring_t *func_name, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for a extension declaration.
+ * @param type_name Name of type the extension extends
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_ext(const dstring_t *type_name, size_t line, size_t col);
 
 /**
  * @brief Dumps the AST in S-expression format to the specified output stream.
