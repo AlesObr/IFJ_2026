@@ -37,7 +37,7 @@ ParserStatus parse_func_body(Token *curr_token);
 			return PARSE_ERROR((err), LEX_FAIL);                                                   \
 		}                                                                                          \
 		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \
-			return PARSE_OK(PAR_EOF);                                                              \
+			return PARSE_OK(PAR_EOF, NULL);                                                              \
 		}                                                                                          \
 	} while (0)
 
@@ -66,7 +66,7 @@ ParserStatus parse_func_body(Token *curr_token);
 			return (status);                                                                       \
 		}                                                                                          \
 	} while (0)
-
+// handle not yet assigned nodes after error
 /**
  * @brief Parsing of mandatory program header
  * @param curr_token Token pointer filled with current token
@@ -104,7 +104,7 @@ ParserStatus parse_header(Token *curr_token) {
 							   "Missing EOL after header declaration\n"),
 			PAR_FAIL);
 	}
-	return PARSE_OK(PAR_SUCC);
+	return PARSE_OK(PAR_SUCC, NULL);
 }
 
 /**
@@ -113,24 +113,27 @@ ParserStatus parse_header(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_at_main(Token *curr_token) {
+	ParserStatus status = {0};
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_EOL) {
 		GET_TOKEN(curr_token, (Error){0});
 		if (curr_token->type == TOKEN_KEYWORD_DEF) {
-			CHECK_STATUS(parse_func_def(curr_token, true));
+			status = parse_func_def(curr_token, true);
+			CHECK_STATUS(status);
 		} else {
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Missing definition token after @main\n"),
 				PAR_FAIL);
 		}
 	} else if (curr_token->type == TOKEN_KEYWORD_DEF) {
-		CHECK_STATUS(parse_func_def(curr_token, true));
+		status = parse_func_def(curr_token, true);
+		CHECK_STATUS(status);
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing definition token after @main\n"),
 			PAR_FAIL);
 	}
-	return PARSE_OK(PAR_SUCC);
+	return PARSE_OK(PAR_SUCC, status.new_node);
 }
 
 /**
@@ -493,39 +496,54 @@ ParserStatus parse_param_section(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
-	(void)main_flag; // @dev TODO: This is a placeholder, delete it
+	ParserStatus status = {0};
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier in function declaration\n"),
 			PAR_FAIL);
 	}
+	AST_Node *func_block;
+	ALLOC_NODE(func_block, ast_create_block(curr_token->line, curr_token->col));
+	AST_Node *new_func;
+	ALLOC_NODE(new_func, ast_create_call(curr_token->data.str_val, curr_token->line, curr_token->col));
+	ALLOC_NODE(ast_block_add_stmt(func_block, new_func));
+	if (!(ast_call_set_main(new_func, main_flag))){
+		ast_destroy(func_block);
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Failed to set main flag on function AST node\n"),
+				AST_FAIL);
+	}
 	while (true) {
 		GET_TOKEN(curr_token, (Error){0});
 		if (curr_token->type == TOKEN_LPAREN) {
-			CHECK_STATUS(parse_param_section(curr_token));
+			status = parse_param_section(curr_token);
+			CHECK_STATUS(status);
+			ast_call_add_arg(new_func, status.new_node);
 		} else {
 			break;
 		}
 	}
 	if (curr_token->type == TOKEN_COLON) {
 		GET_TOKEN(curr_token, (Error){0});
-		switch (curr_token->type) {
-			case TOKEN_KEYWORD_INT:
-			case TOKEN_KEYWORD_DOUBLE:
-			case TOKEN_KEYWORD_UNIT:
-			case TOKEN_KEYWORD_STRING:
-			case TOKEN_KEYWORD_BOOLEAN:
-				break;
-			case TOKEN_EQ:
-				break;
-			default:
-				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									   "Invalid function return type\n"),
-					PAR_FAIL);
+		if (curr_token->type == TOKEN_KEYWORD_INT) {
+
+		} else if (curr_token->type == TOKEN_KEYWORD_DOUBLE) {
+
+		} else if (curr_token->type == TOKEN_KEYWORD_UNIT) {
+
+		} else if (curr_token->type == TOKEN_KEYWORD_STRING) {
+
+		} else if (curr_token->type == TOKEN_KEYWORD_BOOLEAN) {
+
+		} else if (curr_token->type != TOKEN_EQ) {
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Invalid function return type\n"),
+				PAR_FAIL);
 		}
 	}
 	if (curr_token->type == TOKEN_EQ) {
-		CHECK_STATUS(parse_func_body(curr_token));
+		status = parse_func_body(curr_token);
+		CHECK_STATUS(status);
 	}
 	return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 						   "Unexpected token in function declaration\n"),
@@ -648,36 +666,24 @@ ParserStatus parse_extension(Token *curr_token) {
 ParserStatus parse_program(Token *curr_token) {
 	ParserStatus status = {0};
 	GET_TOKEN(curr_token, (Error){0});
-	dstring_t* prog_name = malloc(sizeof(dstring_t));
-	if ((dstring_init(prog_name)) == false){
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									   "Failed to allocate memory for name of progam AST node\n"),
-					AST_FAIL);
-	}
-	if ((dstring_append_char(prog_name, "0")) == false){
-		dstring_free(prog_name);
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									   "Failed to allocate memory for name of progam AST node\n"),
-					AST_FAIL);
-	}
 	AST_Node *program = NULL;
-	ALLOC_NODE(program, ast_create_call(prog_name, curr_token->line, curr_token->col));
+	ALLOC_NODE(program, ast_create_block(curr_token->line, curr_token->col));
 	while (curr_token->type != TOKEN_EOF) {
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_EXTENSION:
 				status = parse_extension(curr_token);
 				CHECK_STATUS(status);
-				ALLOC_NODE(ast_call_add_arg(program, status.new_node));
+				ALLOC_NODE(ast_block_add_stmt(program, status.new_node));
 				break;
 			case TOKEN_AT_MAIN:
 				status = parse_at_main(curr_token);
 				CHECK_STATUS(status);
-				ALLOC_NODE(ast_call_add_arg(program, status.new_node);)
+				ALLOC_NODE(ast_call_add_stmt(program, status.new_node);)
 				break;
 			case TOKEN_KEYWORD_DEF:
 				status = parse_func_def(curr_token, false);
 				CHECK_STATUS(status);
-				ALLOC_NODE(ast_call_add_arg(program, status.new_node);)
+				ALLOC_NODE(ast_call_add_stmt(program, status.new_node);)
 				break;
 			case TOKEN_EOL:
 				break; // consumes empty lines
