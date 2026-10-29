@@ -8,7 +8,7 @@
  */
 
 #include "parser.h"
-#inluc
+#include "ast.h"
 #include "../_utils/dstring.h"
 #include "../_utils/error.h"
 #include "../_utils/token.h"
@@ -29,12 +29,16 @@ ParserStatus parse_func_body(Token *curr_token);
  * @brief Macro for safely fetching from scanner
  * @param tok_ptr Token pointer to fetch into
  * @param err Error variable to catch scanner errors
+ * @param destroy_node Current rule ASTNode to be destroyed on fail
  */
-#define GET_TOKEN(tok_ptr, err)                                                                    \
+#define GET_TOKEN(tok_ptr, err, destroy_node)                                                      \
 	do {                                                                                           \
 		token_destroy(tok_ptr);																	   \
 		(err) = lexer_get_next_token((tok_ptr));                                                   \
 		if (ERROR_IS_ERR((err))) {                                                                 \
+			if (destroy_node != NULL){															   \
+				ast_destroy(destroy_node);														   \
+			}															   						   \
 			return PARSE_ERROR((err), LEX_FAIL);                                                   \
 		}                                                                                          \
 		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \
@@ -50,6 +54,7 @@ ParserStatus parse_func_body(Token *curr_token);
 #define ALLOC_NODE(node, alloc_expr)															   \
 	do {																						   \
 		(node) = (alloc_expr);																	   \
+		ast_destroy((node));																	   \
 		if ((node) == NULL){																	   \
 			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,		   \
 							   "Failed to allocate node for AST tree\n"),						   \
@@ -475,12 +480,14 @@ ParserStatus parse_param_mem(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_param_section(Token *curr_token) {
+	ParserStatus status = {0};
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type == TOKEN_IDENTIFIER) {
-		CHECK_STATUS(parse_param_mem(curr_token));
+		status = parse_param_mem(curr_token);
+		CHECK_STATUS(status);
 	}
 	if (curr_token->type == TOKEN_RPAREN) {
-		return PARSE_OK(PAR_SUCC);
+		return PARSE_OK(PAR_SUCC, status.new_node);
 	} else {
 		return PARSE_ERROR(
 			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -505,11 +512,12 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	AST_Node *new_func;
 	ALLOC_NODE(new_func, ast_create_func(curr_token->data.str_val, main_flag, curr_token->data.str_val, curr_token->line, curr_token->col));
 	while (true) {
-		GET_TOKEN(curr_token, (Error){0});
+		GET_TOKEN(curr_token, (Error){0}, new_func);
 		if (curr_token->type == TOKEN_LPAREN) {
 			status = parse_param_section(curr_token);
 			CHECK_STATUS(status);
 			if (!ast_func_add_param(new_func, status.new_node)){
+				ast_destroy(new_func);
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   			"Failed to add function parameter into AST\n"),
 					AST_FAIL);
@@ -519,7 +527,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 		}
 	}
 	if (curr_token->type == TOKEN_COLON) {
-		GET_TOKEN(curr_token, (Error){0});
+		GET_TOKEN(curr_token, (Error){0}, new_func);
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
 				type = INT;
@@ -548,7 +556,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 			ast_add_type(new_node, type);
 		}
 	}
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, new_func);
 	if (curr_token->type == TOKEN_EQ) {
 		status = parse_func_body(curr_token);
 		CHECK_STATUS(status);
@@ -567,7 +575,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_extension_param(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier in extension parameter\n"),
@@ -575,13 +583,13 @@ ParserStatus parse_extension_param(Token *curr_token) {
 	}
 	ASTNode* new_node;
 	ALLOC_NODE(new_node, ast_ext_create(curr_token->data.str_val, curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, new_node);
 	if (curr_token->type != TOKEN_COLON) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing colon in extension parameter\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, new_node);
 	ValType type = UNDEF;
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_INT:
@@ -615,8 +623,7 @@ ParserStatus parse_extension_param(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_extension_body(Token *curr_token, ASTNode* ext_node) {
-	GET_TOKEN(curr_token, (Error){0});
-	ASTNode* new_node;
+	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type == TOKEN_AT_MAIN) {
 		status = parse_at_main(curr_token);
 		CHECK_STATUS(status);
@@ -634,7 +641,7 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode* ext_node) {
 		AST_FAIL);
 	}
 	while (curr_token->type != TOKEN_OUTDENT) {
-		GET_TOKEN(curr_token, (Error){0});
+		GET_TOKEN(curr_token, (Error){0}, new_node);
 		switch (curr_token->type) {
 			case TOKEN_AT_MAIN:
 				status = parse_at_main(curr_token);
@@ -655,7 +662,7 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode* ext_node) {
 			AST_FAIL);
 		}
 	}
-	return PARSE_OK(PAR_SUCC);
+	return PARSE_OK(PAR_SUCC, new_node);
 }
 
 /**
@@ -666,7 +673,7 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode* ext_node) {
 ParserStatus parse_extension(Token *curr_token) {
 	ParserStatus status = {0};
 	AST_Node *ext_header;
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type != TOKEN_LPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing left bracket of extension parameter\n"),
@@ -675,19 +682,19 @@ ParserStatus parse_extension(Token *curr_token) {
 	status = parse_extension_param(curr_token);
 	CHECK_STATUS(status);
 	ext_header = status.new_node;
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, ext_header);
 	if (curr_token->type != TOKEN_RPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing right bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, ext_header);
 	if (curr_token->type != TOKEN_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing EOL after extension parameter bracket\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, ext_header);
 	if (curr_token->type != TOKEN_INDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing left bracket of extension parameter\n"),
@@ -700,7 +707,7 @@ ParserStatus parse_extension(Token *curr_token) {
 							   "Missing outdent at the end of extension\n"),
 			PAR_FAIL);
 	}
-	return PARSE_OK(PAR_SUCC);
+	return PARSE_OK(PAR_SUCC, ext_header);
 }
 
 /**
@@ -710,7 +717,7 @@ ParserStatus parse_extension(Token *curr_token) {
  */
 ParserStatus parse_program(Token *curr_token) {
 	ParserStatus status = {0};
-	GET_TOKEN(curr_token, (Error){0});
+	GET_TOKEN(curr_token, (Error){0}, NULL);
 	AST_Node *program = NULL;
 	ALLOC_NODE(program, ast_create_block(curr_token->line, curr_token->col));
 	while (curr_token->type != TOKEN_EOF) {
@@ -739,9 +746,9 @@ ParserStatus parse_program(Token *curr_token) {
 					PAR_FAIL,
 					program);
 		}
-		GET_TOKEN(curr_token, (Error){0});
+		GET_TOKEN(curr_token, (Error){0}, program);
 	}
-	return PARSE_OK(PAR_EOF);
+	return PARSE_OK(PAR_EOF, program);
 }
 
 void parse() {
