@@ -264,7 +264,9 @@ ASTNode *ast_create_func_param(const dstring_t *param_name, size_t line, size_t 
 		free(node);
 		return NULL;
 	}
-	node->func_param.param_type = type_name;
+	node->func_param.param_type = UNDEF;
+	node->line = line;
+	node->col = col;
 	return node;
 }
 
@@ -282,21 +284,46 @@ ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, 
 	}
 	node->func_decl.is_main = is_main;
 	node->func_decl.return_type = UNDEF;
+	node->line = line;
+	node->col = col;
 	ast_nodelist_init(&node->func_decl.params);
 	ast_nodelist_init(&node->func_decl.exprs);
 	return node;
 }
 
-bool ast_func_add_param(ASTNode *func_node, ASTNode *param){
-	if (!func_node || func_node->type != NODE_FUNC_DECL || !param || param->type != NODE_FUNC_PARAM) {
+ASTNode *ast_create_param_window(size_t line, size_t col){
+	ASTNode *node = ast_alloc(NODE_FUNC_WINDOW, line, col);
+	if (!node) {
+		return NULL;
+	}
+	node->line = line;
+	node->col = col;
+	node->param_window.size = 0;
+	return Node;
+}
+
+bool ast_func_add_param_window(ASTNode *func_node, ASTNode *param_window){
+	if (!func_node || func_node->type != NODE_FUNC_DECL || !param_window || param_window->type != NODE_FUNC_WINDOW) {
+		ast_destroy(param_window);
+		return false;
+	}
+	if (!ast_nodelist_append(&func_node->func_decl.param_windows, param_window)) {
+		ast_destroy(param_window);
+		return false;
+	}
+	return true;
+}
+
+bool ast_window_add_param(ASTNode *param_window, ASTNode *param){
+	if (!param_window || param_window->type != NODE_FUNC_WINDOW || !param || param->type != NODE_FUNC_PARAM) {
 		ast_destroy(param);
 		return false;
 	}
-	if (!ast_nodelist_append(&func_node->func_decl.params, param)) {
+	if (!ast_nodelist_append(&func_node->param_window.params, param)) {
 		ast_destroy(param);
 		return false;
 	}
-	node->func_param.param_type = UNDEF;
+	node->param_window.size += 1;
 	return true;
 }
 
@@ -612,6 +639,10 @@ void ast_destroy(ASTNode *node) {
 
 		case NODE_BLOCK:
 			ast_nodelist_destroy(&node->block.stmts);
+			break;
+
+		case NODE_FUNC_WINDOW:
+			ast_nodelist_destroy(&node->param_window.params);
 			break;
 
 		case NODE_FUNC_PARAM:

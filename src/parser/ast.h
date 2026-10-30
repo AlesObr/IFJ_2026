@@ -39,6 +39,7 @@ typedef enum {
 
 	/* Control Flow and Statements */
 	NODE_FUNC_PARAM,
+	NODE_FUNC_WINDOW,
 	NODE_FUNC_DECL,
 	NODE_EXT_DECL,
 	NODE_BLOCK,
@@ -135,15 +136,21 @@ struct ASTNode {
 		/** @brief Structure for function parameters */
 		struct {
 			dstring_t param_name; /**< Name of the function parameter. */
-			ValType param_type; /**< Type of the function parameter. */
+			ValType param_type;   /**< Type of the function parameter. */
 		} func_param;
+
+		/** @brief Structure for function param window */
+		struct {
+			ASTNodeList params;	 /**< List of parameters for said function parameter window */
+			int size;				 /**< Amount of function parameter lists in said window */
+		} param_window;
 
 		/** @brief Structure for function declaration */
 		struct {
 			dstring_t func_name; /**< Identifier of declared function */
 			ValType return_type; /**< Type that function should return */
 			bool is_main;		 /**< Flag tracking whether function is the main one */
-			ASTNodeList params;	 /**< List of node parameters */
+			ASTNodeList param_windows;	 /**< List of parameter windows */
 			ASTNodeList exprs;	 /**< Expressions inside function body */
 		} func_decl;
 
@@ -350,12 +357,28 @@ ASTNode *ast_create_func_param(const dstring_t *param_name, size_t line, size_t 
 ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, size_t col);
 
 /**
- * @brief Appends an parameter to function declaration AST_NODE
+ * @brief Creates a new AST node for a function parameter window.
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_param_window(size_t line, size_t col);
+
+/**
+ * @brief Appends an parameter window to function declaration AST_NODE
  * @param func_node Function declaration node created via ast_create_func_decl
+ * @param param_window Parameter window AST Node to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_func_add_param_window(ASTNode *func_node, ASTNode *param_window);
+
+/**
+ * @brief Appends an parameter to parameter window AST_NODE
+ * @param param_window Function parameter window node created via ast_create_func_decl
  * @param param Parameter AST Node to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
  */
-bool ast_func_add_param(ASTNode *func_node, ASTNode *param);
+bool ast_window_add_param(ASTNode *param_window, ASTNode *param);
 
 /**
  * @brief Appends an expression to end of function body AST_NODE
