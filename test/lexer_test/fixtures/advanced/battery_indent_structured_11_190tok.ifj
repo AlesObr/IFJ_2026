@@ -1,9 +1,9 @@
-x ; )
+x ;  
 0 Int 0.6 1_000_000 1_000_000
 1_000_000 "escape: \t tabulator"
 case readInt class then
-"escape: \t tabulator" == veryLongIdentifierNameThatShouldStillWorkInDynamicString (
-_var 42 == Int )
+"escape: \t tabulator" == veryLongIdentifierNameThatShouldStillWorkInDynamicString  
+_var 42 == Int  
 class
 , thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString // line 8 comment
 != _1 0.5 // line 9 comment
@@ -39,7 +39,7 @@ camelCase result snake_case 1 123_456_789 2.5E-3
 readInt 1_000_000
 42 readInt ""
 "escape: \" uvozovka" return
-@ 100.5e+2 else 5e-2 // line 42 comment
+@main 100.5e+2 else 5e-2 // line 42 comment
 0.0 String
     _ 1e10 x 10_20_30
         "text s mezerami"
@@ -48,13 +48,13 @@ _1 x 999_999_999 _
 5e-2 // line 48 comment
 camelCase 5e-2 42 <=
 import 1e5D 0.0 __private 123_456_789 +
-( // line 51 comment
+// line 51 comment
 42
 Unit 42 10_20_30
 snake_case _var _1
     3.14159 123_456_789 * "hello" _1
     "escape: \" uvozovka" 1_000.50_1 extension 5e-2 10_20_30
-    "kombinace: \n\t\"\\" ) <=
+    "kombinace: \n\t\"\\"   <=
         5e-2 __private result thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
         case 10_20_30 for x // line 59 comment
         10_20_30 while 123_456_789 factorial 2147483647 _var

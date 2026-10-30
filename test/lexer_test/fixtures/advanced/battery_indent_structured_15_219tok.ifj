@@ -2,13 +2,13 @@
 "escape: \\ lomitko" camelCase
 0 x
 case thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
-123_456_789 10_20_30 "escape: \" uvozovka" )
+123_456_789 10_20_30 "escape: \" uvozovka"  
 readInt
 1
     1_000_000 0 factorial snake_case
     1_000_000 , 5e-2 camelCase snake_case
     1e5D 123_456_789 2.5E-3 import 10_20_30 123_456_789 // line 10 comment
-    @ |
+    @main |
     = thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString veryLongIdentifierNameThatShouldStillWorkInDynamicString != x
     1_000.50_1 2.5E-3 Unit then "escape: \\ lomitko" _1
     <= factorial // line 14 comment
@@ -36,13 +36,13 @@ _var 42.0d
     == "escape: \" uvozovka" snake_case // line 36 comment
 factorial
 > 5e-2 0.0 _ with123Numbers
-camelCase __private "text s mezerami" ( : 999_999_999
+camelCase __private "text s mezerami"   : 999_999_999
 __private thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 2147483647 factorial 0.5
     42.0d "text s mezerami" 0.0 if 42.0d "hello"
 snake_case 3.14159 2.5E-3 * 1e5D factorial
 factorial 10_20_30 == while return ""
 readInt + 1e10
-2147483647 123_456_789 ( . 10_20_30 // line 45 comment
+2147483647 123_456_789   . 10_20_30 // line 45 comment
 _var | "escape: \r carriage return" while readInt
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString class ; 0 . "escape: \n nova radka" // line 47 comment
 + "escape: \t tabulator" factorial 10_20_30
@@ -53,7 +53,7 @@ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNam
     "" _ Int ; = // line 53 comment
     snake_case 123_456_789
     2147483647 2.5E-3 else _1 "hello"
-    __private 0 "escape: \r carriage return" @
+    __private 0 "escape: \r carriage return" @main
     +
 >= thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString String 1
 1 class 10_20_30 List 42

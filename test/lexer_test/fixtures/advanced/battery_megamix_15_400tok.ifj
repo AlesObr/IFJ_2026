@@ -6,7 +6,7 @@ String   *   "kombinace: \n\t\"\\"  0   _1   0.6   snake_case  result   0   fact
 0
 Unit "escape: \r carriage return" // comment on line 7
 else // comment on line 8
-@   / /* comment 
+@main   / /* comment 
  */ 
 0.125e+2   "text s mezerami" veryLongIdentifierNameThatShouldStillWorkInDynamicString   __private 0.0   "kombinace: \n\t\"\\" 3.14159
 "escape: \\ lomitko" result  0
@@ -46,7 +46,7 @@ readInt // comment on line 43
 <=
 42 // comment on line 47
 999_999_999 /* inline comment */ 2147483647 /* inline comment */ "text s mezerami"
-@ /* comment 
+@main /* comment 
  */ 
 > readInt   "escape: \t tabulator" "escape: \r carriage return"
 0.0
@@ -69,7 +69,7 @@ with123Numbers   _1 /* inline comment */ _var
 return /* comment 
 
  */ 
-@   *
+@main   *
 >= do /* comment 
 
  */ 
@@ -84,7 +84,7 @@ return /* comment
 2.5E-3
 "escape: \n nova radka" // comment on line 85
 _1
-== (   return  List   "escape: \n nova radka" "escape: \r carriage return" factorial "hello"   _var   @
+== (   return  List   "escape: \n nova radka" "escape: \r carriage return" factorial "hello"   _var   @main
 "hello" "kombinace: \n\t\"\\"  snake_case
 factorial 2.5E-3  0
 while
@@ -128,7 +128,7 @@ readInt // comment on line 120
 "escape: \t tabulator"  with123Numbers
 case
 "text s mezerami" then  ""  "hello" // comment on line 130
-| 2147483647   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString @ // comment on line 131
+| 2147483647   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString @main // comment on line 131
 3.14159
 999_999_999   ""  with123Numbers
 >= /* inline comment */ 0.0 // comment on line 134
@@ -155,7 +155,7 @@ snake_case   camelCase /* comment
 10_20_30   1_000_000   |
 0.6  snake_case   "escape: \r carriage return"
 "hello"   2147483647  42 // comment on line 157
-!= 1 "hello"  @
+!= 1 "hello"  @main
 result < result   1_000_000   1e5D /* comment 
 
  */ 
@@ -169,7 +169,7 @@ val for
 _var
 do   "escape: \" uvozovka" snake_case
 1_000.50_1  result   2147483647 __private // comment on line 171
-< @ /* inline comment */ snake_case  ==
+< @main /* inline comment */ snake_case  ==
 "escape: \t tabulator" 5e-2   _var  <=  |   "escape: \" uvozovka"  5e-2   1_000_000  veryLongIdentifierNameThatShouldStillWorkInDynamicString // comment on line 173
 Int
 x
@@ -190,7 +190,7 @@ snake_case  2147483647  0.0  >= // comment on line 188
 999_999_999 // comment on line 190
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  42.0d   "" <   veryLongIdentifierNameThatShouldStillWorkInDynamicString
 while
-42.0d  @ // comment on line 193
+42.0d  @main // comment on line 193
 1e5D /* comment 
  */ 
 Int  List  _1 1_000.50_1  x 0  1   _1  :

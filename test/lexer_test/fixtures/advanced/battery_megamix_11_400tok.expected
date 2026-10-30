@@ -7,7 +7,7 @@ EXIT:0
 3:LIT_INT:2147483647
 3:IDENTIFIER:snake_case
 3:EOL
-4:AT
+4:AT_MAIN
 4:LIT_INT:2147483647
 4:LIT_FLOAT:10050
 4:EOL
@@ -55,7 +55,8 @@ EXIT:0
 19:LIT_STRING:escape: \ lomitko
 19:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
 19:KEYWORD:String
-19:LIT_STRING:escape:  carriage return
+19:LIT_STRING:escape: 
+ carriage return
 19:EOL
 20:LIT_FLOAT:1000.5
 20:LIT_INT:2147483647
@@ -136,7 +137,7 @@ EXIT:0
 43:LIT_INT:1000000
 43:EOL
 44:LIT_FLOAT:3.14159
-44:AT
+44:AT_MAIN
 44:KEYWORD:var
 44:EOL
 45:COLON
@@ -167,8 +168,9 @@ EXIT:0
 52:EOL
 53:EOL
 54:EOL
-55:AT
-55:LIT_STRING:escape:  carriage return
+55:AT_MAIN
+55:LIT_STRING:escape: 
+ carriage return
 55:IDENTIFIER:x
 55:EOL
 56:EOL
@@ -179,7 +181,8 @@ EXIT:0
 58:IDENTIFIER:x
 58:LIT_INT:0
 58:IDENTIFIER:__private
-58:LIT_STRING:escape:  carriage return
+58:LIT_STRING:escape: 
+ carriage return
 58:KEYWORD:var
 58:LIT_INT:2147483647
 58:EOL
@@ -217,7 +220,8 @@ EXIT:0
 71:LIT_INT:2147483647
 71:EOL
 72:KEYWORD:return
-72:LIT_STRING:escape:  carriage return
+72:LIT_STRING:escape: 
+ carriage return
 72:EOL
 73:LIT_INT:0
 73:IDENTIFIER:result
@@ -289,7 +293,8 @@ EXIT:0
 101:IDENTIFIER:snake_case
 101:RPAREN
 101:EOL
-102:LIT_STRING:escape:  carriage return
+102:LIT_STRING:escape: 
+ carriage return
 102:EOL
 103:IDENTIFIER:factorial
 103:PIPE
@@ -356,7 +361,8 @@ EXIT:0
 122:LIT_INT:0
 122:EOL
 123:EOL
-124:LIT_STRING:escape:  carriage return
+124:LIT_STRING:escape: 
+ carriage return
 124:LIT_STRING:escape: 	 tabulator
 124:EOL
 125:LIT_FLOAT:0.0025
@@ -539,7 +545,8 @@ EXIT:0
 185:KEYWORD:return
 185:EOL
 186:LIT_INT:42
-186:LIT_STRING:escape:  carriage return
+186:LIT_STRING:escape: 
+ carriage return
 186:IDENTIFIER:snake_case
 186:EOL
 187:KEYWORD:case
@@ -547,7 +554,7 @@ EXIT:0
 188:EOL
 189:LIT_STRING:escape: 
  nova radka
-189:AT
+189:AT_MAIN
 189:EOL
 190:IDENTIFIER:readInt
 190:EOL

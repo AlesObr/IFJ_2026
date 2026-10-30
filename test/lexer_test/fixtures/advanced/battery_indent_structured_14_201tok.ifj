@@ -32,14 +32,14 @@ _1 def while
 "" factorial 1_000_000
 __private "escape: \" uvozovka" do >= "hello"
 "text s mezerami" 0.0 42 factorial
-) "hello" 999_999_999 // line 35 comment
-    42 readInt Unit
-    100.5e+2 / 0.125e+2 val "hello" camelCase
-    "hello" <
-    2147483647 match Int // line 39 comment
-    0.0 "escape: \r carriage return" 3.14159 10_20_30 == camelCase
-    =
-    1 "text s mezerami" |
+    "hello" 999_999_999 // line 35 comment
+        42 readInt Unit
+        100.5e+2 / 0.125e+2 val "hello" camelCase
+        "hello" <
+        2147483647 match Int // line 39 comment
+        0.0 "escape: \r carriage return" 3.14159 10_20_30 == camelCase
+        =
+        1 "text s mezerami" |
 x 2147483647 10_20_30 "escape: \\ lomitko" "text s mezerami" return
 1e10 factorial -
 then String ; 1_000_000 // line 45 comment

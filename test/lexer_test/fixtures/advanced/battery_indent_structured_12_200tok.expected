@@ -30,7 +30,8 @@ EXIT:0
 7:IDENTIFIER:_1
 7:EOL
 8:LIT_INT:999999999
-8:LIT_STRING:escape:  carriage return
+8:LIT_STRING:escape: 
+ carriage return
 8:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
 8:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 8:EOL
@@ -96,7 +97,7 @@ EXIT:0
 21:EOL
 22:IDENTIFIER:snake_case
 22:EOL
-23:LPAREN
+23:INDENT
 23:KEYWORD:Boolean
 23:LIT_FLOAT:10050
 23:IDENTIFIER:camelCase
@@ -177,6 +178,7 @@ EXIT:0
 39:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 39:EOL
 40:OUTDENT
+40:OUTDENT
 40:LTE
 40:IDENTIFIER:camelCase
 40:KEYWORD:match
@@ -191,7 +193,6 @@ EXIT:0
 42:IDENTIFIER:x
 42:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
 42:KEYWORD:Boolean
-42:RPAREN
 42:EOL
 43:LIT_FLOAT:3.14159
 43:LIT_STRING:
@@ -261,10 +262,11 @@ EXIT:0
 56:EOL
 57:LIT_INT:0
 57:EOL
-58:RPAREN
+58:INDENT
 58:KEYWORD:for
 58:IDENTIFIER:snake_case
 58:EOL
+59:OUTDENT
 59:OUTDENT
 59:LIT_FLOAT:1e+10
 59:LIT_FLOAT:0.5

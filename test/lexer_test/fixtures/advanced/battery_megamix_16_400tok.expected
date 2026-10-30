@@ -126,7 +126,7 @@ EXIT:0
 37:EOL
 38:LIT_FLOAT:3.14159
 38:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
-38:AT
+38:AT_MAIN
 38:EOL
 39:EOL
 40:EOL
@@ -135,7 +135,8 @@ EXIT:0
 42:LIT_STRING:kombinace: 
 	"\
 42:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
-42:LIT_STRING:escape:  carriage return
+42:LIT_STRING:escape: 
+ carriage return
 42:LIT_FLOAT:1000.5
 42:LIT_FLOAT:42
 42:LIT_FLOAT:1000.5
@@ -146,7 +147,8 @@ EXIT:0
 43:LIT_FLOAT:0.5
 43:LIT_FLOAT:0.6
 43:LIT_STRING:hello
-43:LIT_STRING:escape:  carriage return
+43:LIT_STRING:escape: 
+ carriage return
 43:LIT_INT:999999999
 43:EOL
 44:IDENTIFIER:x
@@ -230,7 +232,8 @@ EXIT:0
 72:EOL
 73:EOL
 74:LIT_FLOAT:0.5
-74:LIT_STRING:escape:  carriage return
+74:LIT_STRING:escape: 
+ carriage return
 74:EOL
 75:LIT_INT:999999999
 75:EOL
@@ -496,7 +499,7 @@ EXIT:0
 167:LIT_STRING:text s mezerami
 167:KEYWORD:Boolean
 167:EOL
-168:AT
+168:AT_MAIN
 168:GTE
 168:LIT_STRING:kombinace: 
 	"\
@@ -589,11 +592,12 @@ EXIT:0
 199:LIT_FLOAT:0
 199:KEYWORD:List
 199:EOL
-200:LIT_STRING:escape:  carriage return
+200:LIT_STRING:escape: 
+ carriage return
 200:LIT_FLOAT:0.6
 200:LIT_INT:0
 200:LIT_FLOAT:42
-200:AT
+200:AT_MAIN
 200:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 200:EOL
 201:EOL

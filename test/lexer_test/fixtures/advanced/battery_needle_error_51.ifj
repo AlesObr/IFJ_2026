@@ -66,7 +66,7 @@ _var /* comment
 
  */ 
 1
-snake_case  42 @  "kombinace: \n\t\"\\"  type 2147483647 1_000_000 result with123Numbers // comment on line 69
+snake_case  42 @main  "kombinace: \n\t\"\\"  type 2147483647 1_000_000 result with123Numbers // comment on line 69
 else 1e10 0.5  / 42 /* comment 
  */ 
 42  1 123_456_789
