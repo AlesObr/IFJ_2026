@@ -11,6 +11,7 @@
 #define IFJ26_LEXER_H
 
 #include "../_utils/error.h"
+#include "../_utils/stack.h"
 #include "../_utils/token.h"
 #include <stdio.h>
 
