@@ -337,7 +337,7 @@ ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col);
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_func_param(const dstring_t *param_name, const dstring_t *param_type, size_t line, size_t col);
+ASTNode *ast_create_func_param(const dstring_t *param_name, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for a function declaration.
@@ -377,7 +377,7 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col);
 /**
  * @brief Addes a type AST node if node is valid (compatible only with some nodes)
  * @param node ASTNode to add type into
- * @param type_name Name of type the extension extends
+ * @param type_name Name of type to be added
  */
 void ast_add_type(ASTNode *node, ValType type_name);
 

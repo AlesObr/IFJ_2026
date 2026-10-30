@@ -436,42 +436,57 @@ ParserStatus parse_param_tail(Token *curr_token) {
 /**
  * @brief Parsing of param member of function declaration
  * @param curr_token Token pointer filled with current token
+ * @param func_node Node of the function param belongs to
  * @return Status structure containing flags for caller
  */
-ParserStatus parse_param_mem(Token *curr_token) {
+ParserStatus parse_param_mem(Token *curr_token, ASTNode *func_node) {
+	ASTNode *param_node;
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier of parameter in function declaration\n"),
 			PAR_FAIL);
 	}
+	ALLOC_NODE(param_node, ast_create_func_param(curr_token->data.str_val, curr_token->line, curr_token->col));
 	GET_TOKEN(curr_token, (Error){0});
 	if (curr_token->type != TOKEN_COLON) {
+		ast_destroy(param_node);
 		return PARSE_ERROR(
 			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 				"Missing colon after identifier of parameter in function declaration\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0});
+	ValType param_type = UNDEF;
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_INT:
+			param_type = INT;
+			break;
 		case TOKEN_KEYWORD_DOUBLE:
+			param_type = DOUBLE;
+			break;
 		case TOKEN_KEYWORD_UNIT:
+			param_type = UNIT;
+			break;
 		case TOKEN_KEYWORD_STRING:
+			param_type = STRING;
+			break;
 		case TOKEN_KEYWORD_BOOLEAN:
-			GET_TOKEN(curr_token, (Error){0});
-			if (curr_token->type == TOKEN_COMMA) {
-				CHECK_STATUS(parse_param_tail(curr_token));
-			}
-			if (curr_token->type == TOKEN_RBRACE) {
-				return PARSE_OK(PAR_SUCC);
-			}
+			param_type = BOOLEAN;
 			break;
 		default:
+			ast_destroy(param_node);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Missing data type in function parameter\n"),
 				PAR_FAIL);
 	}
-	return PARSE_OK(PAR_SUCC);
+	ast_add_type(param_node, param_type);
+	GET_TOKEN(curr_token, (Error){0});
+	if (curr_token->type == TOKEN_COMMA) {
+		CHECK_STATUS(parse_param_tail(curr_token));
+	}
+	if (curr_token->type == TOKEN_RBRACE) {
+		return PARSE_OK(PAR_SUCC, param_node);
+	}
 }
 
 /**
@@ -509,7 +524,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 							   "Missing identifier in function declaration\n"),
 			PAR_FAIL);
 	}
-	AST_Node *new_func;
+	ASTNode *new_func;
 	ALLOC_NODE(new_func, ast_create_func(curr_token->data.str_val, main_flag, curr_token->data.str_val, curr_token->line, curr_token->col));
 	while (true) {
 		GET_TOKEN(curr_token, (Error){0}, new_func);
@@ -528,6 +543,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	}
 	if (curr_token->type == TOKEN_COLON) {
 		GET_TOKEN(curr_token, (Error){0}, new_func);
+		ValType type = UNDEF;
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
 				type = INT;
@@ -672,7 +688,7 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode* ext_node) {
  */
 ParserStatus parse_extension(Token *curr_token) {
 	ParserStatus status = {0};
-	AST_Node *ext_header;
+	ASTNode *ext_header;
 	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type != TOKEN_LPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -718,7 +734,7 @@ ParserStatus parse_extension(Token *curr_token) {
 ParserStatus parse_program(Token *curr_token) {
 	ParserStatus status = {0};
 	GET_TOKEN(curr_token, (Error){0}, NULL);
-	AST_Node *program = NULL;
+	ASTNode *program = NULL;
 	ALLOC_NODE(program, ast_create_block(curr_token->line, curr_token->col));
 	while (curr_token->type != TOKEN_EOF) {
 		switch (curr_token->type) {
