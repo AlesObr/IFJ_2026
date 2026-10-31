@@ -44,6 +44,7 @@ typedef enum {
 	NODE_EXT_DECL,
 	NODE_BLOCK,
 	NODE_IF,
+	NODE_ELSE,
 	NODE_WHILE,
 	NODE_FOR,
 	NODE_RETURN
@@ -116,7 +117,7 @@ struct ASTNode {
 		/** @brief Structure for variable declaration nodes. */
 		struct {
 			dstring_t var_name;	 /**< Dynamic string holding declared variable name. */
-			dstring_t type_name; /**< Dynamic string holding explicit type name. */
+			ValType type_name;    /**< Type of the variable */
 			bool is_const;		 /**< True if declared as const, false for var. */
 			ASTNode *init_expr;	 /**< Initializer expression or NULL. */
 		} var_decl;
@@ -147,11 +148,11 @@ struct ASTNode {
 
 		/** @brief Structure for function declaration */
 		struct {
-			dstring_t func_name; /**< Identifier of declared function */
-			ValType return_type; /**< Type that function should return */
-			bool is_main;		 /**< Flag tracking whether function is the main one */
+			dstring_t func_name; 		 /**< Identifier of declared function */
+			ValType return_type; 		 /**< Type that function should return */
+			bool is_main;		 		 /**< Flag tracking whether function is the main one */
 			ASTNodeList param_windows;	 /**< List of parameter windows */
-			ASTNodeList exprs;	 /**< Expressions inside function body */
+			ASTNode* body;	 			 /**< Expressions inside function body */
 		} func_decl;
 
 		/** @brief Structure for extension declaration */
@@ -168,10 +169,10 @@ struct ASTNode {
 
 		/** @brief Structure for if-else branching nodes. */
 		struct {
-			ASTNode *cond;		  /**< Branching condition expression. */
-			ASTNode *then_branch; /**< Statements executed on condition true. */
-			ASTNode *else_branch; /**< Statements executed on condition false or NULL. */
-		} if_stmt;
+			ASTNode *cond;		  	  /**< Branching condition expression. */
+			ASTNode *body;		  	  /**< Code block indented by if statement */
+			ASTNodeList *next_conds;   /**< Optional else / else if branches */
+		} if_else_stmt;
 
 		/** @brief Structure for while loop nodes. */
 		struct {
@@ -289,6 +290,7 @@ ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col);
  * @brief Appends an argument expression node to a function call ASTNode.
  * @param call_node Function call node created via ast_create_call.
  * @param arg Evaluated argument expression node.
+ * @return True if success, false if problem occurs or wrong parameters passed
  */
 bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg);
 
@@ -304,19 +306,44 @@ ASTNode *ast_create_block(size_t line, size_t col);
  * @brief Appends an executable statement node to a block node.
  * @param block_node Block node created via ast_create_block.
  * @param stmt Executable statement ASTNode to append.
+ * @return True if success, false if problem occurs or wrong parameters passed
  */
 bool ast_block_add_stmt(ASTNode *block_node, ASTNode *stmt);
 
 /**
- * @brief Creates a new AST node for an if-else branching construct.
+ * @brief Creates a new AST node for an if branching construct.
  * @param cond Boolean condition expression node.
- * @param then_b Statements executed when condition holds true.
- * @param else_b Statements executed when condition evaluates false or NULL.
  * @param line Source line index.
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_if(ASTNode *cond, ASTNode *then_b, ASTNode *else_b, size_t line, size_t col);
+ASTNode *ast_create_if(ASTNode *cond, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for an else branching construct.
+ * @param cond Boolean condition expression node.
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_else(ASTNode *cond, size_t line, size_t col);
+
+
+/**
+ * @brief Appends code block to if / else AST node
+ * @param if_else_node If-else statement to node to append code block into
+ * @param code_block Code block to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *code_block);
+
+/**
+ * @brief Appends else branch to if statement AST node
+ * @param if_else_node If-else statement to node to append new branch into
+ * @param next_condition If-else statement to node to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_if_else_append_branch(ASTNode *if_else_node, ASTNode *next_condition);
 
 /**
  * @brief Creates a new AST node for a while iteration loop.
