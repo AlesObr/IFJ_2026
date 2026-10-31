@@ -337,6 +337,14 @@ ASTNode *ast_create_else(ASTNode *cond, size_t line, size_t col);
 bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *code_block);
 
 /**
+ * @brief Appends code block to while AST node
+ * @param while_node While statement to node to append code block into
+ * @param code_block Code block to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_while_add_body(ASTNode *while_node, ASTNode *code_block);
+
+/**
  * @brief Appends else branch to if statement AST node
  * @param if_else_node If-else statement to node to append new branch into
  * @param next_condition If-else statement to node to be appended
@@ -347,12 +355,11 @@ bool ast_if_else_append_branch(ASTNode *if_else_node, ASTNode *next_condition);
 /**
  * @brief Creates a new AST node for a while iteration loop.
  * @param cond Boolean loop condition expression node.
- * @param body Executed statement or block for each iteration.
  * @param line Source line index.
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_while(ASTNode *cond, ASTNode *body, size_t line, size_t col);
+ASTNode *ast_create_while(ASTNode *cond, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for a return statement.

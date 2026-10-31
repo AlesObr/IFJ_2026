@@ -418,6 +418,15 @@ bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *code_block){
 	return true;
 }
 
+bool ast_while_add_body(ASTNode *while_node, ASTNode *code_block){
+	if (while_node == NULL || while_node->type != NODE_WHILE || code_block == NULL || code_block->type != NODE_BLOCK) {
+		ast_destroy(code_block);
+		return false;
+	}
+	while_node->while_stmt.body = code_block;
+	return true;
+}
+
 bool ast_if_else_append_branch(ASTNode *if_else_node, ASTNode *next_condition){
 	if (if_else_node == NULL
 		|| !(if_else_node->type == NODE_IF || if_else_node->type == NODE_ELSE)
@@ -433,7 +442,7 @@ bool ast_if_else_append_branch(ASTNode *if_else_node, ASTNode *next_condition){
 	return true;
 }
 
-ASTNode *ast_create_while(ASTNode *cond, ASTNode *body, size_t line, size_t col) {
+ASTNode *ast_create_while(ASTNode *cond, size_t line, size_t col) {
 	ASTNode *node = ast_alloc(NODE_WHILE, line, col);
 	if (node == NULL) {
 		ast_destroy(cond);
@@ -441,7 +450,7 @@ ASTNode *ast_create_while(ASTNode *cond, ASTNode *body, size_t line, size_t col)
 		return NULL;
 	}
 	node->while_stmt.cond = cond;
-	node->while_stmt.body = body;
+	node->while_stmt.body = NULL;
 	return node;
 }
 

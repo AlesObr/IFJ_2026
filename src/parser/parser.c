@@ -315,22 +315,27 @@ ParserStatus parse_if_statement(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_while_statement(Token *curr_token) {
+	ParserStatus status = {0};
 	ASTNode *new_while;
-	CHECK_STATUS(parse_expression(curr_token, TOKEN_KEYWORD_DO));
-	if (curr_token->type != TOKEN_KEYWORD_THEN) {
+	status = parse_expression(curr_token);
+	CHECK_STATUS(status);
+	if (curr_token->type != TOKEN_KEYWORD_DO){
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing do after while statement condition\n"),
+							   "Expected do after condition, got other token\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	ALLOC_NODE(new_while, ast_create_while(status.new_node, curr_token->line, curr_token->col));
+	GET_TOKEN(curr_token, (Error){0}, new_while);
 	if (curr_token->type != TOKEN_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing EOL after do of while statement\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
-	CHECK_STATUS(parse_code_block(curr_token));
-	return PARSE_OK(PAR_SUCC, NULL);
+	GET_TOKEN(curr_token, (Error){0}, new_while);
+	status = parse_code_block(curr_token);
+	CHECK_STATUS(status);
+	CHECK_AST_APPEND(new_while, ast_while_add_body(new_while, status.new_node), "Failed to append block of while statement\n");
+	return PARSE_OK(PAR_SUCC, new_while);
 }
 
 /**
