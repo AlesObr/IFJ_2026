@@ -265,8 +265,6 @@ ASTNode *ast_create_func_param(const dstring_t *param_name, size_t line, size_t 
 		return NULL;
 	}
 	node->func_param.param_type = UNDEF;
-	node->line = line;
-	node->col = col;
 	return node;
 }
 
@@ -284,9 +282,7 @@ ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, 
 	}
 	node->func_decl.is_main = is_main;
 	node->func_decl.return_type = UNDEF;
-	node->line = line;
-	node->col = col;
-	ast_nodelist_init(&node->func_decl.params);
+	ast_nodelist_init(&node->func_decl.param_windows);
 	ast_nodelist_init(&node->func_decl.exprs);
 	return node;
 }
@@ -296,9 +292,8 @@ ASTNode *ast_create_param_window(size_t line, size_t col){
 	if (!node) {
 		return NULL;
 	}
-	node->line = line;
-	node->col = col;
 	node->param_window.size = 0;
+	ast_nodelist_init(&node->func_decl.params);
 	return Node;
 }
 

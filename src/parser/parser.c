@@ -414,100 +414,76 @@ ParserStatus parse_func_body(Token *curr_token) {
 }
 
 /**
- * @brief Parsing tail of mutliple function parameters
- * @param curr_token Token pointer filled with current token
- * @return Status structure containing flags for caller
- */
-ParserStatus parse_param_tail(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type == TOKEN_EOL) {
-		GET_TOKEN(curr_token, (Error){0});
-		return PARSE_OK(PAR_SUCC);
-	} else if (curr_token->type == TOKEN_IDENTIFIER) {
-		CHECK_STATUS(parse_param_mem(curr_token));
-		return PARSE_OK(PAR_SUCC);
-	} else {
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Unexpected token in function parameter tail\n"),
-			PAR_FAIL);
-	}
-}
-
-/**
- * @brief Parsing of param member of function declaration
- * @param curr_token Token pointer filled with current token
- * @param func_node Node of the function param belongs to
- * @return Status structure containing flags for caller
- */
-ParserStatus parse_param_mem(Token *curr_token, ASTNode *func_node) {
-	ASTNode *param_node;
-	if (curr_token->type != TOKEN_IDENTIFIER) {
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing identifier of parameter in function declaration\n"),
-			PAR_FAIL);
-	}
-	ALLOC_NODE(param_node, ast_create_func_param(curr_token->data.str_val, curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type != TOKEN_COLON) {
-		ast_destroy(param_node);
-		return PARSE_ERROR(
-			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-				"Missing colon after identifier of parameter in function declaration\n"),
-			PAR_FAIL);
-	}
-	GET_TOKEN(curr_token, (Error){0});
-	ValType param_type = UNDEF;
-	switch (curr_token->type) {
-		case TOKEN_KEYWORD_INT:
-			param_type = INT;
-			break;
-		case TOKEN_KEYWORD_DOUBLE:
-			param_type = DOUBLE;
-			break;
-		case TOKEN_KEYWORD_UNIT:
-			param_type = UNIT;
-			break;
-		case TOKEN_KEYWORD_STRING:
-			param_type = STRING;
-			break;
-		case TOKEN_KEYWORD_BOOLEAN:
-			param_type = BOOLEAN;
-			break;
-		default:
-			ast_destroy(param_node);
-			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								   "Missing data type in function parameter\n"),
-				PAR_FAIL);
-	}
-	ast_add_type(param_node, param_type);
-	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type == TOKEN_COMMA) {
-		CHECK_STATUS(parse_param_tail(curr_token));
-	}
-	if (curr_token->type == TOKEN_RBRACE) {
-		return PARSE_OK(PAR_SUCC, param_node);
-	}
-}
-
-/**
  * @brief Parsing of param sections of function declarations
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_param_section(Token *curr_token) {
 	ParserStatus status = {0};
+	ASTNode *param_window;
+	ALLOC_NODE(param_window, ast_create_param_window(curr_token->line, curr_token->col));
 	GET_TOKEN(curr_token, (Error){0});
-	if (curr_token->type == TOKEN_IDENTIFIER) {
-		status = parse_param_mem(curr_token);
-		CHECK_STATUS(status);
-	}
-	if (curr_token->type == TOKEN_RPAREN) {
-		return PARSE_OK(PAR_SUCC, status.new_node);
-	} else {
-		return PARSE_ERROR(
-			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-				"Invalid parameter list in function declaration (missing right brace)\n"),
-			PAR_FAIL);
+	ASTNode *param_node;
+	while (true){
+		if (curr_token->type != TOKEN_IDENTIFIER) {
+			ast_destroy(param_window);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								"Missing identifier of parameter in function declaration\n"),
+				PAR_FAIL);
+		}
+		ALLOC_NODE(param_node, ast_create_func_param(curr_token->data.str_val, curr_token->line, curr_token->col));
+		if (!(ast_window_add_param(param_window, param_node))){
+			ast_destroy(param_window);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   			"Failed to add function parameter into AST\n"),
+					AST_FAIL);
+		}
+		GET_TOKEN(curr_token, (Error){0}, param_window);
+		if (curr_token->type != TOKEN_COLON) {
+			ast_destroy(param_window);
+			return PARSE_ERROR(
+				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+					"Missing colon after identifier of parameter in function declaration\n"),
+				PAR_FAIL);
+		}
+		GET_TOKEN(curr_token, (Error){0}, param_window);
+		ValType param_type = UNDEF;
+		switch (curr_token->type) {
+			case TOKEN_KEYWORD_INT:
+				param_type = INT;
+				break;
+			case TOKEN_KEYWORD_DOUBLE:
+				param_type = DOUBLE;
+				break;
+			case TOKEN_KEYWORD_UNIT:
+				param_type = UNIT;
+				break;
+			case TOKEN_KEYWORD_STRING:
+				param_type = STRING;
+				break;
+			case TOKEN_KEYWORD_BOOLEAN:
+				param_type = BOOLEAN;
+				break;
+			default:
+				ast_destroy(param_window);
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing data type in function parameter\n"),
+					PAR_FAIL);
+		}
+		ast_add_type(param_node, param_type);
+		GET_TOKEN(curr_token, (Error){0}, param_window);
+		if (curr_token->type == TOKEN_COMMA) {
+			param_node = NULL;
+			GET_TOKEN(curr_token, (Error){0}, param_window);
+		} else if (curr_token->type == TOKEN_RPAREN) {
+			return PARSE_OK(PAR_SUCC, param_window);
+		} else {
+			ast_destroy(param_window);
+			return PARSE_ERROR(
+				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+					"Invalid parameter list in function declaration (missing right brace)\n"),
+				PAR_FAIL);
+		}
 	}
 }
 
@@ -531,7 +507,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 		if (curr_token->type == TOKEN_LPAREN) {
 			status = parse_param_section(curr_token);
 			CHECK_STATUS(status);
-			if (!ast_func_add_param(new_func, status.new_node)){
+			if (!ast_func_add_param_window(new_func, status.new_node)){
 				ast_destroy(new_func);
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   			"Failed to add function parameter into AST\n"),
