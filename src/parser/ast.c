@@ -293,7 +293,7 @@ ASTNode *ast_create_param_window(size_t line, size_t col){
 		return NULL;
 	}
 	node->param_window.size = 0;
-	ast_nodelist_init(&node->func_decl.params);
+	ast_nodelist_init(&node->param_window.params);
 	return node;
 }
 
@@ -314,11 +314,11 @@ bool ast_window_add_param(ASTNode *param_window, ASTNode *param){
 		ast_destroy(param);
 		return false;
 	}
-	if (!ast_nodelist_append(&func_node->param_window.params, param)) {
+	if (!ast_nodelist_append(&param_window->param_window.params, param)) {
 		ast_destroy(param);
 		return false;
 	}
-	node->param_window.size += 1;
+	param_window->param_window.size += 1;
 	return true;
 }
 
@@ -348,7 +348,7 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col) {
 	return node;
 }
 
-void ast_add_type(ASTNode *node, ValType *type_name){
+void ast_add_type(ASTNode *node, ValType type_name){
 	if (node != NULL){
 		if (node->type == NODE_EXT_DECL){
 			node->ext_decl.type_name = type_name;
