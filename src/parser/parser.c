@@ -425,7 +425,9 @@ ParserStatus parse_param_section(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0});
 	ASTNode *param_node;
 	while (true){
-		if (curr_token->type != TOKEN_IDENTIFIER) {
+		if (curr_token->type == TOKEN_RPAREN) {
+			return PARSE_OK(PAR_SUCC, param_window);
+		} else if (curr_token->type != TOKEN_IDENTIFIER) {
 			ast_destroy(param_window);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								"Missing identifier of parameter in function declaration\n"),
@@ -473,9 +475,20 @@ ParserStatus parse_param_section(Token *curr_token) {
 		ast_add_type(param_node, param_type);
 		GET_TOKEN(curr_token, (Error){0}, param_window);
 		if (curr_token->type == TOKEN_COMMA) {
-			param_node = NULL;
 			GET_TOKEN(curr_token, (Error){0}, param_window);
-		} else if (curr_token->type == TOKEN_RPAREN) {
+			if (curr_token->type == TOKEN_EOL) {
+				GET_TOKEN(curr_token, (Error){0}, param_window);
+			} else if (curr_token->type == TOKEN_IDENTIFIER){
+				continue;
+			} else {
+				ast_destroy(param_window);
+				return PARSE_ERROR(
+				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+					"Invalid parameter list in function declaration (missing right brace)\n"),
+				PAR_FAIL);
+			}
+		}
+		if (curr_token->type == TOKEN_RPAREN) {
 			return PARSE_OK(PAR_SUCC, param_window);
 		} else {
 			ast_destroy(param_window);
