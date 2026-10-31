@@ -230,12 +230,38 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_else_statement(Token *curr_token) {
+	ParserStatus status = {0};
+	ASTNode *new_else;
 	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type == TOKEN_EOL) {
-		return PARSE_OK(PAR_SUCC, NULL);
+		ALLOC_NODE(new_else, ast_create_else(NULL, curr_token->line, curr_token->col));
+		GET_TOKEN(curr_token, (Error){0}, NULL);
+		status = parse_code_block(curr_token);
+		CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node), "Failed to append function body of else block\n");
+		return PARSE_OK(PAR_SUCC, new_else);
 	} else if (curr_token->type == TOKEN_KEYWORD_IF) {
-		CHECK_STATUS(parse_if_statement(curr_token));
-		return PARSE_OK(PAR_SUCC, NULL);
+		GET_TOKEN(curr_token, (Error){0}, NULL);
+		status = parse_expression(curr_token);
+		CHECK_STATUS(status);
+		ALLOC_NODE(new_else, ast_create_else(status.new_node, curr_token->line, curr_token->col));
+		if (curr_token->type != TOKEN_THEN){
+			ast_destroy(new_else);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Missing then after else statement with condition\n"),
+			PAR_FAIL);
+		}
+		GET_TOKEN(curr_token, (Error){0}, NULL);
+		if (curr_token->type == TOKEN_EOL) {
+			GET_TOKEN(curr_token, (Error){0}, NULL);
+			status = parse_code_block(curr_token);
+			CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node), "Failed to append function body of else block\n");
+			return PARSE_OK(PAR_SUCC, new_else);
+		} else {
+			ast_destroy(new_else);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Unexpected token after else statemenent (expected if or EOL)\n"),
+			PAR_FAIL);
+		}
 	} else {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Unexpected token after else statemenent (expected if or EOL)\n"),
@@ -249,25 +275,38 @@ ParserStatus parse_else_statement(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_if_statement(Token *curr_token) {
-	CHECK_STATUS(parse_expression(curr_token, TOKEN_KEYWORD_THEN));
+	ParserStatus status = {0};
+	ASTNode *new_if;
+	status = parse_expression(curr_token, TOKEN_KEYWORD_THEN);
+	CHECK_STATUS(status);
+	ALLOC_NODE(new_if, ast_create_if(status.new_node, curr_token->line, curr_token->col));
 	if (curr_token->type != TOKEN_KEYWORD_THEN) {
+		ast_destroy(new_if);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing then after if statement condition\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, (Error){0}, new_if);
 	if (curr_token->type != TOKEN_EOL) {
+		ast_destroy(new_if);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing EOL after then of if statement\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
-	CHECK_STATUS(parse_code_block(curr_token));
-	GET_TOKEN(curr_token, (Error){0}, NULL);
-	if (curr_token->type == TOKEN_KEYWORD_ELSE) {
-		CHECK_STATUS(parse_else_statement(curr_token));
-	}
-	return PARSE_OK(PAR_SUCC, NULL);
+	GET_TOKEN(curr_token, (Error){0}, new_if);
+	status = parse_code_block(curr_token);
+	CHECK_STATUS(status);
+	CHECK_AST_APPEND(new_if, ast_if_else_add_body(new_if, status.new_node), "Failed to append function body of if block\n");
+	GET_TOKEN(curr_token, (Error){0}, new_if);
+	while (true)
+		if (curr_token->type == TOKEN_KEYWORD_ELSE) {
+			status = parse_else_statement(curr_token);
+			CHECK_STATUS(status);
+			CHECK_AST_APPEND(new_if, ast_if_else_append_branch(new_if, status.new_node), "Failed to append else block of if block\n");
+		} else {
+			break;
+		}
+	return PARSE_OK(PAR_SUCC, new_if);
 }
 
 /**
@@ -276,6 +315,7 @@ ParserStatus parse_if_statement(Token *curr_token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_while_statement(Token *curr_token) {
+	ASTNode *new_while;
 	CHECK_STATUS(parse_expression(curr_token, TOKEN_KEYWORD_DO));
 	if (curr_token->type != TOKEN_KEYWORD_THEN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -390,24 +430,25 @@ ParserStatus parse_for_statement(Token* curr_token){
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_statement(Token *curr_token) {
+	ParserStatus status = {0};
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_VAL:
-			CHECK_STATUS(parse_declaration(curr_token, false));
+			status = parse_declaration(curr_token, false);
 			break;
 		case TOKEN_KEYWORD_VAR:
-			CHECK_STATUS(parse_declaration(curr_token, true));
+			status = parse_declaration(curr_token, true);
 			break;
 		case TOKEN_KEYWORD_IF:
-			CHECK_STATUS(parse_if_statement(curr_token));
+			status = parse_if_statement(curr_token);
 			break;
 		case TOKEN_KEYWORD_WHILE:
-			CHECK_STATUS(parse_while_statement(curr_token));
+			statis = parse_while_statement(curr_token);
 			break;
 		case TOKEN_KEYWORD_FOR:
-			CHECK_STATUS(parse_for_statement(curr_token));
+			status = parse_for_statement(curr_token);
 			break;
 		case TOKEN_KEYWORD_RETURN:
-			// add check for next variable
+			ASTNode *ret_node; // crate return node
 			break;
 		case TOKEN_IDENTIFIER:
 			// add parsing of expression
@@ -417,7 +458,8 @@ ParserStatus parse_statement(Token *curr_token) {
 								   "Invalid token at the start of statement\n"),
 				PAR_FAIL);
 	}
-	return PARSE_OK(PAR_SUCC, NULL);
+	CHECK_STATUS(status);
+	return PARSE_OK(PAR_SUCC, status.new_node);
 }
 
 /**
