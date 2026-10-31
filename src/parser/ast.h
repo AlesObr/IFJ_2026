@@ -172,7 +172,7 @@ struct ASTNode {
 		struct {
 			ASTNode *cond;		  	  /**< Branching condition expression. */
 			ASTNode *body;		  	  /**< Code block indented by if statement */
-			ASTNodeList *next_conds;   /**< Optional else / else if branches */
+			ASTNodeList next_conds;   /**< Optional else / else if branches */
 		} if_else_stmt;
 
 		/** @brief Structure for while loop nodes. */
@@ -258,15 +258,13 @@ ASTNode *ast_create_unop(OpType op, ASTNode *expr, size_t line, size_t col);
 /**
  * @brief Creates a new AST node for a variable or constant declaration.
  * @param name Variable identifier name (content is cloned).
- * @param type_name Explicit type identifier name or NULL (content is cloned).
  * @param is_const Flag specifying whether the symbol is immutable.
  * @param init_expr Initializer expression node or NULL.
  * @param line Source line index.
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_var_decl(const dstring_t *name, const dstring_t *type_name, bool is_const,
-	ASTNode *init_expr, size_t line, size_t col);
+ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, ASTNode *init_expr, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for an assignment operation.
@@ -409,12 +407,12 @@ bool ast_func_add_param_window(ASTNode *func_node, ASTNode *param_window);
 bool ast_window_add_param(ASTNode *param_window, ASTNode *param);
 
 /**
- * @brief Appends an expression to end of function body AST_NODE
+ * @brief Adds function body into function AST node
  * @param func_node Function node created via ast_create_func_decl
- * @param expr Expression AST Node to be appended
+ * @param code_block Code_block AST Node to be assigned to function
  * @return True if success, false if problem occurs or wrong parameters passed
  */
-bool ast_func_add_expr(ASTNode *func_node, ASTNode *expr);
+bool ast_func_add_block(ASTNode *func_node, ASTNode *code_block);
 
 /**
  * @brief Creates a new AST node for a extension declaration.

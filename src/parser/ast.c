@@ -169,35 +169,28 @@ ASTNode *ast_create_unop(OpType op, ASTNode *expr, size_t line, size_t col) {
 	return node;
 }
 
-ASTNode *ast_create_var_decl(const dstring_t *name, const dstring_t *type_name, bool is_const,
+ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const,
 	ASTNode *init_expr, size_t line, size_t col) {
 	ASTNode *node = NULL;
 
-	if (name == NULL || type_name == NULL) {
-		goto fail;
+	if (name == NULL) {
+		ast_destroy(init_expr);
+		return NULL;
 	}
 	node = ast_alloc(NODE_VAR_DECL, line, col);
 	if (node == NULL) {
-		goto fail;
+		ast_destroy(init_expr);
+		return NULL;
 	}
 	if (!ast_dstring_clone(&node->var_decl.var_name, name)) {
-		goto fail_node;
+		free(node);
+		ast_destroy(init_expr);
+		return NULL;
 	}
-	if (!ast_dstring_clone(&node->var_decl.type_name, type_name)) {
-		goto fail_var_name;
-	}
-
+	node->var_decl.type_name = UNDEF;
 	node->var_decl.is_const = is_const;
 	node->var_decl.init_expr = init_expr;
 	return node;
-
-fail_var_name:
-	dstring_free(&node->var_decl.var_name);
-fail_node:
-	free(node);
-fail:
-	ast_destroy(init_expr);
-	return NULL;
 }
 
 ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t line, size_t col) {
@@ -322,15 +315,12 @@ bool ast_window_add_param(ASTNode *param_window, ASTNode *param){
 	return true;
 }
 
-bool ast_func_add_expr(ASTNode *func_node, ASTNode *expr){
-	if (func_node == NULL || func_node->type != NODE_FUNC_DECL || expr == NULL) {
-		ast_destroy(expr);
+bool ast_func_add_block(ASTNode *func_node, ASTNode *code_block){
+	if (func_node == NULL || func_node->type != NODE_FUNC_DECL || code_block == NULL || code_block->type != NODE_BLOCK) {
+		ast_destroy(code_block);
 		return false;
 	}
-	if (!ast_nodelist_append(&func_node->func_decl.exprs, expr)) {
-		ast_destroy(expr);
-		return false;
-	}
+	func_node->func_decl.body = code_block;
 	return true;
 }
 
@@ -356,6 +346,8 @@ void ast_add_type(ASTNode *node, ValType type_name){
 			node->func_param.param_type = type_name;
 		} else if (node->type == NODE_FUNC_DECL){
 			node->func_decl.return_type = type_name;
+		} else if (node->type == NODE_VAR_DECL){
+			node->var_decl.type_name = type_name;
 		}
 	}
 }

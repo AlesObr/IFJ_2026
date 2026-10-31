@@ -162,36 +162,25 @@ ParserStatus parse_at_main(Token *curr_token) {
 /**
  * @brief Parsing of code blocks
  * @param curr_token Token pointer filled with current token
- * @param block_header ASTNode construct to which whole block belongs
  * @return Status structure containing flags for caller
  */
-ParserStatus parse_code_block(Token* curr_token, ASTNode *block_header){
+ParserStatus parse_code_block(Token* curr_token){
 	ParserStatus status = {0};
 	if (curr_token->type != TOKEN_INDENT){
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Expected start of indented block, got something else\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	ASTNode *new_block;
+	ALLOC_NODE(new_block, ast_create_block(curr_token->line, curr_token->col));
+	GET_TOKEN(curr_token, (Error){0}, new_block);
 	while (curr_token->type != TOKEN_OUTDENT){
 		status = parse_statement(curr_token);
 		CHECK_STATUS(status);
-		switch(block_header->type){
-			case NODE_IF:
-			case NODE_ELSE:
-			case NODE_WHILE:
-			case NODE_FOR:
-			case NODE_FUNC_DECL:
-
-			default:
-				ast_destroy(block_header);
-				return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
-							   "Unexpected block header token in parsing code block\n"),
-					AST_FAIL);
-		}
-		GET_TOKEN(curr_token, (Error){0}, block_header);
+		CHECK_AST_APPEND(new_block, ast_block_add_stmt(new_block, status.new_node), "Failed to append statement into block in multi line function body\n");
+		GET_TOKEN(curr_token, (Error){0}, new_block);
 	}
-	return PARSE_OK(PAR_SUCC, NULL);
+	return PARSE_OK(PAR_SUCC, new_block);
 }
 
 /**
@@ -439,7 +428,7 @@ ParserStatus parse_statement(Token *curr_token) {
 ParserStatus parse_func_body(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *new_block;
-	GET_TOKEN(curr_token, (Error){0}, new_block);
+	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type != TOKEN_EOL){
 		ALLOC_NODE(new_block, ast_create_block(curr_token->line, curr_token->col));
 		status = parse_statement(curr_token);
