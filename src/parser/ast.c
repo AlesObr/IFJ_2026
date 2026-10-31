@@ -253,7 +253,7 @@ bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
 
 ASTNode *ast_create_func_param(const dstring_t *param_name, size_t line, size_t col){
 	ASTNode *node = NULL;
-	if (!func_param || !param_type) {
+	if (!param_name) {
 		return NULL;
 	}
 	node = ast_alloc(NODE_FUNC_PARAM, line, col);
@@ -294,7 +294,7 @@ ASTNode *ast_create_param_window(size_t line, size_t col){
 	}
 	node->param_window.size = 0;
 	ast_nodelist_init(&node->func_decl.params);
-	return Node;
+	return node;
 }
 
 bool ast_func_add_param_window(ASTNode *func_node, ASTNode *param_window){
@@ -646,7 +646,7 @@ void ast_destroy(ASTNode *node) {
 
 		case NODE_FUNC_DECL:
 			dstring_free(&node->func_decl.func_name);
-			ast_nodelist_destroy(&node->func_decl.params);
+			ast_nodelist_destroy(&node->func_decl.param_windows);
 			ast_nodelist_destroy(&node->func_decl.exprs);
 			break;
 
