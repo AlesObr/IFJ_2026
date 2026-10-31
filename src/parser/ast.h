@@ -259,12 +259,19 @@ ASTNode *ast_create_unop(OpType op, ASTNode *expr, size_t line, size_t col);
  * @brief Creates a new AST node for a variable or constant declaration.
  * @param name Variable identifier name (content is cloned).
  * @param is_const Flag specifying whether the symbol is immutable.
- * @param init_expr Initializer expression node or NULL.
  * @param line Source line index.
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, ASTNode *init_expr, size_t line, size_t col);
+ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, size_t col);
+
+/**
+ * @brief Appends initiallizer epxression to variable declaration AST node
+ * @param var_decl_node Var declaration node to append initializer expression into
+ * @param init_expr Initializer expression to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool *ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr);
 
 /**
  * @brief Creates a new AST node for an assignment operation.

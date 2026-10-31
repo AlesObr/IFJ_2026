@@ -190,38 +190,54 @@ ParserStatus parse_code_block(Token* curr_token){
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_declaration(Token *curr_token, bool mutability) {
-	(void)mutability; // remove later
+	ASTNode *new_decl;
 	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier name after function declaration\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	ALLOC_NODE(new_decl, ast_create_var_decl(curr_token->data.strl_val, mutability,curr_token->line, curr_token->col));
+	GET_TOKEN(curr_token, (Error){0}, new_decl);
 	if (curr_token->type == TOKEN_COLON) {
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, (Error){0}, new_decl);
+		ValType type;
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
+				type = INT;
+				break;
 			case TOKEN_KEYWORD_DOUBLE:
+				type = DOUBLE;
+				break;
 			case TOKEN_KEYWORD_UNIT:
+				type = UNIT;
+				break;
 			case TOKEN_KEYWORD_STRING:
+				type = STRING;
+				break;
 			case TOKEN_KEYWORD_BOOLEAN:
+				type = BOOLEAN;
 				break;
 			default:
+				ast_destroy(new_decl);
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									   "Missing data type in function parameter\n"),
 					PAR_FAIL);
 		}
+		ast_add_type(new_decl, type);
 	}
 	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type == TOKEN_EQ) {
-		CHECK_STATUS(parse_expression(curr_token, TOKEN_EOL));
+		ParserStatus status = parse_expression(curr_token);
+		CHECK_STATUS(status);
+		CHECK_AST_APPEND(new_decl, ast_var_decl_add_init(new_decl, status.new_node));
 	} else {
+		ast_destroy(new_decl);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing assignment after variable declaration\n"),
 			PAR_FAIL);
 	}
-	return PARSE_OK(PAR_SUCC, NULL);
+	return PARSE_OK(PAR_SUCC, new_decl);
 }
 
 /**

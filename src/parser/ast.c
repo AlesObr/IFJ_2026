@@ -169,28 +169,33 @@ ASTNode *ast_create_unop(OpType op, ASTNode *expr, size_t line, size_t col) {
 	return node;
 }
 
-ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const,
-	ASTNode *init_expr, size_t line, size_t col) {
+ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, size_t col) {
 	ASTNode *node = NULL;
-
 	if (name == NULL) {
-		ast_destroy(init_expr);
 		return NULL;
 	}
 	node = ast_alloc(NODE_VAR_DECL, line, col);
 	if (node == NULL) {
-		ast_destroy(init_expr);
+		ast_destroy(name);
 		return NULL;
 	}
 	if (!ast_dstring_clone(&node->var_decl.var_name, name)) {
 		free(node);
-		ast_destroy(init_expr);
 		return NULL;
 	}
 	node->var_decl.type_name = UNDEF;
 	node->var_decl.is_const = is_const;
-	node->var_decl.init_expr = init_expr;
+	node->var_decl.init_expr = NULL;
 	return node;
+}
+
+bool *ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr){
+	if (var_decl_node == NULL || var_decl_node->type != NODE_FUNC_DECL || init_expr == NULL) {
+		ast_destroy(init_expr);
+		return false;
+	}
+	var_decl_node->var_decl.init_expr = init_expr;
+	return true;
 }
 
 ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t line, size_t col) {
