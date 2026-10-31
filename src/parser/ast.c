@@ -469,6 +469,74 @@ ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col) {
 	return node;
 }
 
+ASTNode *ast_create_for(const dstring_t *gen_id, size_t line, size_t col) {
+	ASTNode *node = ast_alloc(NODE_FOR, line, col);
+	if (node == NULL) {
+		dstring_free(gen_id);
+		return NULL;
+	}
+	if (!ast_dstring_clone(&node->for_stmt.gen_id, gen_id)) {
+		free(node);
+		return NULL;
+	}
+	node->for_stmt.gen_start = NULL;
+	node->for_stmt.gen_end = NULL;
+	node->for_stmt.gen_step = NULL;
+	node->for_stmt.body = NULL;
+	node->for_stmt.last_in = false;
+	ast_nodelist_init(&node->for_stmt.guards);
+	return node;
+}
+
+bool *ast_for_add_start(ASTNode *for_node, ASTNode* expr) {
+	if (for_node == NULL || for_node->type != NODE_FOR || expr == NULL) {
+		ast_destroy(expr);
+		return false;
+	}
+	node->for_stmt.gen_start = expr;
+	return true;
+}
+
+bool *ast_for_add_start(ASTNode *for_node, ASTNode* expr, bool last_in) {
+	if (for_node == NULL || for_node->type != NODE_FOR || expr == NULL) {
+		ast_destroy(expr);
+		return false;
+	}
+	node->for_stmt.gen_end = expr;
+	node->for_stmt.last_in = last_in;
+	return true;
+}
+
+bool *ast_for_add_step(ASTNode *for_node, ASTNode* expr) {
+	if (for_node == NULL || for_node->type != NODE_FOR || expr == NULL) {
+		ast_destroy(expr);
+		return false;
+	}
+	node->for_stmt.gen_step = expr;
+	return true;
+}
+
+bool *ast_for_add_body(ASTNode *for_node, ASTNode* code_block) {
+	if (for_node == NULL || for_node->type != NODE_FOR || expr == NULL || code_block->type != NODE_BLOCK) {
+		ast_destroy(code_block);
+		return false;
+	}
+	node->for_stmt.body = code_block;
+	return true;
+}
+
+bool *ast_for_append_guard(ASTNode *for_node, ASTNode* guard){
+	if (for_node == NULL || for_node->type != NODE_FOR || guard == NULL) {
+		ast_destroy(guard);
+		return false;
+	}
+	if (!ast_nodelist_append(&for_node->for_stmt.guards, guard)) {
+		ast_destroy(guard);
+		return false;
+	}
+	return true;
+}
+
 /* --- Serialization to S-expression --- */
 /*
  * These functions were implemented primarily for debugging and testing purposes --
@@ -692,6 +760,15 @@ void ast_destroy(ASTNode *node) {
 		case NODE_EXT_DECL:
 			dstring_free(&node->ext_decl.param_name);
 			ast_nodelist_destroy(&node->ext_decl.funcs);
+			break;
+
+		case NODE_FOR:
+			dstring_free(&node->for_stmt.gen_id);
+			ast_destroy(node->for_stmt.gen_start);
+			ast_destroy(node->for_stmt.gen_end);
+			ast_destroy(node->for_stmt.gen_step);
+			ast_destroy(node->for_stmt.body);
+			ast_nodelist_destroy(node->for_stmt.guards);
 			break;
 
 		case NODE_IF:

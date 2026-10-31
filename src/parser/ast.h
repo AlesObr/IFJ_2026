@@ -181,6 +181,17 @@ struct ASTNode {
 			ASTNode *body; /**< Loop body statement or block. */
 		} while_stmt;
 
+		/** @brief Structure of for loop nodes. */
+		struct {
+			dstring_t gen_id; /**< Id of generator */
+			ASTNode *gen_start;		/**< Expression serving as start of generator */
+			ASTNode *gen_end;		/**< Expression serving as end of generator */
+			ASTNode *gen_step;		/**< Expression serving as step of generator */
+			bool last_in;			/**< Flag symbolizing whether gen_end is included in interval */
+			ASTNodeList guards;		/**< Guards of the for loop */
+			ASTNode *body;			/**< Body of for loop */
+		} for_stmt;
+
 		/** @brief Structure for return statement nodes. */
 		struct {
 			ASTNode *expr; /**< Returned expression or NULL for empty return. */
@@ -189,6 +200,56 @@ struct ASTNode {
 };
 
 /*===================================================*/
+
+/**
+ * @brief Creates a new AST node for for loop statement
+ * @param gen_id Name of the for loop generator
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_for(const dstring_t *gen_id, size_t line, size_t col);
+
+/**
+ * @brief Function for appending generator start expression to for loop AST node
+ * @param for_node Node of for loop to be appended into
+ * @param expr Expression to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+*/
+bool *ast_for_add_start(ASTNode *for_node, ASTNode* expr);
+
+/**
+ * @brief Function for appending generator end expression and setting flag last_in to for loop AST node
+ * @param for_node Node of for loop to be appended into
+ * @param expr Expression to be appended
+ * @param last_in Flag checking whether the last number is also included in interval
+ * @return True if success, false if problem occurs or wrong parameters passed
+*/
+bool *ast_for_add_end(ASTNode *for_node, ASTNode* expr, bool last_in);
+
+/**
+ * @brief Function for appending generator step expression to for loop AST node
+ * @param for_node Node of for loop to be appended into
+ * @param expr Expression to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+*/
+bool *ast_for_add_step(ASTNode *for_node, ASTNode* expr);
+
+/**
+ * @brief Function for appending code block to for loop AST node
+ * @param for_node Node of for loop to be appended into
+ * @param code_block Code block to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+*/
+bool *ast_for_add_body(ASTNode *for_node, ASTNode* code_block);
+
+/**
+ * @brief Function for appending guards to for loop AST node
+ * @param for_node Node of for loop to be appended into
+ * @param guard For loop guard to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+*/
+bool *ast_for_append_guard(ASTNode *for_node, ASTNode* guard);
 
 /**
  * @brief Creates a new AST node for an integer literal.
