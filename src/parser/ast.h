@@ -81,6 +81,7 @@ typedef enum {
 	UNIT,
 	STRING,
 	BOOLEAN,
+	ANY,
 } ValType;
 
 typedef struct ASTNode ASTNode;
