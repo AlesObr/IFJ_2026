@@ -21,15 +21,15 @@
  * @brief Levels of precedence
  */
 enum {
-	UNARY,
-	MULTI,
-	ADDITIVE,
-	RELATIONAL,
-	EQUALITY,
-	AND,
+	NONE = 0,
 	OR,
-	NONE
-} PrecedenceLevel;
+	AND,
+	EQUALITY,
+	RELATIONAL,
+	ADDITIVE,
+	MULTI,
+	UNARY
+} PrecLevel;
 
 /**
  * @brief Function for parsing of expressions and conditions

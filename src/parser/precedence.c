@@ -19,7 +19,7 @@
  * @param curr_token Actual token pointer to be translated
  * @return Precedence level of token, NONE if precedence undefined
 */
-static PrecedenceLevel translate_token(Token *curr_token){
+static PrecLevel translate_token(Token *curr_token){
 	switch(curr_token->type){
 		case TOKEN_NOT:
 			return UNARY;
@@ -44,4 +44,39 @@ static PrecedenceLevel translate_token(Token *curr_token){
 		default:
 			return NONE;
 	}
+}
+
+ParserStatus parse_prefix(Token *curr_token){
+	ASTNode *node;
+	OpType op;
+	switch(curr_token->type){
+		case TOKEN_MINUS:
+		case TOKEN_NOT:
+			op = (curr_token->type == TOKEN_MINUS) ? OP_UNARY_MINUS : OP_UNARY_NOP;
+			GET_TOKEN(curr_token, (Error){0}, NULL);
+			status = parse_prefix(curr_token);
+			CHECK_STATUS(status);
+			ALLOC_NODE(node, ast_create_unop(op, status.new_node, curr_token->line, curr_token->col));
+			return PARSE_OK(PAR_SUCC, node);
+		default:
+			break;
+	}
+}
+
+ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec){
+	ParserStatus status = {0};
+	CHECK_STATUS(status);
+	parse_prefix(curr_token);
+	while (true){
+		PrecLevel prec = translate_token(curr_token);
+		if (prec < min_prec){
+			break;
+		}
+	}
+}
+
+ParserStatus parse_expression(Token *curr_token){
+	ParserStatus status = parse_climb(curr_token, 0);
+	CHECK_STATUS(status);
+	return PARSE_OK(PAR_SUCC, status.new_node);
 }
