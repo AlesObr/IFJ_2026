@@ -47,6 +47,7 @@ static PrecLevel translate_token(Token *curr_token){
 }
 
 ParserStatus parse_prefix(Token *curr_token){
+	ParserStatus status = {0};
 	ASTNode *node;
 	OpType op;
 	switch(curr_token->type){
@@ -58,9 +59,39 @@ ParserStatus parse_prefix(Token *curr_token){
 			CHECK_STATUS(status);
 			ALLOC_NODE(node, ast_create_unop(op, status.new_node, curr_token->line, curr_token->col));
 			return PARSE_OK(PAR_SUCC, node);
+			break;
+		case TOKEN_LIT_INT:
+			ALLOC_NODE(node, ast_create_int(curr_token->data.int_val, curr_token->line, curr_token->col));
+			break;
+		case TOKEN_LIT_FLOAT:
+			ALLOC_NODE(node, ast_create_float(curr_token->data.float_val, curr_token->line, curr_token->col));
+			break;
+		case TOKEN_LIT_STRING:
+			ALLOC_NODE(node, ast_create_string(curr_token->data.str_val, curr_token->line, curr_token->col));
+			break;
+		case TOKEN_IDENTIFIER:
+			ALLOC_NODE(node, ast_create_ident(curr_token->data.str_val, curr_token->line, curr_token->col));
+			break;
+		case TOKEN_LPAREN:
+			GET_TOKEN(curr_token, (Error){0}, NULL);
+			status = parse_climb(curr_token, 0);
+			CHECK_STATUS(status);
+			if (curr_token->type != TOKEN_RPAREN){
+				ast_destroy(status.new_node);
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Invalid token in expression prefix parsing (expected TOKEN_RBRACE)\n"),
+					PAR_FAIL);
+			}
+			node = status.new_node;
+			break;
 		default:
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Invalid token in expression prefix parsing\n"),
+					PAR_FAIL);
 			break;
 	}
+	GET_TOKEN(curr_token, (Error){0}, node);
+	return PARSE_OK(PAR_SUCC, node);
 }
 
 ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec){
