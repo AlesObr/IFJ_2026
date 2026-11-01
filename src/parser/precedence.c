@@ -46,6 +46,11 @@ static PrecLevel translate_token(Token *curr_token){
 	}
 }
 
+/**
+ * @brief Parsing of right asociativity operators and function calls
+ * @param curr_token Current token given by scanner
+ * @return ParserStatus structure containing flags for parser
+ */
 ParserStatus parse_prefix(Token *curr_token){
 	ParserStatus status = {0};
 	ASTNode *node;
@@ -91,19 +96,61 @@ ParserStatus parse_prefix(Token *curr_token){
 			break;
 	}
 	GET_TOKEN(curr_token, (Error){0}, node);
+	while (curr_token->type == TOKEN_DOT || curr_token->type == TOKEN_LPAREN) {
+		if (curr->token_type == TOKEN_DOT){
+			GET_TOKEN(curr_token, (Error){0}, node);
+			if (curr_token->type != TOKEN_IDENTIFIER){
+				ast_destroy(node);
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Expected identifier after . function call, got something else\n"),
+					PAR_FAIL);
+			}
+			ALLOC_NODE(node, ast_create_call(curr_toke->data.str_val, curr_token->line, curr_token->col));
+			GET_TOKEN(curr_token, (Error){0}, NULL);
+			status = parse_call_pameters(curr_token);
+			CHECK_STATUS(status);
+			node = status.new_node;
+		} else {
+			status = parse_call_expression(curr_token);
+			CHECK_STATUS(status);
+			node = status.new_node;
+		}
+	}
 	return PARSE_OK(PAR_SUCC, node);
 }
 
+/**
+ * @brief Parsing of operators
+ * @param curr_token Current token given by scanner
+ * @param min_prec Minimal precedence expected to be parsed
+ * @return ParserStatus structure containing flags for parser
+ */
 ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec){
-	ParserStatus status = {0};
+	ParserStatus status = parse_prefix(curr_token);
 	CHECK_STATUS(status);
-	parse_prefix(curr_token);
+	ASTNode* node = status.new_node;
 	while (true){
 		PrecLevel prec = translate_token(curr_token);
 		if (prec < min_prec){
 			break;
 		}
+		GET_TOKEN(curr_token, (Error){0}, node);
+		status = parse_climb(curr_token, min_prec + 1);
+		CHECK_STATUS(status);
+		ASTNode *bin_op;
+		ALLOC_NODE(bin_op, ast_create_binop(bin_op, node, status.new_node, curr_token->line, curr_token->col));
+		if (op == RELATIONAL || op == EQUALITY){
+			GET_TOKEN(curr_token, (Error){0}, node);
+			if ((translate_token(curr_token)) != NONE){
+				ast_destroy(bin_op);
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Expression parsing error, two relational operators back to back\n"),
+					PAR_FAIL);
+			}
+		}
+		node = bin_op;
 	}
+	return PARSE_OK(PAR_SUCC, node);
 }
 
 ParserStatus parse_expression(Token *curr_token){
