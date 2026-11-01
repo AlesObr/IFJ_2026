@@ -176,7 +176,6 @@ ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, 
 	}
 	node = ast_alloc(NODE_VAR_DECL, line, col);
 	if (node == NULL) {
-		ast_destroy(name);
 		return NULL;
 	}
 	if (!ast_dstring_clone(&node->var_decl.var_name, name)) {
@@ -189,7 +188,7 @@ ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, 
 	return node;
 }
 
-bool *ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr){
+bool ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr){
 	if (var_decl_node == NULL || var_decl_node->type != NODE_FUNC_DECL || init_expr == NULL) {
 		ast_destroy(init_expr);
 		return false;
@@ -451,7 +450,6 @@ ASTNode *ast_create_while(ASTNode *cond, size_t line, size_t col) {
 	ASTNode *node = ast_alloc(NODE_WHILE, line, col);
 	if (node == NULL) {
 		ast_destroy(cond);
-		ast_destroy(body);
 		return NULL;
 	}
 	node->while_stmt.cond = cond;
@@ -472,7 +470,6 @@ ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col) {
 ASTNode *ast_create_for(const dstring_t *gen_id, size_t line, size_t col) {
 	ASTNode *node = ast_alloc(NODE_FOR, line, col);
 	if (node == NULL) {
-		dstring_free(gen_id);
 		return NULL;
 	}
 	if (!ast_dstring_clone(&node->for_stmt.gen_id, gen_id)) {
@@ -488,44 +485,44 @@ ASTNode *ast_create_for(const dstring_t *gen_id, size_t line, size_t col) {
 	return node;
 }
 
-bool *ast_for_add_start(ASTNode *for_node, ASTNode* expr) {
+bool ast_for_add_start(ASTNode *for_node, ASTNode* expr) {
 	if (for_node == NULL || for_node->type != NODE_FOR || expr == NULL) {
 		ast_destroy(expr);
 		return false;
 	}
-	node->for_stmt.gen_start = expr;
+	for_node->for_stmt.gen_start = expr;
 	return true;
 }
 
-bool *ast_for_add_start(ASTNode *for_node, ASTNode* expr, bool last_in) {
+bool ast_for_add_end(ASTNode *for_node, ASTNode* expr, bool last_in) {
 	if (for_node == NULL || for_node->type != NODE_FOR || expr == NULL) {
 		ast_destroy(expr);
 		return false;
 	}
-	node->for_stmt.gen_end = expr;
-	node->for_stmt.last_in = last_in;
+	for_node->for_stmt.gen_end = expr;
+	for_node->for_stmt.last_in = last_in;
 	return true;
 }
 
-bool *ast_for_add_step(ASTNode *for_node, ASTNode* expr) {
+bool ast_for_add_step(ASTNode *for_node, ASTNode* expr) {
 	if (for_node == NULL || for_node->type != NODE_FOR || expr == NULL) {
 		ast_destroy(expr);
 		return false;
 	}
-	node->for_stmt.gen_step = expr;
+	for_node->for_stmt.gen_step = expr;
 	return true;
 }
 
-bool *ast_for_add_body(ASTNode *for_node, ASTNode* code_block) {
-	if (for_node == NULL || for_node->type != NODE_FOR || expr == NULL || code_block->type != NODE_BLOCK) {
+bool ast_for_add_body(ASTNode *for_node, ASTNode* code_block) {
+	if (for_node == NULL || for_node->type != NODE_FOR || code_block == NULL || code_block->type != NODE_BLOCK) {
 		ast_destroy(code_block);
 		return false;
 	}
-	node->for_stmt.body = code_block;
+	for_node->for_stmt.body = code_block;
 	return true;
 }
 
-bool *ast_for_append_guard(ASTNode *for_node, ASTNode* guard){
+bool ast_for_append_guard(ASTNode *for_node, ASTNode* guard){
 	if (for_node == NULL || for_node->type != NODE_FOR || guard == NULL) {
 		ast_destroy(guard);
 		return false;
@@ -753,7 +750,7 @@ void ast_destroy(ASTNode *node) {
 
 		case NODE_FUNC_DECL:
 			dstring_free(&node->func_decl.func_name);
-			ast_destroy(&node->func_decl.body);
+			ast_destroy(node->func_decl.body);
 			ast_nodelist_destroy(&node->func_decl.param_windows);
 			break;
 
@@ -768,14 +765,14 @@ void ast_destroy(ASTNode *node) {
 			ast_destroy(node->for_stmt.gen_end);
 			ast_destroy(node->for_stmt.gen_step);
 			ast_destroy(node->for_stmt.body);
-			ast_nodelist_destroy(node->for_stmt.guards);
+			ast_nodelist_destroy(&node->for_stmt.guards);
 			break;
 
 		case NODE_IF:
 		case NODE_ELSE:
 			ast_destroy(node->if_else_stmt.cond);
 			ast_destroy(node->if_else_stmt.body);
-			ast_nodelist_destroy(node->if_else_stmt.next_conds);
+			ast_nodelist_destroy(&node->if_else_stmt.next_conds);
 			break;
 
 		case NODE_WHILE:

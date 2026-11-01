@@ -216,7 +216,7 @@ ASTNode *ast_create_for(const dstring_t *gen_id, size_t line, size_t col);
  * @param expr Expression to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
 */
-bool *ast_for_add_start(ASTNode *for_node, ASTNode* expr);
+bool ast_for_add_start(ASTNode *for_node, ASTNode* expr);
 
 /**
  * @brief Function for appending generator end expression and setting flag last_in to for loop AST node
@@ -225,7 +225,7 @@ bool *ast_for_add_start(ASTNode *for_node, ASTNode* expr);
  * @param last_in Flag checking whether the last number is also included in interval
  * @return True if success, false if problem occurs or wrong parameters passed
 */
-bool *ast_for_add_end(ASTNode *for_node, ASTNode* expr, bool last_in);
+bool ast_for_add_end(ASTNode *for_node, ASTNode* expr, bool last_in);
 
 /**
  * @brief Function for appending generator step expression to for loop AST node
@@ -233,7 +233,7 @@ bool *ast_for_add_end(ASTNode *for_node, ASTNode* expr, bool last_in);
  * @param expr Expression to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
 */
-bool *ast_for_add_step(ASTNode *for_node, ASTNode* expr);
+bool ast_for_add_step(ASTNode *for_node, ASTNode* expr);
 
 /**
  * @brief Function for appending code block to for loop AST node
@@ -241,7 +241,7 @@ bool *ast_for_add_step(ASTNode *for_node, ASTNode* expr);
  * @param code_block Code block to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
 */
-bool *ast_for_add_body(ASTNode *for_node, ASTNode* code_block);
+bool ast_for_add_body(ASTNode *for_node, ASTNode* code_block);
 
 /**
  * @brief Function for appending guards to for loop AST node
@@ -249,7 +249,7 @@ bool *ast_for_add_body(ASTNode *for_node, ASTNode* code_block);
  * @param guard For loop guard to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
 */
-bool *ast_for_append_guard(ASTNode *for_node, ASTNode* guard);
+bool ast_for_append_guard(ASTNode *for_node, ASTNode* guard);
 
 /**
  * @brief Creates a new AST node for an integer literal.
@@ -332,7 +332,7 @@ ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, 
  * @param init_expr Initializer expression to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
  */
-bool *ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr);
+bool ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr);
 
 /**
  * @brief Creates a new AST node for an assignment operation.

@@ -9,6 +9,7 @@
 
 #include "parser.h"
 #include "ast.h"
+#include "precedence.h"
 #include "../_utils/dstring.h"
 #include "../_utils/error.h"
 #include "../_utils/token.h"
@@ -20,7 +21,6 @@
 // Declarations of functions with cyclic dependency
 ParserStatus parse_param_mem(Token *curr_token);
 ParserStatus parse_func_def(Token *curr_token, bool main_flag);
-ParserStatus parse_expression(Token *curr_token, TokenType type);
 ParserStatus parse_if_statement(Token* curr_token);
 ParserStatus parse_statement(Token* curr_token);
 ParserStatus parse_code_block(Token* curr_token);
@@ -197,7 +197,7 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 							   "Missing identifier name after function declaration\n"),
 			PAR_FAIL);
 	}
-	ALLOC_NODE(new_decl, ast_create_var_decl(curr_token->data.strl_val, mutability,curr_token->line, curr_token->col));
+	ALLOC_NODE(new_decl, ast_create_var_decl(curr_token->data.str_val, mutability,curr_token->line, curr_token->col));
 	GET_TOKEN(curr_token, (Error){0}, new_decl);
 	if (curr_token->type == TOKEN_COLON) {
 		GET_TOKEN(curr_token, (Error){0}, new_decl);
@@ -230,7 +230,7 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 	if (curr_token->type == TOKEN_EQ) {
 		ParserStatus status = parse_expression(curr_token);
 		CHECK_STATUS(status);
-		CHECK_AST_APPEND(new_decl, ast_var_decl_add_init(new_decl, status.new_node));
+		CHECK_AST_APPEND(new_decl, ast_var_decl_add_init(new_decl, status.new_node), "Failed to append init expression to variable declaration\n");
 	} else {
 		ast_destroy(new_decl);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -260,7 +260,7 @@ ParserStatus parse_else_statement(Token *curr_token) {
 		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		ALLOC_NODE(new_else, ast_create_else(status.new_node, curr_token->line, curr_token->col));
-		if (curr_token->type != TOKEN_THEN){
+		if (curr_token->type != TOKEN_KEYWORD_THEN){
 			ast_destroy(new_else);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing then after else statement with condition\n"),
@@ -293,7 +293,7 @@ ParserStatus parse_else_statement(Token *curr_token) {
 ParserStatus parse_if_statement(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *new_if;
-	status = parse_expression(curr_token, TOKEN_KEYWORD_THEN);
+	status = parse_expression(curr_token);
 	CHECK_STATUS(status);
 	ALLOC_NODE(new_if, ast_create_if(status.new_node, curr_token->line, curr_token->col));
 	if (curr_token->type != TOKEN_KEYWORD_THEN) {
@@ -363,17 +363,17 @@ ParserStatus parse_while_statement(Token *curr_token) {
 ParserStatus parse_for_generator(Token *curr_token, ASTNode *for_node){
 	ParserStatus status = parse_expression(curr_token);
 	CHECK_STATUS(status);
-	CHECK_AST_APPEND(for_node, ast_for_add_start(for_node, status.new_node));
+	CHECK_AST_APPEND(for_node, ast_for_add_start(for_node, status.new_node), "Failed to append generator expressiong to for AST node\n");
 	if (dstring_cmp_str(curr_token->data.str_val, "to") == 0) {
 		GET_TOKEN(curr_token, (Error){0}, NULL);
 		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
-		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, true));
+		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, true), "Failed to append generator expressiong to for AST node\n");
 		if (dstring_cmp_str(curr_token->data.str_val, "by") != 0) {
 			GET_TOKEN(curr_token, (Error){0}, NULL);
-			status = parse_expression(curr_token, TOKEN_EOL);
+			status = parse_expression(curr_token);
 			CHECK_STATUS(status);
-			CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node));
+			CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node), "Failed to append generator expressiong to for AST node\n");
 		} else {
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									"Unexpected token after end of for statement generator\n"),
@@ -383,12 +383,12 @@ ParserStatus parse_for_generator(Token *curr_token, ASTNode *for_node){
 		GET_TOKEN(curr_token, (Error){0}, NULL);
 		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
-		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, false));
+		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, false), "Failed to append generator expressiong to for AST node\n");
 		if (dstring_cmp_str(curr_token->data.str_val, "by") != 0) {
 			GET_TOKEN(curr_token, (Error){0}, NULL);
-			status = parse_expression(curr_token, TOKEN_EOL);
+			status = parse_expression(curr_token);
 			CHECK_STATUS(status);
-			CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node));
+			CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node), "Failed to append generator expressiong to for AST node\n");
 		} else {
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									"Unexpected token after end of for statement generator\n"),
@@ -415,6 +415,7 @@ ParserStatus parse_for_generator(Token *curr_token, ASTNode *for_node){
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_for_statement(Token* curr_token){
+	ParserStatus status = {0};
 	ASTNode *for_node;
 	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type == TOKEN_EOL) {
@@ -426,29 +427,29 @@ ParserStatus parse_for_statement(Token* curr_token){
 					PAR_FAIL);
 	}
 	ALLOC_NODE(for_node, ast_create_for(curr_token->data.str_val, curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, (Error){0}, NULL, for_node);
+	GET_TOKEN(curr_token, (Error){0}, for_node);
 	if (curr_token->type != TOKEN_LT) {
 		ast_destroy(for_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									"Missing < after for statement generator\n"),
 					PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL, for_node);
+	GET_TOKEN(curr_token, (Error){0}, for_node);
 	if (curr_token->type != TOKEN_MINUS) {
 		ast_destroy(for_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									"Missing - after < in for statement generator\n"),
 					PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL, for_node);
+	GET_TOKEN(curr_token, (Error){0}, for_node);
 	CHECK_STATUS(parse_for_generator(curr_token, for_node));
 	if (curr_token->type == TOKEN_EOL){
 		while (true) {
-			GET_TOKEN(curr_token, (Error){0}, NULL, for_node);
+			GET_TOKEN(curr_token, (Error){0}, for_node);
 			if (curr_token->type == TOKEN_KEYWORD_IF){
 				status = parse_expression(curr_token);
 				CHECK_STATUS(status);
-				CHECK_AST_APPEND(for_node, ast_for_append_guard(status.new_node), "Failed to append guard to for loop\n");
+				CHECK_AST_APPEND(for_node, ast_for_append_guard(for_node, status.new_node), "Failed to append guard to for loop\n");
 				if (curr_token->type != TOKEN_EOL){
 					return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 									"Invalid token at the end of for loop guard\n"),
@@ -461,7 +462,7 @@ ParserStatus parse_for_statement(Token* curr_token){
 		}
 	}
 	if (curr_token->type == TOKEN_OUTDENT){
-		GET_TOKEN(curr_token, (Error){0}, NULL, for_node);
+		GET_TOKEN(curr_token, (Error){0}, for_node);
 	}
 	if (dstring_cmp_str(curr_token->data.str_val, "do") != 0) {
 		ast_destroy(for_node);
@@ -502,7 +503,7 @@ ParserStatus parse_statement(Token *curr_token) {
 			if (curr_token->type != TOKEN_EOL) {
 				status = parse_expression(curr_token);
 				CHECK_STATUS(status);
-				ALLOC_NODE(node, ast_create_return(status.new_node));
+				ALLOC_NODE(node, ast_create_return(status.new_node, curr_token->line, curr_token->col));
 			} else {
 				ALLOC_NODE(node, ast_create_return(NULL, curr_token->line, curr_token->col));
 			}
