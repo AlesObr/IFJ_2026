@@ -232,8 +232,30 @@ ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col) {
 		free(node);
 		return NULL;
 	}
+	node->call.target = NULL;
+	node->call.is_dot_call = false;
 	ast_nodelist_init(&node->call.args);
 	return node;
+}
+
+bool ast_call_add_window(ASTNode *func_call, ASTNode *param_window){
+	if (func_call == NULL || func_call->type != NODE_CALL || param_window == NULL || param_window->type != NODE_FUNC_WINDOW) {
+		ast_destroy(param_window);
+		return false;
+	}
+	if (!ast_nodelist_append(&func_call->call.args, param_window)) {
+		ast_destroy(param_window);
+		return false;
+	}
+	return true;
+}
+
+bool ast_call_add_target(ASTNode *call_node, ASTNode *target){
+	if (call_node == NULL || call_node->type != NODE_CALL || target == NULL){
+		return false;
+	}
+	call_node->call.target = target;
+	return true;
 }
 
 bool ast_call_add_arg(ASTNode *call_node, ASTNode *arg) {
@@ -733,6 +755,7 @@ void ast_destroy(ASTNode *node) {
 
 		case NODE_CALL:
 			dstring_free(&node->call.func_name);
+			ast_destroy(node->assignment.target);
 			ast_nodelist_destroy(&node->call.args);
 			break;
 

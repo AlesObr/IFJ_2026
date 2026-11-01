@@ -132,6 +132,7 @@ struct ASTNode {
 		/** @brief Structure for function call nodes. */
 		struct {
 			dstring_t func_name; /**< Identifier of the called function. */
+			ASTNode *target;	 /**< Target of the function call (used for chain calling) */
 			ASTNodeList args;	 /**< List of argument expressions. */
 		} call;
 
@@ -352,6 +353,22 @@ ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t li
  * @return Allocated ASTNode pointer or NULL on failure.
  */
 ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col);
+
+/**
+ * @brief Appends parameter window into function call node
+ * @param func_call Function call node
+ * @param param_window Parameter window to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+*/
+bool ast_call_add_window(ASTNode *func_call, ASTNode *param_window);
+
+/**
+ * @brief Sets node that the function call node extend
+ * @param call_node Function call node with target to be set
+ * @param target Target node to be appended to call node
+ * @return True if success, false if problem occurs or wrong parameters passed
+*/
+bool ast_call_add_target(ASTNode *call_node, ASTNode *target);
 
 /**
  * @brief Appends an argument expression node to a function call ASTNode.
