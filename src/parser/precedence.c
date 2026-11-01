@@ -47,6 +47,39 @@ static PrecLevel translate_token(Token *curr_token){
 }
 
 /**
+ * @brief Parsing of call parameters of member function
+ * @param curr_token
+ * @param node Node to append parameters into
+*/
+ParserStatus parse_call_pameters(Token *curr_token, ASTNode *node){
+	while(curr_token->type == TOKEN_LPAREN){
+		ASTNode *window = NULL;
+		ALLOC_NODE(window, ast_create_param_window(curr_token->line, curr_token->col));
+		CHECK_AST_APPEND(node, ast_call_add_window(node, window));
+		ParserStatus status = parse_climb(curr_token, 0);
+		CHECK_STATUS(status);
+		CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
+		while (true) {
+			if (curr_token->type == TOKEN_RPAREN){
+				break;
+			} else if (curr_token->type == TOKEN_COMMA){
+				GET_TOKEN(curr_token, (Error){0}, node);
+				status = parse_climb(curr_token, 0);
+				CHECK_STATUS(status);
+				CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
+			} else {
+				ast_destroy(node);
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Invalid token in expression call parameter parsing (expected TOKEN_RBRACE or TOKEN_COMMA)\n"),
+					PAR_FAIL);
+			}
+		}
+		GET_TOKEN(curr_token, (Error){0}, node);
+	}
+	return PARSE_OK(PAR_SUCC, node);
+}
+
+/**
  * @brief Parsing of right asociativity operators and function calls
  * @param curr_token Current token given by scanner
  * @return ParserStatus structure containing flags for parser
@@ -58,7 +91,7 @@ ParserStatus parse_prefix(Token *curr_token){
 	switch(curr_token->type){
 		case TOKEN_MINUS:
 		case TOKEN_NOT:
-			op = (curr_token->type == TOKEN_MINUS) ? OP_UNARY_MINUS : OP_UNARY_NOP;
+			op = (curr_token->type == TOKEN_MINUS) ? OP_UNARY_MINUS : OP_UNARY_NOT;
 			GET_TOKEN(curr_token, (Error){0}, NULL);
 			status = parse_prefix(curr_token);
 			CHECK_STATUS(status);
@@ -97,7 +130,7 @@ ParserStatus parse_prefix(Token *curr_token){
 	}
 	GET_TOKEN(curr_token, (Error){0}, node);
 	while (curr_token->type == TOKEN_DOT || curr_token->type == TOKEN_LPAREN) {
-		if (curr->token_type == TOKEN_DOT){
+		if (curr_token->type == TOKEN_DOT){
 			GET_TOKEN(curr_token, (Error){0}, node);
 			if (curr_token->type != TOKEN_IDENTIFIER){
 				ast_destroy(node);
@@ -105,11 +138,15 @@ ParserStatus parse_prefix(Token *curr_token){
 							   "Expected identifier after . function call, got something else\n"),
 					PAR_FAIL);
 			}
-			ALLOC_NODE(node, ast_create_call(curr_toke->data.str_val, curr_token->line, curr_token->col));
-			GET_TOKEN(curr_token, (Error){0}, NULL);
-			status = parse_call_pameters(curr_token);
-			CHECK_STATUS(status);
-			node = status.new_node;
+			ASTNode *tmp_node;
+			ALLOC_NODE(tmp_node, ast_create_call(curr_token->data.str_val, curr_token->line, curr_token->col));
+			CHECK_AST_APPEND(tmp_node, ast_call_add_target(tmp_node, node));
+			GET_TOKEN(curr_token, (Error){0}, node);
+			if(curr_token->type == TOKEN_LPAREN){
+				status = parse_call_parameters(curr_token, tmp_node);
+				CHECK_STATUS(status);
+			}
+			node = tmp_node;
 		} else {
 			status = parse_call_expression(curr_token);
 			CHECK_STATUS(status);
