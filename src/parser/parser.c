@@ -54,7 +54,7 @@ ParserStatus parse_func_body(Token *curr_token);
  */
 #define ALLOC_NODE(node, alloc_expr)															   \
 	do {																						   \
-		(node) = (alloc_expr);																	   \																	   \
+		(node) = (alloc_expr);																	   \
 		if ((node) == NULL){																	   \
 			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,		   \
 							   "Failed to allocate node for AST tree\n"),						   \
@@ -533,7 +533,15 @@ ParserStatus parse_statement(Token *curr_token) {
 			}
 			break;
 		case TOKEN_IDENTIFIER:
-			// add parsing of expression
+		case TOKEN_INT_LITERAL:
+		case TOKEN_FLOAT_LITERAL:
+		case TOKEN_STRING_LITERAL:
+		case TOKEN_NULL_LITERAL:
+		case TOKEN_LPAREN:
+		case TOKEN_NOT:
+		case TOKEN_NOT:
+			status = parse_expression(curr_token);
+			CHECK_STATUS(status);
 			break;
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -905,7 +913,7 @@ ParserStatus parse_program(Token *curr_token) {
 	return PARSE_OK(PAR_EOF, program);
 }
 
-void parse() {
+ParserStatus parse() {
 	Token *curr_token = malloc(sizeof(Token));
 	if (curr_token == NULL) {
 		// throw error code 99 and abort
@@ -913,26 +921,18 @@ void parse() {
 	ParserStatus status = parse_header(curr_token);
 	if (status.flag == PAR_EOF) {
 		free(curr_token);
-		// end the program
+		return status;
 	} else if (status.flag == LEX_FAIL) {
 		free(curr_token);
-		// end the program
+		return status;
 	} else if (status.flag == PAR_FAIL) {
 		free(curr_token);
-		// end the program
+		return status;
 	} else if (status.flag == AST_FAIL) {
 		free(curr_token);
-		// end the program
+		return status;
 	}
 	status = parse_program(curr_token);
 	free(curr_token);
-	switch (status.flag) {
-		case PAR_FAIL:
-		case LEX_FAIL:
-		case PAR_EOF:
-		case AST_FAIL:
-		case PAR_SUCC:
-			break;
-	}
-	return;
+	return status;
 }
