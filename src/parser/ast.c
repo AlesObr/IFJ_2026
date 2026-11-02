@@ -197,29 +197,6 @@ bool ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr){
 	return true;
 }
 
-ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t line, size_t col) {
-	ASTNode *node = NULL;
-
-	if (target == NULL) {
-		goto fail;
-	}
-	node = ast_alloc(NODE_ASSIGNMENT, line, col);
-	if (node == NULL) {
-		goto fail;
-	}
-	if (!ast_dstring_clone(&node->assignment.target_name, target)) {
-		free(node);
-		goto fail;
-	}
-
-	node->assignment.expr = expr;
-	return node;
-
-fail:
-	ast_destroy(expr);
-	return NULL;
-}
-
 ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col) {
 	if (func_name == NULL) {
 		return NULL;
@@ -233,7 +210,6 @@ ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col) {
 		return NULL;
 	}
 	node->call.target = NULL;
-	node->call.is_dot_call = false;
 	ast_nodelist_init(&node->call.args);
 	return node;
 }
@@ -657,14 +633,6 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 			break;
 		}
 
-		case NODE_ASSIGNMENT: {
-			const char *target = dstring_get(&node->assignment.target_name);
-			fprintf(out, "(= %s ", target ? target : "<null>");
-			ast_dump_sexpr(node->assignment.expr, out);
-			fputc(')', out);
-			break;
-		}
-
 		case NODE_CALL: {
 			const char *fn = dstring_get(&node->call.func_name);
 			fprintf(out, "(call %s", fn ? fn : "<null>");
@@ -749,13 +717,11 @@ void ast_destroy(ASTNode *node) {
 			break;
 
 		case NODE_ASSIGNMENT:
-			dstring_free(&node->assignment.target_name);
-			ast_destroy(node->assignment.expr);
 			break;
 
 		case NODE_CALL:
 			dstring_free(&node->call.func_name);
-			ast_destroy(node->assignment.target);
+			ast_destroy(node->call.target);
 			ast_nodelist_destroy(&node->call.args);
 			break;
 

@@ -68,7 +68,9 @@ typedef enum {
 	OP_GTE,			// >=
 	OP_NOT,			// ! (unary)
 	OP_UNARY_MINUS, // - (unary)
-	OP_UNARY_PLUS	// + (unary)
+	OP_UNARY_PLUS,	// + (unary)
+	OP_OR,			// ||
+	OP_AND			// &&
 } OpType;
 
 /**
@@ -122,12 +124,6 @@ struct ASTNode {
 			bool is_const;		 /**< True if declared as const, false for var. */
 			ASTNode *init_expr;	 /**< Initializer expression or NULL. */
 		} var_decl;
-
-		/** @brief Structure for variable assignment nodes. */
-		struct {
-			dstring_t target_name; /**< Target variable identifier name. */
-			ASTNode *expr;		   /**< Assigned expression. */
-		} assignment;
 
 		/** @brief Structure for function call nodes. */
 		struct {
@@ -334,16 +330,6 @@ ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, 
  * @return True if success, false if problem occurs or wrong parameters passed
  */
 bool ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr);
-
-/**
- * @brief Creates a new AST node for an assignment operation.
- * @param target Identifier name of target variable (content is cloned).
- * @param expr Evaluated expression node to store.
- * @param line Source line index.
- * @param col Source column index.
- * @return Allocated ASTNode pointer or NULL on failure.
- */
-ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for a function invocation.
