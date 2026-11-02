@@ -147,7 +147,8 @@ EXIT:0
 51:LIT_STRING:kombinace: 
 	"\
 51:KEYWORD:else
-51:LIT_STRING:escape:  carriage return
+51:LIT_STRING:escape: 
+ carriage return
 51:EOL
 52:LIT_FLOAT:0.5
 52:EOL
@@ -196,7 +197,8 @@ EXIT:0
 64:LIT_FLOAT:1e+10
 64:LTE
 64:KEYWORD:Boolean
-64:LIT_STRING:escape:  carriage return
+64:LIT_STRING:escape: 
+ carriage return
 64:EOL
 65:KEYWORD:Boolean
 65:EOL
@@ -440,7 +442,7 @@ EXIT:0
 154:EOL
 155:EOL
 156:EOL
-157:AT
+157:AT_MAIN
 157:LIT_FLOAT:0.5
 157:LIT_STRING:text s mezerami
 157:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
@@ -548,7 +550,7 @@ EXIT:0
 192:EOL
 193:IDENTIFIER:__private
 193:EOL
-194:AT
+194:AT_MAIN
 194:LIT_INT:123456789
 194:KEYWORD:do
 194:EQ
@@ -572,7 +574,8 @@ EXIT:0
 201:EOL
 202:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
 202:EOL
-203:LIT_STRING:escape:  carriage return
+203:LIT_STRING:escape: 
+ carriage return
 203:EOL
 204:LIT_STRING:text s mezerami
 204:LTE

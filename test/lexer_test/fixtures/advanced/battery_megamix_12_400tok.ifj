@@ -2,7 +2,7 @@
 List // comment on line 2
 1 // comment on line 3
 10_20_30   42  5e-2 // comment on line 4
-"escape: \n nova radka"  @ _1   match
+"escape: \n nova radka"  @main _1   match
 10_20_30 42
 Double   1_000.50_1  < /* comment 
  */ 
@@ -27,7 +27,7 @@ result   result   _var  "" // comment on line 19
 1_000.50_1   def // comment on line 27
 _1 /* inline comment */ _var
 5e-2 = // comment on line 29
-@ camelCase 1_000_000   999_999_999 0 def  2147483647 /* comment 
+@main camelCase 1_000_000   999_999_999 0 def  2147483647 /* comment 
  */ 
 readInt   10_20_30
 , // comment on line 33
@@ -77,7 +77,7 @@ x
 0
 2.5E-3
 __private
-@
+@main
 0  42   123_456_789 /* inline comment */ camelCase 10_20_30
 snake_case with123Numbers /* comment 
 
@@ -111,7 +111,7 @@ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNam
  */ 
 result
 _var  0.0
-0 @   x 5e-2 /* comment 
+0 @main   x 5e-2 /* comment 
  */ 
 3.14159 var // comment on line 116
 3.14159  with123Numbers // comment on line 117
@@ -127,7 +127,7 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString   "escape: \n nova radk
 "" // comment on line 127
 >
 123_456_789 String
-10_20_30   @
+10_20_30   @main
 42 // comment on line 131
 _1  readInt  "hello"  Int  "escape: \" uvozovka" import // comment on line 132
 "escape: \" uvozovka"  42 type
@@ -138,7 +138,7 @@ then +  "hello" /* comment
 ; 5e-2 /* comment 
  */ 
 "escape: \n nova radka"
-@
+@main
 .  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString with123Numbers  result  ;   Int   3.14159 // comment on line 142
 /  ; _ /* inline comment */ "hello"   999_999_999   "escape: \t tabulator"
 Unit 100.5e+2 /* comment 

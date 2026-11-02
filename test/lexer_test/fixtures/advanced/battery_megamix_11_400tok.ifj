@@ -1,7 +1,7 @@
  readInt   _var   readInt /* comment 
  */ 
 2147483647  snake_case
-@  2147483647 100.5e+2
+@main  2147483647 100.5e+2
 List var 10_20_30  _var
 !=   result  0.6 // comment on line 6
 "text s mezerami" _var /* comment 
@@ -41,7 +41,7 @@ def   1_000_000 42.0d 42  _1   readInt
  */ 
 123_456_789 then
 result 1_000_000 // comment on line 43
-3.14159 /* inline comment */ @   var
+3.14159 /* inline comment */ @main   var
 :  123_456_789 /* comment 
  */ 
 42
@@ -52,7 +52,7 @@ _var 100.5e+2
 999_999_999 10_20_30   10_20_30   "escape: \" uvozovka" /* comment 
 
  */ 
-@ "escape: \r carriage return"   x /* comment 
+@main "escape: \r carriage return"   x /* comment 
 
  */ 
 0.125e+2  then  ; x  0 __private   "escape: \r carriage return"  var 2147483647 // comment on line 58
@@ -186,7 +186,7 @@ return
 42 "escape: \r carriage return"  snake_case
 case /* comment 
  */ 
-"escape: \n nova radka"   @ // comment on line 189
+"escape: \n nova radka"   @main // comment on line 189
 readInt
 "hello" // comment on line 191
 > +  =  1_000.50_1

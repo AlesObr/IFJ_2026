@@ -12,7 +12,7 @@ EXIT:0
 4:EOL
 5:LIT_STRING:escape: 
  nova radka
-5:AT
+5:AT_MAIN
 5:IDENTIFIER:_1
 5:KEYWORD:match
 5:EOL
@@ -54,7 +54,8 @@ EXIT:0
 18:LIT_STRING:escape: \ lomitko
 18:LIT_INT:102030
 18:LIT_INT:1
-18:LIT_STRING:escape:  carriage return
+18:LIT_STRING:escape: 
+ carriage return
 18:EOL
 19:IDENTIFIER:result
 19:IDENTIFIER:result
@@ -74,7 +75,8 @@ EXIT:0
 23:EOL
 24:LIT_INT:42
 24:EOL
-25:LIT_STRING:escape:  carriage return
+25:LIT_STRING:escape: 
+ carriage return
 25:IDENTIFIER:factorial
 25:LIT_INT:123456789
 25:LIT_FLOAT:100000
@@ -89,7 +91,7 @@ EXIT:0
 29:LIT_FLOAT:0.05
 29:ASSIGN
 29:EOL
-30:AT
+30:AT_MAIN
 30:IDENTIFIER:camelCase
 30:LIT_INT:1000000
 30:LIT_INT:999999999
@@ -129,7 +131,8 @@ EXIT:0
 45:KEYWORD:match
 45:EOL
 46:KEYWORD:if
-46:LIT_STRING:escape:  carriage return
+46:LIT_STRING:escape: 
+ carriage return
 46:LIT_STRING:escape: 
  nova radka
 46:LIT_STRING:
@@ -235,7 +238,7 @@ EXIT:0
 78:EOL
 79:IDENTIFIER:__private
 79:EOL
-80:AT
+80:AT_MAIN
 80:EOL
 81:LIT_INT:0
 81:LIT_INT:42
@@ -327,7 +330,7 @@ EXIT:0
 113:LIT_FLOAT:0
 113:EOL
 114:LIT_INT:0
-114:AT
+114:AT_MAIN
 114:IDENTIFIER:x
 114:LIT_FLOAT:0.05
 114:EOL
@@ -355,7 +358,8 @@ EXIT:0
 120:EOL
 121:EQ
 121:EOL
-122:LIT_STRING:escape:  carriage return
+122:LIT_STRING:escape: 
+ carriage return
 122:EOL
 123:KEYWORD:String
 123:EOL
@@ -381,7 +385,7 @@ EXIT:0
 129:KEYWORD:String
 129:EOL
 130:LIT_INT:102030
-130:AT
+130:AT_MAIN
 130:EOL
 131:LIT_INT:42
 131:EOL
@@ -411,7 +415,7 @@ EXIT:0
 140:LIT_STRING:escape: 
  nova radka
 140:EOL
-141:AT
+141:AT_MAIN
 141:EOL
 142:DOT
 142:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
@@ -465,7 +469,8 @@ EXIT:0
 155:IDENTIFIER:_var
 155:IDENTIFIER:with123Numbers
 155:DOT
-155:LIT_STRING:escape:  carriage return
+155:LIT_STRING:escape: 
+ carriage return
 155:LTE
 155:EOL
 156:IDENTIFIER:snake_case
@@ -612,7 +617,8 @@ EXIT:0
 209:IDENTIFIER:result
 209:EOL
 210:LTE
-210:LIT_STRING:escape:  carriage return
+210:LIT_STRING:escape: 
+ carriage return
 210:LIT_FLOAT:1000.5
 210:EOL
 211:LIT_FLOAT:10050

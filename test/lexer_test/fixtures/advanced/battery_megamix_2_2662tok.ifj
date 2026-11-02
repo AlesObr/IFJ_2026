@@ -54,7 +54,7 @@ _var // comment on line 49
 
  */ 
 1e10   class  result 42 /* inline comment */ :
-@  type   "escape: \" uvozovka" /* inline comment */ 100.5e+2  123_456_789  1e10   1e5D  result  x   x   snake_case
+@main  type   "escape: \" uvozovka" /* inline comment */ 100.5e+2  123_456_789  1e10   1e5D  result  x   x   snake_case
 x
 -  "escape: \r carriage return"   "escape: \" uvozovka"
 x if   camelCase   "escape: \\ lomitko"   camelCase   def 5e-2 // comment on line 60
@@ -82,7 +82,7 @@ __private 0.0
 (   42
 match /* inline comment */ :   "hello" // comment on line 83
 readInt   with123Numbers  List
-100.5e+2  "escape: \\ lomitko"  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString for !=   camelCase  +   @
+100.5e+2  "escape: \\ lomitko"  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString for !=   camelCase  +   @main
 extension   val
 "kombinace: \n\t\"\\" /* comment 
 
@@ -100,7 +100,7 @@ __private /* comment
 readInt  < /* comment 
 
  */ 
-"escape: \r carriage return"   @ 1 "escape: \\ lomitko"
+"escape: \r carriage return"   @main 1 "escape: \\ lomitko"
 veryLongIdentifierNameThatShouldStillWorkInDynamicString
 "escape: \" uvozovka"   =
 camelCase  "hello"
@@ -181,7 +181,7 @@ then 2147483647  "escape: \t tabulator" /* comment
 
  */ 
 42 // comment on line 183
-val  extension   @ /* inline comment */ factorial 2.5E-3   1e5D "hello" 1e10
+val  extension   @main /* inline comment */ factorial 2.5E-3   1e5D "hello" 1e10
 100.5e+2  123_456_789
 factorial
 = /* comment 
@@ -282,7 +282,7 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString   / 2147483647 /* comme
  */ 
 _var thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  5e-2 /* comment 
  */ 
-__private factorial result : /* inline comment */ "escape: \\ lomitko"  100.5e+2  if  @
+__private factorial result : /* inline comment */ "escape: \\ lomitko"  100.5e+2  if  @main
 >  2.5E-3 __private  ( _1 >= /* comment 
 
  */ 
@@ -294,7 +294,7 @@ camelCase
 123_456_789 for /* comment 
  */ 
 _ return :   readInt // comment on line 296
-@ // comment on line 297
+@main // comment on line 297
 def
 42  1e10 _var   do   _   123_456_789 // comment on line 299
 0 snake_case
@@ -385,7 +385,7 @@ Unit
 factorial Double  ) ;   "escape: \\ lomitko"   0 1 // comment on line 385
 1e5D
 "kombinace: \n\t\"\\"  "text s mezerami"
-@
+@main
 __private /* comment 
  */ 
 3.14159  10_20_30  camelCase  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString // comment on line 391
@@ -444,7 +444,7 @@ __private
 Unit  __private 5e-2 42.0d
 123_456_789
 999_999_999  "kombinace: \n\t\"\\" // comment on line 446
-@
+@main
 10_20_30   extension   0 "text s mezerami" else   1_000_000
 42
 "hello"
@@ -616,7 +616,7 @@ then
 match   result
 "escape: \r carriage return"  10_20_30 camelCase  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 veryLongIdentifierNameThatShouldStillWorkInDynamicString 0.6 // comment on line 618
-@  2.5E-3
+@main  2.5E-3
 10_20_30
 42
 1_000_000 readInt // comment on line 622
@@ -694,7 +694,7 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString /* comment
 10_20_30 /* inline comment */ == extension
 1_000_000   -
 3.14159  def   _1
-@ 0.125e+2
+@main 0.125e+2
 _ 123_456_789
 val /* comment 
  */ 
@@ -751,7 +751,7 @@ with123Numbers   "text s mezerami"
 "escape: \n nova radka" // comment on line 751
 __private
 "hello"  2147483647 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  readInt
-while else  0.5 10_20_30  @ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 0.6 /* comment 
+while else  0.5 10_20_30  @main thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 0.6 /* comment 
 
  */ 
 0.5 /* comment 
@@ -785,7 +785,7 @@ snake_case
 (   42 // comment on line 785
 42 /* comment 
  */ 
-@ camelCase /* comment 
+@main camelCase /* comment 
  */ 
 else   "escape: \" uvozovka"   _1 // comment on line 790
 ; 1_000_000
@@ -939,7 +939,7 @@ type   else "escape: \\ lomitko"  2147483647 /* comment
  */ 
 ( /* inline comment */ ,  999_999_999 with123Numbers // comment on line 940
 999_999_999
-@ // comment on line 942
+@main // comment on line 942
 >
 do
 "escape: \n nova radka"
@@ -1186,7 +1186,7 @@ _var /* comment
 for
 1 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 "hello"   5e-2 0.5 while "" /* inline comment */ factorial   Int  10_20_30  result
-@ // comment on line 1189
+@main // comment on line 1189
 _1  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString   0.125e+2 // comment on line 1190
 x
 2147483647   Unit  1_000_000 "escape: \" uvozovka"  x  0.125e+2 veryLongIdentifierNameThatShouldStillWorkInDynamicString // comment on line 1192
@@ -1334,7 +1334,7 @@ String x  "escape: \\ lomitko"  1_000_000  1e5D   readInt "hello" __private 2147
 ; /* inline comment */ veryLongIdentifierNameThatShouldStillWorkInDynamicString with123Numbers
 do
 1_000_000  1
-import  @
+import  @main
 List 1e10   10_20_30
 100.5e+2
 factorial

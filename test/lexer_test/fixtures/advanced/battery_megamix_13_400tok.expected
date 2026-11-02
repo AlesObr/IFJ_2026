@@ -20,7 +20,8 @@ EXIT:0
 6:LIT_INT:102030
 6:EOL
 7:MUL
-7:LIT_STRING:escape:  carriage return
+7:LIT_STRING:escape: 
+ carriage return
 7:LIT_FLOAT:1e+10
 7:EOL
 8:EOL
@@ -61,7 +62,8 @@ EXIT:0
 21:EOL
 22:LIT_INT:999999999
 22:EOL
-23:LIT_STRING:escape:  carriage return
+23:LIT_STRING:escape: 
+ carriage return
 23:EOL
 24:LIT_FLOAT:100000
 24:EOL
@@ -256,7 +258,8 @@ EXIT:0
 99:EOL
 100:LIT_FLOAT:0.05
 100:ASSIGN
-100:LIT_STRING:escape:  carriage return
+100:LIT_STRING:escape: 
+ carriage return
 100:IDENTIFIER:readInt
 100:EOL
 101:EOL
@@ -322,7 +325,8 @@ EXIT:0
 118:LIT_INT:102030
 118:LTE
 118:EOL
-119:LIT_STRING:escape:  carriage return
+119:LIT_STRING:escape: 
+ carriage return
 119:MUL
 119:EOL
 120:IDENTIFIER:snake_case
@@ -348,7 +352,8 @@ EXIT:0
 125:EOL
 126:IDENTIFIER:camelCase
 126:EOL
-127:LIT_STRING:escape:  carriage return
+127:LIT_STRING:escape: 
+ carriage return
 127:LIT_STRING:hello
 127:EOL
 128:KEYWORD:return
@@ -356,7 +361,7 @@ EXIT:0
 129:LIT_INT:0
 129:LIT_INT:2147483647
 129:IDENTIFIER:camelCase
-129:AT
+129:AT_MAIN
 129:LIT_FLOAT:0.6
 129:EOL
 130:EOL
@@ -367,7 +372,7 @@ EXIT:0
 132:LIT_INT:0
 132:KEYWORD:var
 132:EOL
-133:AT
+133:AT_MAIN
 133:EOL
 134:EOL
 135:IDENTIFIER:result
@@ -443,7 +448,7 @@ EXIT:0
 155:LIT_INT:123456789
 155:IDENTIFIER:with123Numbers
 155:EOL
-156:AT
+156:AT_MAIN
 156:EOL
 157:EOL
 158:EOL
@@ -560,7 +565,8 @@ EXIT:0
 198:ASSIGN
 198:EOL
 199:KEYWORD:type
-199:LIT_STRING:escape:  carriage return
+199:LIT_STRING:escape: 
+ carriage return
 199:EOL
 200:EOL
 201:COMMA

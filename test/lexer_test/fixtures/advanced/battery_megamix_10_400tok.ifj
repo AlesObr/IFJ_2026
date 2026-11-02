@@ -151,7 +151,7 @@ x /* comment
 
  */ 
 42
-@   _1   999_999_999
+@main   _1   999_999_999
 Double   "escape: \r carriage return"
 1_000.50_1 // comment on line 156
 >=

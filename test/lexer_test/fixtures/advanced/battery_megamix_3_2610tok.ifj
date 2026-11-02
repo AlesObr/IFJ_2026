@@ -407,7 +407,7 @@ camelCase   readInt /* comment
 
  */ 
 veryLongIdentifierNameThatShouldStillWorkInDynamicString "kombinace: \n\t\"\\"
-+   5e-2  @ 2.5E-3   0
++   5e-2  @main 2.5E-3   0
 __private  0.6
 veryLongIdentifierNameThatShouldStillWorkInDynamicString  (   1   42 _var   2147483647 snake_case
 0.6 0.5 class /* comment 
@@ -509,7 +509,7 @@ result /* comment
 
  */ 
 >=  1
-@ /* comment 
+@main /* comment 
  */ 
 type 0 - 42.0d // comment on line 514
 ,
@@ -619,7 +619,7 @@ _ __private  factorial  class
 
  */ 
 999_999_999   with123Numbers (
-@  0.5 :  veryLongIdentifierNameThatShouldStillWorkInDynamicString match  veryLongIdentifierNameThatShouldStillWorkInDynamicString   42 // comment on line 622
+@main  0.5 :  veryLongIdentifierNameThatShouldStillWorkInDynamicString match  veryLongIdentifierNameThatShouldStillWorkInDynamicString   42 // comment on line 622
 snake_case
 do   "escape: \n nova radka" // comment on line 624
 camelCase /* comment 
@@ -654,8 +654,8 @@ factorial
 val   _   100.5e+2 0.5 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString factorial
 _var /* comment 
  */ 
-100.5e+2  * /* inline comment */ @  0.125e+2 import
-@
+100.5e+2  * /* inline comment */ @main  0.125e+2 import
+@main
 extension // comment on line 659
 "hello"   3.14159   snake_case
 Boolean  5e-2 2147483647  while  x
@@ -809,7 +809,7 @@ __private
 2147483647  class else   3.14159
 return  42  _var
 0.6   _var  <
-@
+@main
 with123Numbers val
 0.5   ,   999_999_999  with123Numbers  result  42
 __private // comment on line 815
@@ -857,7 +857,7 @@ x Unit  999_999_999 _1   while /* comment
 != 2.5E-3 1_000_000
 val __private
 100.5e+2
-match   with123Numbers do  @  =   ==   while
+match   with123Numbers do  @main  =   ==   while
 "text s mezerami" / then  "text s mezerami"   camelCase 42.0d
 ( Int  snake_case type   1   "kombinace: \n\t\"\\"   123_456_789   999_999_999  type
 0.6
@@ -899,7 +899,7 @@ def  1_000_000
 1 // comment on line 899
 != // comment on line 900
 0.0 // comment on line 901
-0.5   @
+0.5   @main
 Unit   10_20_30  "hello"   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString   "escape: \t tabulator"  <   camelCase
 10_20_30  _var
 "escape: \t tabulator"
@@ -1048,7 +1048,7 @@ return  "hello"   veryLongIdentifierNameThatShouldStillWorkInDynamicString _ =  
 >=  999_999_999 // comment on line 1048
 Boolean   Int 0.125e+2 1_000_000
 42.0d // comment on line 1050
-@ // comment on line 1051
+@main // comment on line 1051
 * 42 /* inline comment */ _var camelCase
 __private  123_456_789 _var
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString   _1   999_999_999  1e10  3.14159
@@ -1120,7 +1120,7 @@ _var /* comment
 
  */ 
 Double
-@   0
+@main   0
 != /* comment 
 
  */ 
@@ -1150,7 +1150,7 @@ do   123_456_789 42
  */ 
 1e5D // comment on line 1151
 1e10  2147483647 // comment on line 1152
-@ // comment on line 1153
+@main // comment on line 1153
 snake_case /* comment 
 
  */ 
@@ -1173,7 +1173,7 @@ readInt
 veryLongIdentifierNameThatShouldStillWorkInDynamicString
 >=
 x   1e5D List   10_20_30  123_456_789   2.5E-3
-Boolean while 5e-2  @
+Boolean while 5e-2  @main
 123_456_789
 + ==  1   __private // comment on line 1178
 "escape: \t tabulator" /* comment 
@@ -1270,7 +1270,7 @@ var  *
 import // comment on line 1270
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 1e10  do
 factorial
-< /* inline comment */ veryLongIdentifierNameThatShouldStillWorkInDynamicString  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  @ 123_456_789
+< /* inline comment */ veryLongIdentifierNameThatShouldStillWorkInDynamicString  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  @main 123_456_789
 "escape: \r carriage return"   _var  factorial /* comment 
  */ 
 snake_case /* comment 

@@ -20,7 +20,7 @@ Int  : , /* comment
 123_456_789   5e-2 /* comment 
 
  */ 
-@   <=
+@main   <=
 "escape: \" uvozovka" /* inline comment */ 1e10   String   1e5D // comment on line 24
 2147483647 // comment on line 25
 10_20_30  <

@@ -1,60 +1,60 @@
-, // line 1 comment
-    "text s mezerami" return = "hello" :
-    result 10_20_30 10_20_30 result _ do
-    Double
-    readInt // line 5 comment
-    999_999_999 List Unit
-    >
-_var 1 with123Numbers
-x Double 2147483647 10_20_30 +
-( import "escape: \t tabulator" x / - // line 10 comment
-_ // line 11 comment
-if Int then 1_000_000 ,
-    "escape: \" uvozovka" __private > 42 ; 0.125e+2
-    with123Numbers 42 1 1e5D // line 14 comment
-    result snake_case "kombinace: \n\t\"\\" + __private ;
-    x 999_999_999 for def 0.125e+2
-    2147483647
-    "" Unit 42.0d
-    do readInt <= 0.0 // line 19 comment
-    else 1_000_000 factorial :
-        0.125e+2 100.5e+2 "kombinace: \n\t\"\\" *
-        camelCase for class @ 123_456_789 1e10 // line 22 comment
-    < Boolean , 1_000.50_1 * >
-    with123Numbers __private 0 * _1
-    _var , /
-    999_999_999 123_456_789
-    _1 snake_case 10_20_30 0 >
-0.5 1_000_000 10_20_30 snake_case 1 factorial // line 28 comment
-*
-    1_000.50_1 2147483647 return // line 30 comment
-    0 -
-then "kombinace: \n\t\"\\" then 999_999_999 2147483647 var
-100.5e+2 1_000.50_1 Double _var 10_20_30 while
-result
-"escape: \n nova radka"
-    0.6 @
-    0.5 _var 5e-2 "escape: \\ lomitko"
-    factorial result "" <
-    __private
-42 _var extension "escape: \" uvozovka" 10_20_30
-thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString "escape: \\ lomitko" List 1_000.50_1 // line 41 comment
-factorial 0 0.6 snake_case camelCase 1
+@main // line 1 comment
+    "text s mezerami" return = "hello" ,
+    result 10_20_30 10_20_30 result - 0.0
+    _1
+    + < , * - "escape: \n nova radka" // line 5 comment
+    __private @main result else with123Numbers
+    x Double 2147483647 10_20_30 +
+    : import "escape: \t tabulator" x / - // line 8 comment
+/ readInt "hello" x : then
+@main result "escape: \" uvozovka"
+__private "text s mezerami" . 0.125e+2
+with123Numbers 42 1 1e5D // line 12 comment
+result snake_case "kombinace: \n\t\"\\" + __private .
+x 999_999_999 for def 0.125e+2
+2147483647
+"" Unit 42.0d
+do readInt <= 0.0 // line 17 comment
+else 1_000_000 factorial ,
+    0.125e+2 100.5e+2 "kombinace: \n\t\"\\" *
+    camelCase for class | 123_456_789 1e10 // line 20 comment
+< Boolean @main 1_000.50_1 * >
+with123Numbers __private 0 * _1
+_var @main /
+999_999_999 123_456_789
+_1 snake_case 10_20_30 0 >
+0.5
+2147483647 1 factorial then
+42.0d
+x do camelCase 0
+0.5 0.125e+2 then "kombinace: \n\t\"\\" // line 30 comment
+999_999_999 2147483647 // line 31 comment
+"escape: \r carriage return"
+    1_000.50_1
+    1_000_000 "hello" then 3.14159 // line 34 comment
+        42 0.6
+            "text s mezerami" 42 _var 5e-2 "escape: \\ lomitko"
+            factorial result "" <
+            __private
+        42 _var extension "escape: \" uvozovka" 10_20_30
+readInt 42 camelCase // line 40 comment
+0 0.6 snake_case camelCase 1
 readInt veryLongIdentifierNameThatShouldStillWorkInDynamicString 1e5D
-, camelCase 100.5e+2 1 __private 999_999_999
-    "escape: \t tabulator" "escape: \" uvozovka" 2147483647 x snake_case @
-    _var // line 46 comment
+@main camelCase 100.5e+2 1 __private 999_999_999
+    "escape: \t tabulator" "escape: \" uvozovka" 2147483647 x snake_case |
+    _var // line 45 comment
     thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
     123_456_789
     <= _var veryLongIdentifierNameThatShouldStillWorkInDynamicString 1e10 val then
     type else
         camelCase 123_456_789 !=
-        42 factorial ) Int
+        42 factorial ; Int
     42.0d __private
     0.5 camelCase x snake_case
     0.0 1_000.50_1 42 2147483647 2.5E-3 if
     0 class _var "escape: \r carriage return" 42.0d
     1_000_000 42 2147483647 1e10 __private 10_20_30
-    2.5E-3 if 123_456_789 999_999_999 def Unit // line 58 comment
+    2.5E-3 if 123_456_789 999_999_999 def Unit // line 57 comment
         5e-2 0.6 2.5E-3 String "hello"
-        then + "escape: \" uvozovka" - 1 // line 60 comment
+        then + "escape: \" uvozovka" - 1 // line 59 comment
+        snake_case

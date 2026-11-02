@@ -214,4 +214,4 @@ factorial > /* comment
  */ 
 return snake_case do == ;
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString   "escape: \" uvozovka"   import 123_456_789
-@   42
+@main   42

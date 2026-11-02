@@ -39,14 +39,14 @@ List
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString   snake_case  999_999_999
 class _1
 _1   10_20_30 // comment on line 41
-@
+@main
 "escape: \r carriage return"
 0.125e+2
-@ /* comment 
+@main /* comment 
  */ 
 "escape: \\ lomitko"  -   123_456_789 // comment on line 47
 __private +   case  999_999_999 42  "hello" // comment on line 48
-return   camelCase  @
+return   camelCase  @main
 "escape: \t tabulator"  999_999_999 1e10
 100.5e+2 42 0.5 class /* comment 
 
@@ -114,7 +114,7 @@ with123Numbers // comment on line 104
 1  5e-2  == __private
 1_000.50_1   = extension readInt // comment on line 115
 "escape: \n nova radka"  )
-@ /* inline comment */ 1   class   factorial
+@main /* inline comment */ 1   class   factorial
 "" /* comment 
  */ 
 42 // comment on line 120

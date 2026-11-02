@@ -118,7 +118,8 @@ EXIT:0
 40:KEYWORD:extension
 40:KEYWORD:else
 40:IDENTIFIER:x
-40:LIT_STRING:escape:  carriage return
+40:LIT_STRING:escape: 
+ carriage return
 40:EOL
 41:KEYWORD:type
 41:IDENTIFIER:_var
@@ -324,7 +325,8 @@ EXIT:0
 104:IDENTIFIER:_1
 104:LIT_FLOAT:1000.5
 104:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
-104:LIT_STRING:escape:  carriage return
+104:LIT_STRING:escape: 
+ carriage return
 104:LIT_STRING:escape: 
  nova radka
 104:EOL
@@ -452,7 +454,7 @@ EXIT:0
 153:LIT_INT:42
 153:KEYWORD:Double
 153:EOL
-154:AT
+154:AT_MAIN
 154:EOL
 155:LIT_FLOAT:3.14159
 155:LIT_INT:123456789
@@ -462,7 +464,7 @@ EXIT:0
 157:PIPE
 157:EOL
 158:KEYWORD:def
-158:AT
+158:AT_MAIN
 158:EOL
 159:KEYWORD:then
 159:LIT_FLOAT:10050
@@ -499,12 +501,12 @@ EXIT:0
 169:LIT_FLOAT:0
 169:KEYWORD:def
 169:EOL
-170:AT
+170:AT_MAIN
 170:LIT_INT:1000000
 170:LIT_FLOAT:1000.5
 170:LIT_FLOAT:1000.5
 170:EOL
-171:AT
+171:AT_MAIN
 171:LIT_STRING:escape: 
  nova radka
 171:EOL
@@ -524,7 +526,7 @@ EXIT:0
 175:IDENTIFIER:__private
 175:LIT_STRING:hello
 175:EOL
-176:AT
+176:AT_MAIN
 176:LIT_FLOAT:0.6
 176:EOL
 177:EOL
@@ -589,7 +591,8 @@ EXIT:0
 199:KEYWORD:while
 199:EOL
 200:LIT_INT:42
-200:LIT_STRING:escape:  carriage return
+200:LIT_STRING:escape: 
+ carriage return
 200:EOL
 201:LIT_INT:0
 201:IDENTIFIER:_var

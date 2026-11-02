@@ -37,7 +37,8 @@ EXIT:0
 8:EOL
 9:INDENT
 9:LIT_STRING:hello
-9:LIT_STRING:escape:  carriage return
+9:LIT_STRING:escape: 
+ carriage return
 9:LIT_INT:999999999
 9:LIT_FLOAT:1e+10
 9:EQ
@@ -46,7 +47,8 @@ EXIT:0
 10:LIT_INT:102030
 10:LIT_FLOAT:1e+10
 10:KEYWORD:while
-10:LIT_STRING:escape:  carriage return
+10:LIT_STRING:escape: 
+ carriage return
 10:EOL
 11:IDENTIFIER:x
 11:KEYWORD:def
@@ -156,7 +158,7 @@ EXIT:0
 34:LIT_INT:42
 34:IDENTIFIER:factorial
 34:EOL
-35:RPAREN
+35:INDENT
 35:LIT_STRING:hello
 35:LIT_INT:999999999
 35:EOL
@@ -180,7 +182,8 @@ EXIT:0
 39:KEYWORD:Int
 39:EOL
 40:LIT_FLOAT:0
-40:LIT_STRING:escape:  carriage return
+40:LIT_STRING:escape: 
+ carriage return
 40:LIT_FLOAT:3.14159
 40:LIT_INT:102030
 40:EQ
@@ -192,6 +195,7 @@ EXIT:0
 42:LIT_STRING:text s mezerami
 42:PIPE
 42:EOL
+43:OUTDENT
 43:OUTDENT
 43:IDENTIFIER:x
 43:LIT_INT:2147483647
@@ -249,7 +253,8 @@ EXIT:0
 54:EOL
 55:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
 55:IDENTIFIER:_var
-55:LIT_STRING:escape:  carriage return
+55:LIT_STRING:escape: 
+ carriage return
 55:LIT_STRING:escape: \ lomitko
 55:PIPE
 55:EOL

@@ -154,7 +154,7 @@ def 1_000_000 // comment on line 153
 if   __private _1 then /* comment 
 
  */ 
-@   0.5 /* inline comment */ "text s mezerami" veryLongIdentifierNameThatShouldStillWorkInDynamicString  "escape: \\ lomitko"
+@main   0.5 /* inline comment */ "text s mezerami" veryLongIdentifierNameThatShouldStillWorkInDynamicString  "escape: \\ lomitko"
 veryLongIdentifierNameThatShouldStillWorkInDynamicString
 999_999_999 /* comment 
  */ 
@@ -191,7 +191,7 @@ Boolean
 snake_case // comment on line 191
 42 // comment on line 192
 __private
-@  123_456_789  do == // comment on line 194
+@main  123_456_789  do == // comment on line 194
 1_000_000 /* comment 
 
  */ 

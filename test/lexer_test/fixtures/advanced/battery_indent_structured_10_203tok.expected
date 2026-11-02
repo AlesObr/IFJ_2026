@@ -68,7 +68,6 @@ EXIT:0
 14:LIT_STRING:escape: 	 tabulator
 14:EOL
 15:EQ
-15:RPAREN
 15:IDENTIFIER:__private
 15:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 15:IDENTIFIER:readInt
@@ -80,7 +79,7 @@ EXIT:0
 16:LIT_INT:0
 16:KEYWORD:import
 16:EOL
-17:AT
+17:AT_MAIN
 17:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
 17:EOL
 18:IDENTIFIER:camelCase
@@ -92,7 +91,7 @@ EXIT:0
 19:EOL
 20:LIT_STRING:text s mezerami
 20:EOL
-21:AT
+21:AT_MAIN
 21:EOL
 22:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 22:LIT_FLOAT:3.14159
@@ -117,7 +116,6 @@ EXIT:0
 27:KEYWORD:Boolean
 27:COMMA
 27:UNDERSCORE
-27:RPAREN
 27:KEYWORD:var
 27:EOL
 28:OUTDENT
@@ -256,12 +254,11 @@ EXIT:0
 56:LIT_INT:1000000
 56:LIT_FLOAT:0.5
 56:EOL
-57:OUTDENT
-57:RPAREN
 57:LIT_INT:123456789
 57:LIT_INT:2147483647
 57:LIT_STRING:
 57:EOL
+58:OUTDENT
 58:IDENTIFIER:camelCase
 58:KEYWORD:match
 58:LIT_INT:999999999

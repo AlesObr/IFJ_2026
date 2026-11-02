@@ -29,11 +29,12 @@ EXIT:0
 6:LIT_INT:0
 6:EOL
 7:KEYWORD:Unit
-7:LIT_STRING:escape:  carriage return
+7:LIT_STRING:escape: 
+ carriage return
 7:EOL
 8:KEYWORD:else
 8:EOL
-9:AT
+9:AT_MAIN
 9:DIV
 9:EOL
 10:EOL
@@ -95,7 +96,8 @@ EXIT:0
 25:EOL
 26:IDENTIFIER:__private
 26:EOL
-27:LIT_STRING:escape:  carriage return
+27:LIT_STRING:escape: 
+ carriage return
 27:LIT_STRING:text s mezerami
 27:EOL
 28:EOL
@@ -163,13 +165,14 @@ EXIT:0
 48:LIT_INT:2147483647
 48:LIT_STRING:text s mezerami
 48:EOL
-49:AT
+49:AT_MAIN
 49:EOL
 50:EOL
 51:GT
 51:IDENTIFIER:readInt
 51:LIT_STRING:escape: 	 tabulator
-51:LIT_STRING:escape:  carriage return
+51:LIT_STRING:escape: 
+ carriage return
 51:EOL
 52:LIT_FLOAT:0
 52:EOL
@@ -228,7 +231,7 @@ EXIT:0
 69:EOL
 70:EOL
 71:EOL
-72:AT
+72:AT_MAIN
 72:MUL
 72:EOL
 73:GTE
@@ -239,7 +242,8 @@ EXIT:0
 76:COMMA
 76:EOL
 77:EOL
-78:LIT_STRING:escape:  carriage return
+78:LIT_STRING:escape: 
+ carriage return
 78:LIT_INT:2147483647
 78:EOL
 79:GTE
@@ -265,11 +269,12 @@ EXIT:0
 87:KEYWORD:List
 87:LIT_STRING:escape: 
  nova radka
-87:LIT_STRING:escape:  carriage return
+87:LIT_STRING:escape: 
+ carriage return
 87:IDENTIFIER:factorial
 87:LIT_STRING:hello
 87:IDENTIFIER:_var
-87:AT
+87:AT_MAIN
 87:EOL
 88:LIT_STRING:hello
 88:LIT_STRING:kombinace: 
@@ -318,7 +323,8 @@ EXIT:0
 105:LT
 105:IDENTIFIER:_var
 105:EOL
-106:LIT_STRING:escape:  carriage return
+106:LIT_STRING:escape: 
+ carriage return
 106:PLUS
 106:IDENTIFIER:__private
 106:EOL
@@ -361,7 +367,8 @@ EXIT:0
 119:EOL
 120:IDENTIFIER:readInt
 120:EOL
-121:LIT_STRING:escape:  carriage return
+121:LIT_STRING:escape: 
+ carriage return
 121:EOL
 122:EOL
 123:LIT_FLOAT:1000.5
@@ -391,7 +398,7 @@ EXIT:0
 131:PIPE
 131:LIT_INT:2147483647
 131:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
-131:AT
+131:AT_MAIN
 131:EOL
 132:LIT_FLOAT:3.14159
 132:EOL
@@ -459,7 +466,8 @@ EXIT:0
 155:EOL
 156:LIT_FLOAT:0.6
 156:IDENTIFIER:snake_case
-156:LIT_STRING:escape:  carriage return
+156:LIT_STRING:escape: 
+ carriage return
 156:EOL
 157:LIT_STRING:hello
 157:LIT_INT:2147483647
@@ -468,7 +476,7 @@ EXIT:0
 158:NEQ
 158:LIT_INT:1
 158:LIT_STRING:hello
-158:AT
+158:AT_MAIN
 158:EOL
 159:IDENTIFIER:result
 159:LT
@@ -507,7 +515,7 @@ EXIT:0
 171:IDENTIFIER:__private
 171:EOL
 172:LT
-172:AT
+172:AT_MAIN
 172:IDENTIFIER:snake_case
 172:EQ
 172:EOL
@@ -548,7 +556,8 @@ EXIT:0
 183:LIT_INT:1
 183:IDENTIFIER:__private
 183:LIT_INT:0
-183:LIT_STRING:escape:  carriage return
+183:LIT_STRING:escape: 
+ carriage return
 183:EOL
 184:EOL
 185:EOL
@@ -574,7 +583,7 @@ EXIT:0
 192:KEYWORD:while
 192:EOL
 193:LIT_FLOAT:42
-193:AT
+193:AT_MAIN
 193:EOL
 194:LIT_FLOAT:100000
 194:EOL

@@ -43,8 +43,10 @@ static const char *token_type_to_string(TokenType type) {
         case TOKEN_MUL:             return "MUL";
         case TOKEN_DIV:             return "DIV";
         case TOKEN_DOT:             return "DOT";
+        case TOKEN_AT_MAIN:         return "AT_MAIN";
         case TOKEN_EOL:             return "EOL";
         case TOKEN_INDENT:          return "INDENT";
+        case TOKEN_OUTDENT:         return "OUTDENT";
         case TOKEN_UNDERSCORE:      return "UNDERSCORE";
         case TOKEN_COLON:           return "COLON";
         case TOKEN_ASSIGN:          return "ASSIGN";
@@ -101,7 +103,7 @@ int main(void) {
                 break;
 
             case TOKEN_INDENT:
-                printf("%zu:INDENT:%zu\n", token.line, (size_t)token.data.int_val);
+                printf("%zu:INDENT\n", token.line);
                 break;
 
             default:

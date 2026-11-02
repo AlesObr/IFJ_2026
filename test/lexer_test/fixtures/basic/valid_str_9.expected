@@ -2,4 +2,4 @@ EXIT:0
 1:LIT_STRING:line1
 line2
 line3
-1:EOF
+3:EOF
