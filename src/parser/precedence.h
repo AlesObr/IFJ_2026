@@ -20,7 +20,7 @@
 /**
  * @brief Levels of precedence
  */
-enum { NONE = 0, ASSIGN, OR, AND, EQUALITY, RELATIONAL, ADDITIVE, MULTI, UNARY } PrecLevel;
+typedef enum { NONE = 0, ASSIGN, OR, AND, EQUALITY, RELATIONAL, ADDITIVE, MULTI, UNARY } PrecLevel;
 
 /**
  * @brief Function for parsing of expressions and conditions

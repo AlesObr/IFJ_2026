@@ -15,6 +15,7 @@
 #include "ast.h"
 #include "precedence.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,6 +26,18 @@ ParserStatus parse_if_statement(Token *curr_token);
 ParserStatus parse_statement(Token *curr_token);
 ParserStatus parse_code_block(Token *curr_token);
 ParserStatus parse_func_body(Token *curr_token);
+
+static void parser_trace_token(const char *location, const Token *token) {
+	const char *value = "";
+	if (token->type == TOKEN_IDENTIFIER || token->type == TOKEN_LIT_STRING) {
+		value = token->data.str_val ? dstring_get(token->data.str_val) : "<null>";
+	}
+	fprintf(stderr, "[parser] %s: %s at %zu:%zu", location, token_type_name(token->type),
+		token->line, token->col);
+	if (*value)
+		fprintf(stderr, " value=\"%s\"", value);
+	fputc('\n', stderr);
+}
 
 /**
  * @brief Macro for safely fetching from scanner
@@ -42,6 +55,7 @@ ParserStatus parse_func_body(Token *curr_token);
 			}                                                                                      \
 			return PARSE_ERROR((err), LEX_FAIL);                                                   \
 		}                                                                                          \
+		parser_trace_token(__func__, (tok_ptr));                                                   \
 		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \
 			return PARSE_OK(PAR_EOF, NULL);                                                        \
 		}                                                                                          \
@@ -95,6 +109,9 @@ ParserStatus parse_func_body(Token *curr_token);
  */
 ParserStatus parse_header(Token *curr_token) {
 	GET_TOKEN(curr_token, (Error){0}, NULL);
+	while (curr_token->type == TOKEN_EOL) {
+		GET_TOKEN(curr_token, (Error){0}, NULL);
+	}
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing mandatory import header (import ifj.*)\n"),
@@ -177,7 +194,7 @@ ParserStatus parse_code_block(Token *curr_token) {
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_block, ast_block_add_stmt(new_block, status.new_node),
 			"Failed to append statement into block in multi line function body\n");
-		if (curr_token->type != TOKEN_SEMICOLON || curr_token->type != TOKEN_EOL) {
+		if (curr_token->type != TOKEN_SEMICOLON && curr_token->type != TOKEN_EOL) {
 			ast_destroy(new_block);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid TOKEN at the end of statement\n"),
@@ -243,7 +260,7 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_decl, ast_var_decl_add_init(new_decl, status.new_node),
 			"Failed to append init expression to variable declaration\n");
-		if (curr_token->type != TOKEN_EOL || curr_token->type != TOKEN_SEMICOLON) {
+		if (curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_SEMICOLON) {
 			ast_destroy(new_decl);
 			return PARSE_ERROR(
 				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -541,7 +558,7 @@ ParserStatus parse_statement(Token *curr_token) {
 				CHECK_STATUS(status);
 				ALLOC_NODE(
 					node, ast_create_return(status.new_node, curr_token->line, curr_token->col));
-				if (curr_token->type != TOKEN_EOL || curr_token->type != TOKEN_SEMICOLON) {
+				if (curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_SEMICOLON) {
 					ast_destroy(status.new_node);
 					return PARSE_ERROR(
 						ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -553,12 +570,10 @@ ParserStatus parse_statement(Token *curr_token) {
 			}
 			break;
 		case TOKEN_IDENTIFIER:
-		case TOKEN_INT_LITERAL:
-		case TOKEN_FLOAT_LITERAL:
-		case TOKEN_STRING_LITERAL:
-		case TOKEN_NULL_LITERAL:
+		case TOKEN_LIT_INT:
+		case TOKEN_LIT_FLOAT:
+		case TOKEN_LIT_STRING:
 		case TOKEN_LPAREN:
-		case TOKEN_NOT:
 		case TOKEN_NOT:
 			status = parse_expression(curr_token);
 			CHECK_STATUS(status);
@@ -944,6 +959,7 @@ ParserStatus parse_program(Token *curr_token) {
 }
 
 ParserStatus parse() {
+	fprintf(stderr, "[parser] parse: start\n");
 	Token *curr_token = malloc(sizeof(Token));
 	if (curr_token == NULL) {
 		return PARSE_ERROR(
@@ -965,6 +981,11 @@ ParserStatus parse() {
 		return status;
 	}
 	status = parse_program(curr_token);
+	fprintf(stderr, "[parser] parse: finished with flag=%d error=%d at %zu:%zu", status.flag,
+		status.error.type, status.error.line, status.error.col);
+	if (status.error.message)
+		fprintf(stderr, " message=\"%s\"", status.error.message);
+	fputc('\n', stderr);
 	free(curr_token);
 	return status;
 }
