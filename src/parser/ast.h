@@ -68,7 +68,9 @@ typedef enum {
 	OP_GTE,			// >=
 	OP_NOT,			// ! (unary)
 	OP_UNARY_MINUS, // - (unary)
-	OP_UNARY_PLUS	// + (unary)
+	OP_UNARY_PLUS,	// + (unary)
+	OP_OR,			// ||
+	OP_AND			// &&
 } OpType;
 
 /**
@@ -117,49 +119,44 @@ struct ASTNode {
 
 		/** @brief Structure for variable declaration nodes. */
 		struct {
-			dstring_t var_name;	 /**< Dynamic string holding declared variable name. */
-			ValType type_name;    /**< Type of the variable */
-			bool is_const;		 /**< True if declared as const, false for var. */
-			ASTNode *init_expr;	 /**< Initializer expression or NULL. */
+			dstring_t var_name; /**< Dynamic string holding declared variable name. */
+			ValType type_name;	/**< Type of the variable */
+			bool is_const;		/**< True if declared as const, false for var. */
+			ASTNode *init_expr; /**< Initializer expression or NULL. */
 		} var_decl;
-
-		/** @brief Structure for variable assignment nodes. */
-		struct {
-			dstring_t target_name; /**< Target variable identifier name. */
-			ASTNode *expr;		   /**< Assigned expression. */
-		} assignment;
 
 		/** @brief Structure for function call nodes. */
 		struct {
 			dstring_t func_name; /**< Identifier of the called function. */
+			ASTNode *target;	 /**< Target of the function call (used for chain calling) */
 			ASTNodeList args;	 /**< List of argument expressions. */
 		} call;
 
 		/** @brief Structure for function parameters */
 		struct {
 			dstring_t param_name; /**< Name of the function parameter. */
-			ValType param_type;   /**< Type of the function parameter. */
+			ValType param_type;	  /**< Type of the function parameter. */
 		} func_param;
 
 		/** @brief Structure for function param window */
 		struct {
-			ASTNodeList params;	 /**< List of parameters for said function parameter window */
-			int size;				 /**< Amount of function parameter lists in said window */
+			ASTNodeList params; /**< List of parameters for said function parameter window */
+			int size;			/**< Amount of function parameter lists in said window */
 		} param_window;
 
 		/** @brief Structure for function declaration */
 		struct {
-			dstring_t func_name; 		 /**< Identifier of declared function */
-			ValType return_type; 		 /**< Type that function should return */
-			bool is_main;		 		 /**< Flag tracking whether function is the main one */
-			ASTNodeList param_windows;	 /**< List of parameter windows */
-			ASTNode* body;	 			 /**< Expressions inside function body */
+			dstring_t func_name;	   /**< Identifier of declared function */
+			ValType return_type;	   /**< Type that function should return */
+			bool is_main;			   /**< Flag tracking whether function is the main one */
+			ASTNodeList param_windows; /**< List of parameter windows */
+			ASTNode *body;			   /**< Expressions inside function body */
 		} func_decl;
 
 		/** @brief Structure for extension declaration */
 		struct {
 			dstring_t param_name; /**< Dynamic string holding extension parameter  */
-			ValType type_name;    /**< Type that extension extension */
+			ValType type_name;	  /**< Type that extension extension */
 			ASTNodeList funcs;	  /**< List of functions inside said extension */
 		} ext_decl;
 
@@ -170,9 +167,9 @@ struct ASTNode {
 
 		/** @brief Structure for if-else branching nodes. */
 		struct {
-			ASTNode *cond;		  	  /**< Branching condition expression. */
-			ASTNode *body;		  	  /**< Code block indented by if statement */
-			ASTNodeList next_conds;   /**< Optional else / else if branches */
+			ASTNode *cond;			/**< Branching condition expression. */
+			ASTNode *body;			/**< Code block indented by if statement */
+			ASTNodeList next_conds; /**< Optional else / else if branches */
 		} if_else_stmt;
 
 		/** @brief Structure for while loop nodes. */
@@ -183,13 +180,13 @@ struct ASTNode {
 
 		/** @brief Structure of for loop nodes. */
 		struct {
-			dstring_t gen_id; /**< Id of generator */
-			ASTNode *gen_start;		/**< Expression serving as start of generator */
-			ASTNode *gen_end;		/**< Expression serving as end of generator */
-			ASTNode *gen_step;		/**< Expression serving as step of generator */
-			bool last_in;			/**< Flag symbolizing whether gen_end is included in interval */
-			ASTNodeList guards;		/**< Guards of the for loop */
-			ASTNode *body;			/**< Body of for loop */
+			dstring_t gen_id;	/**< Id of generator */
+			ASTNode *gen_start; /**< Expression serving as start of generator */
+			ASTNode *gen_end;	/**< Expression serving as end of generator */
+			ASTNode *gen_step;	/**< Expression serving as step of generator */
+			bool last_in;		/**< Flag symbolizing whether gen_end is included in interval */
+			ASTNodeList guards; /**< Guards of the for loop */
+			ASTNode *body;		/**< Body of for loop */
 		} for_stmt;
 
 		/** @brief Structure for return statement nodes. */
@@ -215,41 +212,42 @@ ASTNode *ast_create_for(const dstring_t *gen_id, size_t line, size_t col);
  * @param for_node Node of for loop to be appended into
  * @param expr Expression to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
-*/
-bool ast_for_add_start(ASTNode *for_node, ASTNode* expr);
+ */
+bool ast_for_add_start(ASTNode *for_node, ASTNode *expr);
 
 /**
- * @brief Function for appending generator end expression and setting flag last_in to for loop AST node
+ * @brief Function for appending generator end expression and setting flag last_in to for loop AST
+ * node
  * @param for_node Node of for loop to be appended into
  * @param expr Expression to be appended
  * @param last_in Flag checking whether the last number is also included in interval
  * @return True if success, false if problem occurs or wrong parameters passed
-*/
-bool ast_for_add_end(ASTNode *for_node, ASTNode* expr, bool last_in);
+ */
+bool ast_for_add_end(ASTNode *for_node, ASTNode *expr, bool last_in);
 
 /**
  * @brief Function for appending generator step expression to for loop AST node
  * @param for_node Node of for loop to be appended into
  * @param expr Expression to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
-*/
-bool ast_for_add_step(ASTNode *for_node, ASTNode* expr);
+ */
+bool ast_for_add_step(ASTNode *for_node, ASTNode *expr);
 
 /**
  * @brief Function for appending code block to for loop AST node
  * @param for_node Node of for loop to be appended into
  * @param code_block Code block to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
-*/
-bool ast_for_add_body(ASTNode *for_node, ASTNode* code_block);
+ */
+bool ast_for_add_body(ASTNode *for_node, ASTNode *code_block);
 
 /**
  * @brief Function for appending guards to for loop AST node
  * @param for_node Node of for loop to be appended into
  * @param guard For loop guard to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
-*/
-bool ast_for_append_guard(ASTNode *for_node, ASTNode* guard);
+ */
+bool ast_for_append_guard(ASTNode *for_node, ASTNode *guard);
 
 /**
  * @brief Creates a new AST node for an integer literal.
@@ -335,16 +333,6 @@ ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, 
 bool ast_var_decl_add_init(ASTNode *var_decl_node, ASTNode *init_expr);
 
 /**
- * @brief Creates a new AST node for an assignment operation.
- * @param target Identifier name of target variable (content is cloned).
- * @param expr Evaluated expression node to store.
- * @param line Source line index.
- * @param col Source column index.
- * @return Allocated ASTNode pointer or NULL on failure.
- */
-ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t line, size_t col);
-
-/**
  * @brief Creates a new AST node for a function invocation.
  * @param func_name Name of function to invoke (content is cloned).
  * @param line Source line index.
@@ -352,6 +340,22 @@ ASTNode *ast_create_assignment(const dstring_t *target, ASTNode *expr, size_t li
  * @return Allocated ASTNode pointer or NULL on failure.
  */
 ASTNode *ast_create_call(const dstring_t *func_name, size_t line, size_t col);
+
+/**
+ * @brief Appends parameter window into function call node
+ * @param func_call Function call node
+ * @param param_window Parameter window to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_call_add_window(ASTNode *func_call, ASTNode *param_window);
+
+/**
+ * @brief Sets node that the function call node extend
+ * @param call_node Function call node with target to be set
+ * @param target Target node to be appended to call node
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_call_add_target(ASTNode *call_node, ASTNode *target);
 
 /**
  * @brief Appends an argument expression node to a function call ASTNode.
@@ -394,7 +398,6 @@ ASTNode *ast_create_if(ASTNode *cond, size_t line, size_t col);
  * @return Allocated ASTNode pointer or NULL on failure.
  */
 ASTNode *ast_create_else(ASTNode *cond, size_t line, size_t col);
-
 
 /**
  * @brief Appends code block to if / else AST node

@@ -177,7 +177,18 @@ ParserStatus parse_code_block(Token *curr_token) {
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_block, ast_block_add_stmt(new_block, status.new_node),
 			"Failed to append statement into block in multi line function body\n");
-		GET_TOKEN(curr_token, (Error){0}, new_block);
+		if (curr_token->type != TOKEN_SEMICOLON || curr_token->type != TOKEN_EOL) {
+			ast_destroy(new_block);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								   "Invalid TOKEN at the end of statement\n"),
+				PAR_FAIL);
+		}
+		if (curr_token->type == TOKEN_SEMICOLON) {
+			GET_TOKEN(curr_token, (Error){0}, new_block);
+		}
+		if (curr_token->type == TOKEN_EOL) {
+			GET_TOKEN(curr_token, (Error){0}, new_block);
+		}
 	}
 	return PARSE_OK(PAR_SUCC, new_block);
 }
@@ -232,6 +243,14 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_decl, ast_var_decl_add_init(new_decl, status.new_node),
 			"Failed to append init expression to variable declaration\n");
+		if (curr_token->type != TOKEN_EOL || curr_token->type != TOKEN_SEMICOLON) {
+			ast_destroy(new_decl);
+			return PARSE_ERROR(
+				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+					"Invalid token after declaration expression (expected semicolon or EOL\n"),
+				PAR_FAIL);
+		}
+
 	} else {
 		ast_destroy(new_decl);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -342,6 +361,7 @@ ParserStatus parse_while_statement(Token *curr_token) {
 	status = parse_expression(curr_token);
 	CHECK_STATUS(status);
 	if (curr_token->type != TOKEN_KEYWORD_DO) {
+		ast_destroy(status.new_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Expected do after condition, got other token\n"),
 			PAR_FAIL);
@@ -521,12 +541,27 @@ ParserStatus parse_statement(Token *curr_token) {
 				CHECK_STATUS(status);
 				ALLOC_NODE(
 					node, ast_create_return(status.new_node, curr_token->line, curr_token->col));
+				if (curr_token->type != TOKEN_EOL || curr_token->type != TOKEN_SEMICOLON) {
+					ast_destroy(status.new_node);
+					return PARSE_ERROR(
+						ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							"Invalid token after return (expected semicolon or EOL\n"),
+						PAR_FAIL);
+				}
 			} else {
 				ALLOC_NODE(node, ast_create_return(NULL, curr_token->line, curr_token->col));
 			}
 			break;
 		case TOKEN_IDENTIFIER:
-			// add parsing of expression
+		case TOKEN_INT_LITERAL:
+		case TOKEN_FLOAT_LITERAL:
+		case TOKEN_STRING_LITERAL:
+		case TOKEN_NULL_LITERAL:
+		case TOKEN_LPAREN:
+		case TOKEN_NOT:
+		case TOKEN_NOT:
+			status = parse_expression(curr_token);
+			CHECK_STATUS(status);
 			break;
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -908,7 +943,7 @@ ParserStatus parse_program(Token *curr_token) {
 	return PARSE_OK(PAR_EOF, program);
 }
 
-ParserStatus parse(void) {
+ParserStatus parse() {
 	Token *curr_token = malloc(sizeof(Token));
 	if (curr_token == NULL) {
 		return PARSE_ERROR(

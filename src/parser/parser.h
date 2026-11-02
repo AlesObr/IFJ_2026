@@ -49,7 +49,8 @@ typedef struct {
 #define PARSE_ERROR(e, f) ((ParserStatus){.error = (e), .flag = (f)})
 /**
  * @brief Initializes parser inner loop
+ * @return Returns ParserStatus containing head of AST tree if no error occured
  */
-ParserStatus parse(void);
+ParserStatus parse();
 
 #endif /* IFJ26_PARSER_H */
