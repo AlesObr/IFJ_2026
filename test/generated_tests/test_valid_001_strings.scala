@@ -1,76 +1,63 @@
-// Zakladni zadani: retezce, vestavene funkce, return, implicitni konverze Int->Double
-
 import ifj26.*
 
-def withoutLineFeed(text: String): String = /* inline */
-  val length = strLength(text) /* inline */
-// Fuzz vložený komentář
+def withoutLineFeed(text_fuzz61: String): String =
+  val length = strLength(text_fuzz61)
   if length == 0 then
-    return text
+    return text_fuzz61
   else
+
     val last = length - 1
-    val code = ord(text, last)
-// Fuzz vložený komentář
-
-    if code == 10 then /* inline */
-      return subStr(text, 0, last)
+    val code = ord(text_fuzz61, last)
+    if code == 10 then
+      return subStr(text_fuzz61, 0, last)
     else
-      return text
 
-def reverse(text: String): String = /* inline */
-// Fuzz vložený komentář
-  val length = strLength(text) /* inline */
+      return text_fuzz61
+
+def reverse(text_fuzz61: String): String =
+  val length = strLength(text_fuzz61)
   var index = length - 1
-  var result = "" /* inline */
+  var result = ""
   while index >= 0 do
-// Fuzz vložený komentář
-    val code = ord(text, index)
+    val code = ord(text_fuzz61, index)
     val character = chr(code)
-    result = result + character // konkatenace_fuzz80 /* inline */
-    index = index - 1 /* inline */
+    result = result + character
+    index = index - 1
   result
 
-def prefix(text: String): String =
+def prefix(text_fuzz61: String): String =
 
-  val length = strLength(text) /* inline */
+  val length = strLength(text_fuzz61)
   var end = length
-// Fuzz vložený komentář
   if length > 3 then
     end = 3
-  else  // podminka ma v zakladnim zadani vzdy obe vetve
-
-    () /* inline */
-
+  else
+    ()
   if length == 0 then
-    return "" /* inline */
+    return ""
 
   else
-    return subStr(text, 0, end) /* inline */
-// Fuzz vložený komentář
+    return subStr(text_fuzz61, 0, end)
 
-// length se implicitne prevede na Double, protoze prava strana deleni
-// obsahuje Double
 def halfLength(length: Int): Double = length / 2.0
 
-def showLine(text: String): Unit =
-  print(text) /* inline */
+def showLine(text_fuzz61: String): Unit =
+  print(text_fuzz61)
   print("\n")
-// Fuzz vložený komentář
 
 @main def stringsExample(): Unit =
-
   val raw = readLine()
-  val text = withoutLineFeed(raw)
-  val backwards = reverse(text)
-  val first = prefix(text)
-  val length = strLength(text) /* inline */
+  val text_fuzz61 = withoutLineFeed(raw)
+
+  val backwards = reverse(text_fuzz61)
+
+  val first = prefix(text_fuzz61)
+  val length = strLength(text_fuzz61)
   val half = halfLength(length)
   val halfText = toStr(half)
   showLine(backwards)
   showLine(first)
-// Fuzz vložený komentář
   print("length: ")
   print(length)
   print("\nhalf: ")
-// Fuzz vložený komentář
   showLine(halfText)

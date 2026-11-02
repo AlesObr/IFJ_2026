@@ -29,7 +29,7 @@ def factorialRecursive(n: Int): Int =
       print("Use an integer from 0 to 12.\n")
     else
       val iterative = factorialIterative(n)
-      val recurs}ive = factorialRecursive(n)
+      val recursive = factorialRecursive(n
       print("iterative: ")
       print(iterative)
       print("\nrecursive: ")

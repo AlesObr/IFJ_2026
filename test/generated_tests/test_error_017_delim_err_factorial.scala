@@ -1,7 +1,7 @@
 // Zakladni zadani: vstup, val/var, podminky, cyklus, funkce, rekurze.
 import ifj26.*
 
-def factorialIterative(n: Int): Int =
+def factorialIterativen: Int): Int =
   var result = 1  // promenne
   var i: Int = 2
   while i <= n do
@@ -25,7 +25,7 @@ def factorialRecursive(n: Int): Int =
   if n < 0 then
     print("Use an integer from 0 to 12.\n")
   else
-    i{f n > 12 then
+    if n > 12 then
       print("Use an integer from 0 to 12.\n")
     else
       val iterative = factorialIterative(n)

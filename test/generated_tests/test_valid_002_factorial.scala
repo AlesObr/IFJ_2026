@@ -21,17 +21,17 @@ def factorialRecursive(n: Int): Int =
   val n = readInt()  // nemodifikovatelna promenna
   // Int je ve Scale 32b - vice nez 12! by preteklo.
   // V IFJ chovani v krajnich situacich (pre-/podteceni) prilis netestujeme,
-  // ale je vhodne_fuzz55 se k tomu nejak konkretne pri implementaci postavit.
+  // ale je vhodne se k tomu nejak konkretne pri implementaci postavit.
   if n < 0 then
     print("Use an integer from 0 to 12.\n")
   else
     if n > 12 then
       print("Use an integer from 0 to 12.\n")
     else
-      val iterative = factorialIterative(n)
+      val iterative_fuzz32 = factorialIterative(n)
       val recursive = factorialRecursive(n)
       print("iterative: ")
-      print(iterative)
+      print(iterative_fuzz32)
       print("\nrecursive: ")
       print(recursive)
       print("\n")

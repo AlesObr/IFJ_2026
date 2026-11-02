@@ -125,7 +125,7 @@ ParserStatus parse_header(Token *curr_token) {
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, NULL);
-	if (curr_token->type != TOKEN_KEYWORD_DO) {
+	if (curr_token->type != TOKEN_DOT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing ifj type in import (ifj.*)\n"),
 			PAR_FAIL);

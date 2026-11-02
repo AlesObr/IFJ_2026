@@ -1,76 +1,76 @@
 // Zakladni zadani: retezce, vestavene funkce, return, implicitni konverze Int->Double
 import ifj26.*
-// Fuzz vložený komentář
 
-def withoutLineFeed(text: String): String =
+def withoutLineFeed_fuzz36(text: String): String = /* inline */
   val length = strLength(text)
-// Fuzz vložený komentář
   if length == 0 then
-    return text /* inline */
-
+    return text
   else
-// Fuzz vložený komentář
-    val last = length - 1
-    val code = ord(text, last) /* inline */
+// Fuzz vlozeny komentar
+    val last = length - 1 /* inline */
+    val code = ord(text, last)
     if code == 10 then
-// Fuzz vložený komentář
-      return subStr(text, 0, last) /* inline */
+      return subStr(text, 0, last)
     else
-      return text /* inline */
-// Fuzz vložený komentář
+      return text
+// Fuzz vlozeny komentar
 
 def reverse(text: String): String =
-  val length = strLength(text) /* inline */
-  var index = length - 1
-  var result = ""
-  while index >= 0 do
-    val code = ord(text, index)
-    val character = chr(code) /* inline */
-    result = result + character // konkatenace
-    index = index - 1
-// Fuzz vložený komentář
-  result
-
-// Fuzz vložený komentář
-def prefix(text: String): String = /* inline */
 
   val length = strLength(text)
+  var index = length - 1
+  var result = ""
+
+  while index >= 0 do /* inline */
+// Fuzz vlozeny komentar
+    val code = ord(text, index)
+    val character = chr(code)
+    result = result + character // konkatenace
+    index = index - 1
+
+  result
+
+def prefix(text: String): String =
+  val length = strLength(text)
   var end = length
-// Fuzz vložený komentář
-  if length > 3 then /* inline */
+  if length > 3 then
+// Fuzz vlozeny komentar
     end = 3
-  else  // podminka ma v_fuzz11 zakladnim zadani vzdy obe vetve
+  else  // podminka ma v zakladnim zadani vzdy obe vetve
     ()
-
-  if length == 0 then
-
+  if length == 0 then /* inline */
+// Fuzz vlozeny komentar
     return "" /* inline */
+// Fuzz vlozeny komentar
   else
     return subStr(text, 0, end)
+// Fuzz vlozeny komentar
 
 // length se implicitne prevede na Double, protoze prava strana deleni
 // obsahuje Double
-// Fuzz vložený komentář
 def halfLength(length: Int): Double = length / 2.0
 
+// Fuzz vlozeny komentar
 def showLine(text: String): Unit =
-  print(text) /* inline */
+  print(text)
   print("\n")
 
 @main def stringsExample(): Unit =
+// Fuzz vlozeny komentar
   val raw = readLine()
-  val text = withoutLineFeed(raw)
-// Fuzz vložený komentář
-  val backwards = reverse(text)
+  val text = withoutLineFeed_fuzz36(raw)
+
+  val backwards = reverse(text) /* inline */
   val first = prefix(text)
   val length = strLength(text)
   val half = halfLength(length)
   val halfText = toStr(half)
-// Fuzz vložený komentář
-  showLine(backwards) /* inline */
-  showLine(first) /* inline */
-  print("length: ")
+// Fuzz vlozeny komentar
+  showLine(backwards)
+  showLine(first)
+
+  print("length: ") /* inline */
   print(length)
-// Fuzz vložený komentář
+// Fuzz vlozeny komentar
   print("\nhalf: ")
   showLine(halfText)

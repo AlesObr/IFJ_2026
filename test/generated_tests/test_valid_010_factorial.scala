@@ -1,49 +1,37 @@
 // Zakladni zadani: vstup, val/var, podminky, cyklus, funkce, rekurze.
-import ifj26.* /* inline */
+import ifj26.*
 
-
-def factorialIterative(n: Int): Int =
-  var result = 1  // promenne /* inline */
+def factorialIterative(n_fuzz75: Int): Int =
+  var result = 1  // promenne
   var i: Int = 2
-  while i <= n do /* inline */
+  while i <= n_fuzz75 do
     result = result * i
-// Fuzz vložený komentář
     i = i + 1
   result
-// Fuzz vložený komentář
 
-def factorialRecursive(n: Int): Int =
-  if n <= 1 then
-
+def factorialRecursive(n_fuzz75: Int): Int =
+  if n_fuzz75 <= 1 then
     return 1
-  else /* inline */
-    val previous = n - 1
+  else
+    val previous = n_fuzz75 - 1
     val smaller = factorialRecursive(previous)  // v zakl. zadani nelze vyraz pouzit jako arg. funkce
-
-    return n * smaller
+    return n_fuzz75 * smaller
 
 @main def factorialExample(): Unit =
-// Fuzz vložený komentář
-  val n = readInt()  // nemodifikovatelna promenna
-// Fuzz vložený komentář
+  val n_fuzz75 = readInt()  // nemodifikovatelna promenna
   // Int je ve Scale 32b - vice nez 12! by preteklo.
-
   // V IFJ chovani v krajnich situacich (pre-/podteceni) prilis netestujeme,
   // ale je vhodne se k tomu nejak konkretne pri implementaci postavit.
-  if n < 0 then
+  if n_fuzz75 < 0 then
     print("Use an integer from 0 to 12.\n")
   else
-// Fuzz vložený komentář
-
-    if n > 12 then
-      print("Use an integer from 0 to 12.\n") /* inline */
-// Fuzz vložený komentář
+    if n_fuzz75 > 12 then
+      print("Use an integer from 0 to 12.\n")
     else
-      val iterative = factorialIterative(n)
-      val recursive = factorialRecursive(n)
+      val iterative = factorialIterative(n_fuzz75)
+      val recursive = factorialRecursive(n_fuzz75)
       print("iterative: ")
       print(iterative)
       print("\nrecursive: ")
-// Fuzz vložený komentář
       print(recursive)
       print("\n")
