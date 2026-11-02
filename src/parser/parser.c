@@ -112,18 +112,23 @@ ParserStatus parse_header(Token *curr_token) {
 	while (curr_token->type == TOKEN_EOL) {
 		GET_TOKEN(curr_token, (Error){0}, NULL);
 	}
+	// It geted "import"
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing mandatory import header (import ifj.*)\n"),
 			PAR_FAIL);
 	}
+
+	// Expected "ifj26"
 	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type != TOKEN_IDENTIFIER ||
-		dstring_cmp_str(curr_token->data.str_val, "ifj") != 0) {
+		dstring_cmp_str(curr_token->data.str_val, "ifj26") != 0) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Wrong import library in header (ifj.*)\n"),
 			PAR_FAIL);
 	}
+
+	// Expected "."
 	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type != TOKEN_DOT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -131,6 +136,7 @@ ParserStatus parse_header(Token *curr_token) {
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, NULL);
+	// Expected "*"
 	if (curr_token->type != TOKEN_MUL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Wrong import library in header (ifj.*)\n"),
