@@ -22,6 +22,7 @@
  */
 enum {
 	NONE = 0,
+	ASSIGN,
 	OR,
 	AND,
 	EQUALITY,

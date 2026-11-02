@@ -41,8 +41,46 @@ static PrecLevel translate_token(Token *curr_token){
 			return AND;
 		case TOKEN_OR:
 			return OR;
+		case TOKEN_ASSIGN:
+			return ASSIGN;
 		default:
 			return NONE;
+	}
+}
+
+/**
+ * @brief Translater operator token into operator AST node type
+ * @param curr_token Actual token pointer to be translated
+ * @return OpType of AST node to be created
+*/
+OpType token_to_op(Token* curr_token){
+	switch(curr_token->type){
+		case TOKEN_MULTI:
+			return OP_MUL;
+		case TOKEN_DIV:
+			return OP_DIV;
+		case TOKEN_PLUS:
+			return OP_ADD;
+		case TOKEN_MINUS:
+			return OP_SUB;
+		case TOKEN_LT:
+			return OP_LT;
+		case TOKEN_GT:
+			return OP_GT;
+		case TOKEN_LTE:
+			return OP_LTE;
+		case TOKEN_GTE:
+			return OP_GTE;
+		case TOKEN_EQ:
+			return OP_EQ;
+		case TOKEN_NEQ:
+			return OP_NEQ;
+		case TOKEN_AND:
+			return OP_AND;
+		case TOKEN_OR:
+			return OP_OR;
+		case TOKEN_ASSIGN:
+			return OP_ASSIGN;
 	}
 }
 
@@ -173,12 +211,15 @@ ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec){
 		if (prec < min_prec){
 			break;
 		}
+		OpType op_type = token_to_op(curr_token);
 		GET_TOKEN(curr_token, (Error){0}, node);
-		status = parse_climb(curr_token, min_prec + 1);
+		min_prec = (op_type == OP_ASSIGN) ? prec : (prec+1)
+		status = parse_climb(curr_token, min_prec);
 		CHECK_STATUS(status);
 		ASTNode *bin_op;
-		ALLOC_NODE(bin_op, ast_create_binop(bin_op, node, status.new_node, curr_token->line, curr_token->col));
-		if (op == RELATIONAL || op == EQUALITY){
+		ALLOC_NODE(bin_op, ast_create_binop(op_type, bin_op, status.new_node, curr_token->line, curr_token->col));
+		prec = translate_token(curr_token);
+		if (prec == RELATIONAL || prec == EQUALITY){
 			GET_TOKEN(curr_token, (Error){0}, node);
 			if ((translate_token(curr_token)) != NONE){
 				ast_destroy(bin_op);
