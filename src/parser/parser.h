@@ -10,9 +10,9 @@
 #ifndef IFJ26_PARSER_H
 #define IFJ26_PARSER_H
 
-#include "ast.h"
 #include "../_utils/error.h"
 #include "../lexer/lexer.h"
+#include "ast.h"
 #include <stdbool.h>
 
 /**
@@ -30,9 +30,9 @@ typedef enum {
  * @brief Structure for passing status between parser functions
  */
 typedef struct {
-	Error error;	 	/**< Error structure containing error info */
-	ParserFlag flag; 	/**< Flag signalizing parser behavior */
-	ASTNode* new_node;  /**< Node created by function to be connected to AST tree by caller */
+	Error error;	   /**< Error structure containing error info */
+	ParserFlag flag;   /**< Flag signalizing parser behavior */
+	ASTNode *new_node; /**< Node created by function to be connected to AST tree by caller */
 } ParserStatus;
 
 /**
@@ -50,6 +50,6 @@ typedef struct {
 /**
  * @brief Initializes parser inner loop
  */
-void parse();
+ParserStatus parse(void);
 
 #endif /* IFJ26_PARSER_H */

@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/skolp/prrojekty/IFJ_2026/IFJ_2026/src/_utils",
-      "program": "/home/skolp/prrojekty/IFJ_2026/IFJ_2026/src/_utils/build/Debug/outDebug",
+      "cwd": "/home/skolp/prrojekty/IFJ_2026/IFJ_2026/src/parser",
+      "program": "/home/skolp/prrojekty/IFJ_2026/IFJ_2026/src/parser/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
