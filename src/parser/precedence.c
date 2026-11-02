@@ -148,7 +148,9 @@ ParserStatus parse_prefix(Token *curr_token){
 			}
 			node = tmp_node;
 		} else {
-			status = parse_call_expression(curr_token);
+			ASTNode *tmp_node;
+			ALLOC_NODE(tmp_node, ast_create_call(curr_token->data.str_val, curr_token->line, curr_token->col));
+			status = parse_call_parameters(curr_token, tmp_node);
 			CHECK_STATUS(status);
 			node = status.new_node;
 		}
