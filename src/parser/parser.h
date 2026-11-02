@@ -10,6 +10,7 @@
 #ifndef IFJ26_PARSER_H
 #define IFJ26_PARSER_H
 
+#include "ast.h"
 #include "../_utils/error.h"
 #include "../lexer/lexer.h"
 #include <stdbool.h>
