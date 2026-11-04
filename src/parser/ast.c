@@ -337,8 +337,7 @@ bool ast_func_add_param_window(ASTNode *func_node, ASTNode *param_window) {
 }
 
 bool ast_window_add_param(ASTNode *param_window, ASTNode *param) {
-	if (param_window == NULL || param_window->type != NODE_FUNC_WINDOW || param == NULL ||
-		param->type != NODE_FUNC_PARAM) {
+	if (param_window == NULL || param_window->type != NODE_FUNC_WINDOW || param == NULL) {
 		ast_destroy(param);
 		return false;
 	}
@@ -644,7 +643,7 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 			fputs(raw ? raw : "<null>", out);
 			break;
 		}
-
+		case NODE_ASSIGNMENT:
 		case NODE_BINARY_OP:
 			fprintf(out, "(%s ", op_to_str(node->op.op));
 			ast_dump_sexpr(node->op.left, out);

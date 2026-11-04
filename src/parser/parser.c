@@ -112,7 +112,7 @@ ParserStatus parse_header(Token *curr_token) {
 	while (curr_token->type == TOKEN_EOL) {
 		GET_TOKEN(curr_token, (Error){0}, NULL);
 	}
-	// It geted "import"
+	// Fetched "import"
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing mandatory import header (import ifj.*)\n"),
@@ -143,7 +143,7 @@ ParserStatus parse_header(Token *curr_token) {
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, NULL);
-	if (curr_token->type != TOKEN_EOL) {
+	if (curr_token->type != TOKEN_EOL) { // Expected EOL at the end of the declaration
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing EOL after header declaration\n"),
 			PAR_FAIL);
@@ -187,6 +187,9 @@ ParserStatus parse_at_main(Token *curr_token) {
  */
 ParserStatus parse_code_block(Token *curr_token) {
 	ParserStatus status = {0};
+	while (curr_token->type == TOKEN_EOL){
+		GET_TOKEN(curr_token, (Error){0}, NULL);
+	}
 	if (curr_token->type != TOKEN_INDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Expected start of indented block, got something else\n"),
@@ -196,15 +199,25 @@ ParserStatus parse_code_block(Token *curr_token) {
 	ALLOC_NODE(new_block, ast_create_block(curr_token->line, curr_token->col));
 	GET_TOKEN(curr_token, (Error){0}, new_block);
 	while (curr_token->type != TOKEN_OUTDENT) {
+		if (curr_token->type == TOKEN_EOL){
+			GET_TOKEN(curr_token, (Error){0}, new_block);
+			continue;
+		}
 		status = parse_statement(curr_token);
 		CHECK_STATUS(status);
-		CHECK_AST_APPEND(new_block, ast_block_add_stmt(new_block, status.new_node),
-			"Failed to append statement into block in multi line function body\n");
-		if (curr_token->type != TOKEN_SEMICOLON && curr_token->type != TOKEN_EOL) {
+		if (status.new_node != NULL){
+			CHECK_AST_APPEND(new_block, ast_block_add_stmt(new_block, status.new_node),
+				"Failed to append statement into block in multi line function body\n");
+		}
+		if (curr_token->type != TOKEN_SEMICOLON && curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_OUTDENT) {
 			ast_destroy(new_block);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid TOKEN at the end of statement\n"),
 				PAR_FAIL);
+		}
+		if (curr_token->type == TOKEN_OUTDENT){
+			GET_TOKEN(curr_token, (Error){0}, new_block);
+			continue;
 		}
 		if (curr_token->type == TOKEN_SEMICOLON) {
 			GET_TOKEN(curr_token, (Error){0}, new_block);
@@ -259,9 +272,10 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 					PAR_FAIL);
 		}
 		ast_add_type(new_decl, type);
+		GET_TOKEN(curr_token, (Error){0}, new_decl);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
-	if (curr_token->type == TOKEN_EQ) {
+	if (curr_token->type == TOKEN_ASSIGN) {
+		GET_TOKEN(curr_token, (Error){0}, new_decl);
 		ParserStatus status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_decl, ast_var_decl_add_init(new_decl, status.new_node),
@@ -270,7 +284,7 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 			ast_destroy(new_decl);
 			return PARSE_ERROR(
 				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-					"Invalid token after declaration expression (expected semicolon or EOL\n"),
+					"Invalid token after declaration expression (expected semicolon or EOL)\n"),
 				PAR_FAIL);
 		}
 
@@ -297,7 +311,7 @@ ParserStatus parse_else_statement(Token *curr_token) {
 		GET_TOKEN(curr_token, (Error){0}, NULL);
 		status = parse_code_block(curr_token);
 		CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
-			"Failed to append function body of else block\n");
+			"Failed to append function body of else block (no if)\n");
 		return PARSE_OK(PAR_SUCC, new_else);
 	} else if (curr_token->type == TOKEN_KEYWORD_IF) {
 		GET_TOKEN(curr_token, (Error){0}, NULL);
@@ -315,7 +329,7 @@ ParserStatus parse_else_statement(Token *curr_token) {
 			GET_TOKEN(curr_token, (Error){0}, NULL);
 			status = parse_code_block(curr_token);
 			CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
-				"Failed to append function body of else block\n");
+				"Failed to append function body of else block (if)\n");
 			return PARSE_OK(PAR_SUCC, new_else);
 		} else {
 			ast_destroy(new_else);
@@ -339,6 +353,7 @@ ParserStatus parse_else_statement(Token *curr_token) {
 ParserStatus parse_if_statement(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *new_if;
+	GET_TOKEN(curr_token, (Error){0}, NULL);
 	status = parse_expression(curr_token);
 	CHECK_STATUS(status);
 	ALLOC_NODE(new_if, ast_create_if(status.new_node, curr_token->line, curr_token->col));
@@ -381,6 +396,7 @@ ParserStatus parse_if_statement(Token *curr_token) {
 ParserStatus parse_while_statement(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *new_while;
+	GET_TOKEN(curr_token, (Error){0}, NULL);
 	status = parse_expression(curr_token);
 	CHECK_STATUS(status);
 	if (curr_token->type != TOKEN_KEYWORD_DO) {
@@ -541,6 +557,9 @@ ParserStatus parse_for_statement(Token *curr_token) {
 ParserStatus parse_statement(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *node = NULL;
+	if (curr_token->type == TOKEN_EOL){
+		return PARSE_OK(PAR_SUCC, NULL);
+	}
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_VAL:
 			status = parse_declaration(curr_token, false);
@@ -612,17 +631,19 @@ ParserStatus parse_func_body(Token *curr_token) {
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_block, ast_block_add_stmt(new_block, status.new_node),
 			"Failed to append statement into block in one line function body\n");
-	}
-	if (curr_token->type == TOKEN_EOL) {
-		GET_TOKEN(curr_token, (Error){0}, new_block);
-		status = parse_code_block(curr_token);
-		CHECK_STATUS(status);
-		new_block = status.new_node;
 	} else {
-		ast_destroy(new_block);
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Invalid Token after function declaration header\n"),
-			PAR_FAIL);
+		while (curr_token->type == TOKEN_EOL){
+			GET_TOKEN(curr_token, (Error){0}, NULL);
+		}
+		if (curr_token->type == TOKEN_INDENT){
+			status = parse_code_block(curr_token);
+			CHECK_STATUS(status);
+			new_block = status.new_node;
+		} else if (curr_token->type != TOKEN_EOL) {
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								"Invalid Token after function declaration header\n"),
+				PAR_FAIL);
+		}
 	}
 	return PARSE_OK(PAR_SUCC, new_block);
 }
@@ -717,6 +738,7 @@ ParserStatus parse_param_section(Token *curr_token) {
  */
 ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	ParserStatus status = {0};
+	GET_TOKEN(curr_token, (Error){0}, NULL);
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier in function declaration\n"),
@@ -764,7 +786,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 		ast_add_type(new_func, type);
 	}
 	GET_TOKEN(curr_token, (Error){0}, new_func);
-	if (curr_token->type == TOKEN_EQ) {
+	if (curr_token->type == TOKEN_ASSIGN) {
 		status = parse_func_body(curr_token);
 		new_func->func_decl.body = status.new_node;
 		CHECK_STATUS(status);
@@ -860,6 +882,8 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode *ext_node) {
 				status = parse_func_def(curr_token, false);
 				CHECK_STATUS(status);
 				break;
+			case TOKEN_EOL:
+				break;
 			default:
 				ast_destroy(ext_node);
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -880,38 +904,36 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode *ext_node) {
 ParserStatus parse_extension(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *ext_header;
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, (Error){0}, NULL); // Consume left parenthesis
 	if (curr_token->type != TOKEN_LPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing left bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
-	status = parse_extension_param(curr_token);
+	status = parse_extension_param(curr_token); // Parse the type the extension extends
 	CHECK_STATUS(status);
-	ext_header = status.new_node;
+	ext_header = status.new_node; // Extension header node was allocated in parse_extesion_param
 	GET_TOKEN(curr_token, (Error){0}, ext_header);
-	if (curr_token->type != TOKEN_RPAREN) {
+	if (curr_token->type != TOKEN_RPAREN) { // Parse_extension param should stop at right parenthesis
 		ast_destroy(ext_header);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing right bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, (Error){0}, ext_header);
-	if (curr_token->type != TOKEN_EOL) {
-		ast_destroy(ext_header);
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing EOL after extension parameter bracket\n"),
-			PAR_FAIL);
+	while (curr_token->type == TOKEN_EOL){ // Consume EOL after right parenthesis and any EOLs between header and body of extension
+		GET_TOKEN(curr_token, (Error){0}, ext_header);
+		if (curr_token->type == TOKEN_INDENT){
+			status = parse_extension_body(curr_token, ext_header);
+			CHECK_STATUS(status);
+			break;
+		} else if (curr_token->type != TOKEN_EOL) {
+			ast_destroy(ext_header);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								"Missing EOL after extension parameter bracket\n"),
+				PAR_FAIL);
+		}
 	}
-	GET_TOKEN(curr_token, (Error){0}, ext_header);
-	if (curr_token->type != TOKEN_INDENT) {
-		ast_destroy(ext_header);
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing left bracket of extension parameter\n"),
-			PAR_FAIL);
-	}
-	status = parse_extension_body(curr_token, ext_header);
-	CHECK_STATUS(status);
 	if (curr_token->type != TOKEN_OUTDENT) {
 		ast_destroy(ext_header);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -928,25 +950,25 @@ ParserStatus parse_extension(Token *curr_token) {
  */
 ParserStatus parse_program(Token *curr_token) {
 	ParserStatus status = {0};
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, (Error){0}, NULL); // Fetch first body token
 	ASTNode *program = NULL;
 	ALLOC_NODE(program, ast_create_block(curr_token->line, curr_token->col));
 	while (curr_token->type != TOKEN_EOF) {
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_EXTENSION:
-				status = parse_extension(curr_token);
+				status = parse_extension(curr_token); // Parse extension
 				CHECK_STATUS(status);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
 					"Failed to append extension node into AST Tree\n");
 				break;
 			case TOKEN_AT_MAIN:
-				status = parse_at_main(curr_token);
+				status = parse_at_main(curr_token); // Parse function with @main flag
 				CHECK_STATUS(status);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
 					"Failed to append function node into AST Tree\n");
 				break;
 			case TOKEN_KEYWORD_DEF:
-				status = parse_func_def(curr_token, false);
+				status = parse_func_def(curr_token, false); // Parse function without @main flag
 				CHECK_STATUS(status);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
 					"Failed to append function node into AST Tree\n");
@@ -959,7 +981,7 @@ ParserStatus parse_program(Token *curr_token) {
 									   "Missing EOL after header declaration\n"),
 					PAR_FAIL);
 		}
-		GET_TOKEN(curr_token, (Error){0}, program);
+		GET_TOKEN(curr_token, (Error){0}, program); // Get token for next highest level construct
 	}
 	return PARSE_OK(PAR_EOF, program);
 }
