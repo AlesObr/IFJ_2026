@@ -151,7 +151,7 @@ OpType token_to_op(Token *curr_token) {
  * @param node Node to append parameters into
  */
 ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
-	while (curr_token->type == TOKEN_LPAREN) {
+	do {
 		ASTNode *window = NULL;
 		ALLOC_NODE(window, ast_create_param_window(curr_token->line, curr_token->col));
 		CHECK_AST_APPEND(node, ast_call_add_window(node, window));
@@ -175,7 +175,7 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 			}
 		}
 		GET_TOKEN(curr_token, (Error){0}, node);
-	}
+	} while (curr_token->type == TOKEN_LPAREN);
 	return PARSE_OK(PAR_SUCC, node);
 }
 
@@ -196,8 +196,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 			status = parse_prefix(curr_token);
 			CHECK_STATUS(status);
 			ALLOC_NODE(
-				node, ast_create_unop(op, status.new_node, curr_token->line, curr_token->col));
-			return PARSE_OK(PAR_SUCC, node);
+			node, ast_create_unop(op, status.new_node, curr_token->line, curr_token->col));
 			break;
 		case TOKEN_LIT_INT:
 			ALLOC_NODE(
@@ -231,13 +230,18 @@ ParserStatus parse_prefix(Token *curr_token) {
 			}
 			node = status.new_node;
 			break;
+		case TOKEN_RPAREN:
+			ALLOC_NODE(node, ast_create_null(curr_token->line, curr_token->col));
+			return PARSE_OK(PAR_SUCC, node);
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid token in expression prefix parsing\n"),
 				PAR_FAIL);
 			break;
 	}
-	GET_TOKEN(curr_token, (Error){0}, node);
+	if (curr_token->type != TOKEN_RBRACE && curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_COMMA && curr_token->type != TOKEN_SEMICOLON){
+		GET_TOKEN(curr_token, (Error){0}, node);
+	}
 	while (curr_token->type == TOKEN_DOT || curr_token->type == TOKEN_LPAREN) {
 		if (curr_token->type == TOKEN_DOT) {
 			GET_TOKEN(curr_token, (Error){0}, node);
@@ -260,10 +264,27 @@ ParserStatus parse_prefix(Token *curr_token) {
 			node = tmp_node;
 		} else {
 			ASTNode *tmp_node = NULL;
+			dstring_t name;
+			if (node->type == NODE_IDENTIFIER){
+				name = node->str_val;
+			} else {
+				if (!dstring_init(&name)){
+					ast_destroy(node);
+					return PARSE_ERROR(
+						ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
+							"Failed to create dummy string for wrong function call\n"),
+						AST_FAIL);
+				}
+			}
 			ALLOC_NODE(tmp_node,
-				ast_create_call(curr_token->data.str_val, curr_token->line, curr_token->col));
+				ast_create_call(&name, curr_token->line, curr_token->col));
+			GET_TOKEN(curr_token, (Error){0}, node);
 			status = parse_call_parameters(curr_token, tmp_node);
 			CHECK_STATUS(status);
+			if (node->type == NODE_IDENTIFIER){
+				node->str_val.data = NULL;
+			}
+			ast_destroy(node);
 			node = status.new_node;
 		}
 	}
