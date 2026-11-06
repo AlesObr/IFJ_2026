@@ -22,7 +22,11 @@ typedef enum {
 	ERR_LEXICAL = 1,
 	ERR_SYNTAX = 2,
 	ERR_SEM_UNDEF = 3,
-	ERR_SEM_TYPE = 4,
+	ERR_SEM_REDEF = 4,
+	ERR_SEM_CALL = 5,
+	ERR_SEM_TYPE = 6,
+	ERR_SEM_ASSIGN = 7,
+	ERR_SEM_MAIN = 10,
 	ERR_INTERNAL = 99
 } ErrorType;
 
