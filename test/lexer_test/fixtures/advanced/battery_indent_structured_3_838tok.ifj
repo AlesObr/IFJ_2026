@@ -4,7 +4,7 @@
     _ "escape: \n nova radka" 999_999_999 else with123Numbers List
     999_999_999 _ "" // line 5 comment
     _1 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString "hello" 123_456_789 // line 6 comment
-    __private veryLongIdentifierNameThatShouldStillWorkInDynamicString val ( case 123_456_789
+    __private veryLongIdentifierNameThatShouldStillWorkInDynamicString val   case 123_456_789
 == "escape: \r carriage return" readInt String + readInt
 == 2.5E-3 snake_case 5e-2 veryLongIdentifierNameThatShouldStillWorkInDynamicString // line 9 comment
     _var Unit
@@ -15,7 +15,7 @@
     999_999_999 2147483647 1_000_000
     type 0.0
     String 0.5 Double 10_20_30
-    ; if @ "escape: \" uvozovka"
+    ; if @main "escape: \" uvozovka"
     1 > Int "escape: \n nova radka" // line 19 comment
         while 1_000.50_1 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
             123_456_789 1_000.50_1
@@ -32,7 +32,7 @@
                 0
             "hello" 1e5D
             42.0d __private with123Numbers "text s mezerami" "escape: \t tabulator" x
-                ) 42 with123Numbers 1_000_000
+                42 with123Numbers 1_000_000
                 42.0d thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString factorial _1 ; 123_456_789 // line 36 comment
                 x // line 37 comment
                 0 3.14159
@@ -96,7 +96,7 @@
 result
 0.6
 1_000.50_1 camelCase 5e-2 "hello" factorial
-"escape: \\ lomitko" 0 result 3.14159 import ( // line 99 comment
+"escape: \\ lomitko" 0 result 3.14159 import   // line 99 comment
     "text s mezerami" "escape: \\ lomitko" 999_999_999 "escape: \t tabulator" for 2.5E-3
 "text s mezerami" for <= < 999_999_999 5e-2 // line 101 comment
 42 factorial
@@ -108,10 +108,10 @@ x 0.0 1_000_000
 _ <=
 2147483647
 >= with123Numbers 1_000_000 123_456_789
-camelCase @ with123Numbers "escape: \t tabulator" 999_999_999 "escape: \" uvozovka"
+camelCase @main with123Numbers "escape: \t tabulator" 999_999_999 "escape: \" uvozovka"
 42 1 readInt while 0.0 // line 112 comment
 2147483647 _1 1e5D // line 113 comment
-_1 1 @ 1_000_000
+_1 1 @main 1_000_000
 type 0
     0 ""
 readInt camelCase var
@@ -135,7 +135,7 @@ readInt camelCase var
                 <= x
                 42 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
                 0.0
-                __private 1_000_000 @ >= then
+                __private 1_000_000 @main >= then
                 0.6 - factorial
                 999_999_999 10_20_30 0 42 "escape: \r carriage return"
                 == 5e-2 "escape: \" uvozovka" camelCase
@@ -146,7 +146,7 @@ readInt camelCase var
 1_000_000 != with123Numbers
     +
     . "" 0 _var 1_000_000 -
-    @ >= 1 42 __private
+    @main >= 1 42 __private
 __private <= _var
 42.0d
 _var veryLongIdentifierNameThatShouldStillWorkInDynamicString 1e5D factorial 0.0
@@ -165,13 +165,13 @@ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNam
 then
 : match 1 123_456_789 . // line 166 comment
 1_000.50_1
-1e10 ) 3.14159 999_999_999
+1e10   3.14159 999_999_999
     10_20_30 _1 val factorial 42.0d 42
     < camelCase 5e-2
         then return 2147483647
         snake_case thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString _1 0.125e+2
         "escape: \n nova radka" 42
-        @ , "escape: \t tabulator" 1 3.14159
+        @main , "escape: \t tabulator" 1 3.14159
         100.5e+2 123_456_789 // line 175 comment
         1_000.50_1 2.5E-3 x with123Numbers
         __private
@@ -183,7 +183,7 @@ _1 1 x 42
 class 1_000.50_1 result 2147483647 "escape: \" uvozovka"
 with123Numbers type readInt
     var result . Unit "text s mezerami"
-    factorial ) *
+    factorial   *
 2147483647
 3.14159 Int with123Numbers case
     2147483647 0.125e+2 // line 189 comment
@@ -194,7 +194,7 @@ with123Numbers type readInt
 10_20_30
 _var 1 "escape: \r carriage return" // line 195 comment
 42 10_20_30
-- 1_000_000 _1 0 ( +
+- 1_000_000 _1 0   +
 0 999_999_999 __private
 0.6 1e5D
 42.0d 100.5e+2 123_456_789 1 x // line 200 comment
@@ -206,7 +206,7 @@ _var 1 "escape: \r carriage return" // line 195 comment
     < 2.5E-3
     class case
     for
-    <= ) factorial > 42
+    <=   factorial > 42
 10_20_30 veryLongIdentifierNameThatShouldStillWorkInDynamicString 2147483647 for 1_000_000 +
     * __private
     0.0 123_456_789
@@ -221,7 +221,7 @@ _var 1 "escape: \r carriage return" // line 195 comment
     "escape: \" uvozovka" 1e5D 0.6 _1
     - >= 0.6 5e-2 3.14159 // line 222 comment
     > factorial "escape: \t tabulator" // line 223 comment
-"escape: \n nova radka" 3.14159 )
+"escape: \n nova radka" 3.14159  
 snake_case factorial with123Numbers 2147483647
 42 // line 226 comment
 import
@@ -229,13 +229,13 @@ x == snake_case
 1_000_000 "escape: \t tabulator" . _var result
 while | ; import 10_20_30
 "text s mezerami" if 1_000_000
->= (
+>=  
 _ "escape: \" uvozovka"
 match
 999_999_999 2.5E-3 , 999_999_999
     readInt Int
     1e10 extension 0 1_000.50_1 ; factorial
-    , with123Numbers == ) 123_456_789 *
+    , with123Numbers ==   123_456_789 *
     100.5e+2 2147483647 =
 <= 0.6 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString / _ Unit
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 42

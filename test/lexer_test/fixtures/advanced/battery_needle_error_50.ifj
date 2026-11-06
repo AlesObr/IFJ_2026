@@ -1,5 +1,5 @@
  - // comment on line 1
-thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  @ // comment on line 2
+thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  @main // comment on line 2
 |
 <=  0.6 /* inline comment */ 0.125e+2   veryLongIdentifierNameThatShouldStillWorkInDynamicString 1e10 /* inline comment */ "escape: \" uvozovka"
 camelCase 10_20_30   for   10_20_30 /* comment 
@@ -79,7 +79,7 @@ extension Boolean   camelCase // comment on line 78
 var /* comment 
 
  */ 
-readInt   - import @
+readInt   - import @main
 100.5e+2
 <
 x
@@ -143,7 +143,7 @@ x /* comment
 Double 1_000_000
 0   1_000_000 // comment on line 144
 10_20_30
-snake_case   1_000.50_1 @   1e5D
+snake_case   1_000.50_1 @main   1e5D
 0.0 /* inline comment */ 1e5D "escape: \" uvozovka"   result
 _1
 0.6  var 1_000_000

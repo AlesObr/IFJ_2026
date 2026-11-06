@@ -1,3 +1,4 @@
 EXIT:0
-1:LIT_STRING:escape:  carriage return
+1:LIT_STRING:escape: 
+ carriage return
 1:EOF

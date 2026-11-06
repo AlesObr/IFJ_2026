@@ -20,26 +20,26 @@ result readInt . 5e-2 factorial // line 16 comment
         snake_case if 2147483647 2.5E-3
 _1 veryLongIdentifierNameThatShouldStillWorkInDynamicString "escape: \" uvozovka"
 snake_case
-( Boolean 100.5e+2 camelCase 42 do
-    Unit thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
-    0 0.5 10_20_30 < 0.6 10_20_30
-    "" _1 camelCase < do
-    _var
-    999_999_999 1_000_000 type 42
-        1 _1 2147483647
-        2147483647 0.125e+2 ;
-            with123Numbers
-            factorial
-            "kombinace: \n\t\"\\" var 10_20_30 while _
-            42.0d >= import
-            , 999_999_999 123_456_789 _ 123_456_789 for
-            List 123_456_789 factorial
-            _
-    thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 2147483647 ""
-    "text s mezerami" 123_456_789 snake_case thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+    Boolean 100.5e+2 camelCase 42 do
+        Unit thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+        0 0.5 10_20_30 < 0.6 10_20_30
+        "" _1 camelCase < do
+        _var
+        999_999_999 1_000_000 type 42
+            1 _1 2147483647
+            2147483647 0.125e+2 ;
+                with123Numbers
+                factorial
+                "kombinace: \n\t\"\\" var 10_20_30 while _
+                42.0d >= import
+                , 999_999_999 123_456_789 _ 123_456_789 for
+                List 123_456_789 factorial
+                _
+        thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 2147483647 ""
+        "text s mezerami" 123_456_789 snake_case thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 <= camelCase match 10_20_30
 999_999_999 1_000.50_1 else
-- factorial x veryLongIdentifierNameThatShouldStillWorkInDynamicString Boolean )
+- factorial x veryLongIdentifierNameThatShouldStillWorkInDynamicString Boolean  
 3.14159 ""
 < "" 10_20_30 3.14159 2.5E-3
 __private with123Numbers Int veryLongIdentifierNameThatShouldStillWorkInDynamicString if
@@ -55,6 +55,6 @@ snake_case factorial "text s mezerami" Unit
 42.0d
     "text s mezerami" 42.0d
     0
-    ) for snake_case
+        for snake_case
 1e10 0.5 1_000_000
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString snake_case

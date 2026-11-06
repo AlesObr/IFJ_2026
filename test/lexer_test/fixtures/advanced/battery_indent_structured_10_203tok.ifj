@@ -12,19 +12,19 @@ _var 0 1 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIden
     "escape: \" uvozovka" != "escape: \n nova radka" // line 12 comment
 1e10
 100.5e+2 1 5e-2 100.5e+2 "escape: \t tabulator"
-== ) __private thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString readInt
+==   __private thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString readInt
 Int 42 with123Numbers 999_999_999 0 import
-@ veryLongIdentifierNameThatShouldStillWorkInDynamicString // line 17 comment
+@main veryLongIdentifierNameThatShouldStillWorkInDynamicString // line 17 comment
 camelCase class match // line 18 comment
 _var _1
 "text s mezerami"
-@
+@main
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 3.14159 / _var
     10_20_30 42.0d
     . 5e-2 "text s mezerami"
     0 0.125e+2
     999_999_999 snake_case 0.0
-    Boolean , _ ) var // line 27 comment
+    Boolean , _   var // line 27 comment
 3.14159 readInt with123Numbers - "kombinace: \n\t\"\\"
 10_20_30 // line 29 comment
 42 camelCase 1_000.50_1 "kombinace: \n\t\"\\" readInt
@@ -54,7 +54,7 @@ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNam
         > 42 extension 0 // line 54 comment
         0.125e+2 with123Numbers _1 123_456_789
         String 1_000_000 1_000_000 0.5
-    ) 123_456_789 2147483647 "" // line 57 comment
+        123_456_789 2147483647 "" // line 57 comment
     camelCase match 999_999_999
     1 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
     = 0.5 0.5 _1 factorial >

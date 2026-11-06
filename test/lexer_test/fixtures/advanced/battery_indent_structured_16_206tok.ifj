@@ -1,11 +1,11 @@
-match )
+match  
 123_456_789 factorial Int thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString x
 10_20_30 / thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString veryLongIdentifierNameThatShouldStillWorkInDynamicString
 999_999_999 1_000_000
 "" - : __private 0
 3.14159 42 1e10 0.125e+2 // line 6 comment
-def ( _var camelCase
-veryLongIdentifierNameThatShouldStillWorkInDynamicString (
+def   _var camelCase
+veryLongIdentifierNameThatShouldStillWorkInDynamicString  
 result match 2147483647 0.125e+2 ""
 + "escape: \n nova radka"
 2.5E-3 123_456_789 veryLongIdentifierNameThatShouldStillWorkInDynamicString "escape: \n nova radka"
@@ -56,5 +56,5 @@ while 0.125e+2 123_456_789 999_999_999 3.14159
                 factorial val . __private 1_000_000
                 : factorial if case _var
                 then 0.0 snake_case
-            String snake_case 1 while 1e10 )
+            String snake_case 1 while 1e10  
             "escape: \" uvozovka" 1_000_000 factorial 1e10

@@ -3,7 +3,7 @@
     import Boolean case __private
 5e-2
 1_000_000 readInt readInt /
-0.0 "" @
+0.0 "" |
 factorial 0 <= "text s mezerami" "" 10_20_30
 while val
 extension camelCase 2147483647 1_000_000 1_000.50_1
@@ -17,7 +17,7 @@ camelCase 1e5D 1e5D then * "escape: \\ lomitko"
     0.5 _var
 veryLongIdentifierNameThatShouldStillWorkInDynamicString x 100.5e+2
     readInt
-    | for return 999_999_999 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+    = 0 "text s mezerami" 999_999_999 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
     match readInt
         = 2147483647 "escape: \\ lomitko"
         5e-2 _var 123_456_789 >= 0.125e+2 0.125e+2
@@ -30,10 +30,10 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString x 100.5e+2
             42 __private 100.5e+2 class thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString Double
             0 != 123_456_789 1
             veryLongIdentifierNameThatShouldStillWorkInDynamicString
-                999_999_999 (
+                999_999_999 :
                 Unit "escape: \\ lomitko" readInt snake_case
                 123_456_789 return > 42.0d * if
-                100.5e+2 5e-2 ;
-                , <=
+                100.5e+2 5e-2 .
+                @main <=
                 0.6
 /* prvni /* vnoreny */ neukonceny

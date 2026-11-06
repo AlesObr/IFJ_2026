@@ -68,7 +68,7 @@ result
 2147483647 // comment on line 68
 | /* inline comment */ 2147483647 // comment on line 69
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
-0   @ camelCase
+0   @main camelCase
 1
 factorial
 "escape: \" uvozovka"
@@ -80,7 +80,7 @@ Boolean
 42   readInt /* comment 
 
  */ 
-result   extension 1   <= @   result   1_000_000
+result   extension 1   <= @main   result   1_000_000
 = 10_20_30
 ; // comment on line 85
 <= /* inline comment */ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  "escape: \\ lomitko"
@@ -106,7 +106,7 @@ __private ==  if // comment on line 101
 1_000_000   10_20_30  "kombinace: \n\t\"\\"  "text s mezerami"
 camelCase  camelCase
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString   "" __private
-@
+@main
 "" 10_20_30  thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 "hello"   "hello"
 veryLongIdentifierNameThatShouldStillWorkInDynamicString _var

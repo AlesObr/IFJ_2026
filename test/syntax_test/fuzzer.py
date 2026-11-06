@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Fuzzer pro IFJ26 pracující se sadami souborů (.scala, .in, .out).
-Generuje validní varianty i syntaktické chyby pro parser.
-Soubor byl vygenerován nástrojem generativní umělé inteligence (Gemini 3.8 flash)
+Fuzzer pro IFJ26 pracujici se sadami souboru (.scala, .in, .out).
+Generuje validni varianty i syntakticke chyby (navratovy kod 2) pro parser.
 """
 
 import argparse
@@ -13,94 +12,171 @@ from pathlib import Path
 
 
 class IFJCodeMutator:
+    # Rozsireny seznam rezervovanych slov dle specifikace IFJ26 (zaklad + rozsireni)
+    RESERVED = {
+        "_", "ifj26", "def", "val", "var", "if", "then", "else", "while", "do",
+        "return", "import", "Int", "Double", "String", "Unit", "Boolean",
+        "case", "class", "extension", "for", "List", "match", "type",
+        "to", "until", "by", "main", "true", "false",
+        # Vestavene funkce a cleny (zaklad + rozsireni)
+        "print", "readLine", "readInt", "readDouble", "readBoolean",
+        "readIntMaybe", "readDoubleMaybe", "toStr", "toInt", "strLength",
+        "subStr", "ord", "chr", "toString", "floor", "length",
+        "drop", "take", "slice", "head", "tail", "range",
+        "filter", "takeWhile", "dropWhile", "toList"
+    }
+
     def __init__(self, code: str):
         self.code = code
         self.lines = code.splitlines(keepends=True)
 
-    # --- Validní mutace (zachovávají syntaktickou správnost) ---
+    @staticmethod
+    def _strip_comments_and_strings(code: str) -> str:
+        """
+        Nahradi obsah retezcu a komentaru mezerami (zachova delku a radkovani),
+        aby regularni vyrazy nemutovaly obsah uvnitr retezcu a komentaru.
+        """
+        pattern = re.compile(
+            r'("""[\s\S]*?"""|"(?:\\.|[^"\\])*"|//[^\n]*|/\*[\s\S]*?\*/)'
+        )
+        return pattern.sub(
+            lambda m: "".join("\n" if c == "\n" else " " for c in m.group(0)),
+            code
+        )
+
+    # --- Validni mutace (zachovavaji syntaktickou i semantickou spravnost) ---
 
     def mutate_identifiers(self) -> str:
-        """Přejmenuje bezpečné identifikátory proměnných či funkcí."""
-        reserved = {
-            "def", "val", "var", "if", "then", "else", "while", "do",
-            "return", "import", "Int", "Double", "String", "Unit", "Boolean",
-            "main", "true", "false", "print", "readLine", "readInt", "readDouble",
-            "toStr", "toInt", "strLength", "subStr", "ord", "chr"
-        }
-        tokens = re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b", self.code)
-        candidates = list({t for t in tokens if t not in reserved and not t.startswith("@")})
+        """Prejmenuje bezpecne identifikatory promennych ci funkci (mimo retezce a komentare)."""
+        clean_code = self._strip_comments_and_strings(self.code)
+
+        # Najdeme vsechny identifikatory, ktere nejsou soucasti ciselnych literalu (napr. 1e10)
+        tokens = re.findall(r"(?<![0-9.])\b[a-zA-Z_][a-zA-Z0-9_]*\b", clean_code)
+        candidates = list({
+            t for t in tokens
+            if t not in self.RESERVED and not t.startswith("@")
+        })
         if not candidates:
             return self.code
 
         target = random.choice(candidates)
         replacement = f"{target}_fuzz{random.randint(10, 99)}"
-        return re.sub(rf"\b{re.escape(target)}\b", replacement, self.code)
+
+        # Nahradime pouze vyskyty v cistem kodu (mimo retezce a komentare)
+        result = []
+        last_idx = 0
+        for match in re.finditer(rf"(?<![0-9.])\b{re.escape(target)}\b", clean_code):
+            start, end = match.span()
+            result.append(self.code[last_idx:start])
+            result.append(replacement)
+            last_idx = end
+        result.append(self.code[last_idx:])
+        return "".join(result)
 
     def mutate_formatting(self) -> str:
-        """Vkládá povolené komentáře a prázdné řádky."""
+        """Vklada povolene ASCII komentare a prazdne radky mimo viceradkove retezce."""
         res = []
+        in_multiline_str = False
+        in_block_comment = False
+
         for line in self.lines:
-            if random.random() < 0.15:
-                res.append("// Fuzz vložený komentář\n")
-            if random.random() < 0.1:
-                res.append("\n")
-            if line.strip() and not line.strip().startswith("//") and random.random() < 0.15:
-                line = line.rstrip("\r\n") + " /* inline */\n"
+            # Jednoducha detekce viceradkovych retezcu a blokovych komentaru
+            if '"""' in line:
+                if line.count('"""') % 2 == 1:
+                    in_multiline_str = not in_multiline_str
+                res.append(line)
+                continue
+
+            if "/*" in line or "*/" in line:
+                if "/*" in line and "*/" not in line:
+                    in_block_comment = True
+                elif "*/" in line:
+                    in_block_comment = False
+                res.append(line)
+                continue
+
+            if not in_multiline_str and not in_block_comment:
+                if random.random() < 0.15:
+                    # Pouze ciste ASCII znaky! (Zadne hacky a carky)
+                    res.append("// Fuzz vlozeny komentar\n")
+                if random.random() < 0.10:
+                    res.append("\n")
+                stripped = line.strip()
+                if stripped and not stripped.startswith("//") and "//" not in line and random.random() < 0.15:
+                    line = line.rstrip("\r\n") + " /* inline */\n"
+
             res.append(line)
         return "".join(res)
 
     def generate_valid(self) -> str:
         res = self.code
-        for fn in [self.mutate_identifiers, self.mutate_formatting]:
+        for fn_name in ["mutate_identifiers", "mutate_formatting"]:
             if random.random() < 0.7:
-                res = getattr(IFJCodeMutator(res), fn.__name__)()
+                res = getattr(IFJCodeMutator(res), fn_name)()
         return res
 
-    # --- Syntaktické a lexikální chyby (pro testování chybových stavů parseru) ---
+    # --- Syntakticke chyby (navratovy kod 2) ---
 
     def err_indentation(self) -> str:
-        """Naruší striktní odsazení bloku mezerami."""
+        """Narusi striktni odsazeni bloku mezerami."""
         res = []
         mutated = False
         for line in self.lines:
             match = re.match(r"^( +)(\S.*)$", line)
-            if match and not mutated and random.random() < 0.35:
+            if match and not mutated and not line.strip().startswith("//") and random.random() < 0.35:
                 spaces, rest = match.groups()
-                # Změna počtu mezer na nevalidní úroveň
-                new_len = max(0, len(spaces) + random.choice([-3, -1, 1, 3]))
+                # Zvyseni odsazeni uprostred bloku bez hlavicky zarucene rozbije strukturu bloku (chyba 2)
+                new_len = len(spaces) + random.choice([1, 3, 5])
                 res.append(" " * new_len + rest + "\n")
                 mutated = True
             else:
                 res.append(line)
-        return "".join(res) if mutated else self.code + "\n   x = 1\n"
+        return "".join(res) if mutated else self.code + "\n   val x_err = 1\n"
 
     def err_unbalanced_delimiters(self) -> str:
-        """Smaže nebo vloží přebytečnou závorku."""
-        tokens = ["(", ")", "{", "}"]
-        t = random.choice(tokens)
-        if random.random() < 0.5 and t in self.code:
-            pos = self.code.rfind(t)
+        """Smaze nebo vlozi prebytecnou kulatou zavorku mimo retezce a komentare."""
+        clean_code = self._strip_comments_and_strings(self.code)
+        paren_positions = [m.start() for m in re.finditer(r"[()]", clean_code)]
+
+        if paren_positions and random.random() < 0.6:
+            pos = random.choice(paren_positions)
             return self.code[:pos] + self.code[pos + 1:]
-        idx = random.randint(0, len(self.code) - 1)
-        return self.code[:idx] + t + self.code[idx:]
+
+        # Vlozeni zavorky na konec nektereho radku s kodem
+        for i, line in enumerate(self.lines):
+            stripped = line.strip()
+            if stripped and not stripped.startswith("//") and not stripped.startswith("import"):
+                line_no_nl = line.rstrip("\r\n")
+                return "".join(self.lines[:i] + [line_no_nl + " )\n"] + self.lines[i + 1:])
+        return self.code + " (\n"
 
     def err_drop_keyword(self) -> str:
-        """Odstraní povinné klíčové slovo (then, do, def, =)."""
-        kws = [r"\bthen\b", r"\bdo\b", r"\bdef\b", r"="]
-        kw = random.choice(kws)
-        if re.search(kw, self.code):
-            return re.sub(kw, "", self.code, count=1)
-        return self.code + " def"
+        """Odstrani povinne klicove slovo nebo samostatne prirazovaci '='."""
+        clean_code = self._strip_comments_and_strings(self.code)
+        # Pozor: '=' nesmi byt soucasti ==, !=, <=, >=, =>
+        kws = [r"\bthen\b", r"\bdo\b", r"\bdef\b", r"(?<![=!<>])=(?![=>])"]
+        random.shuffle(kws)
+
+        for kw in kws:
+            match = re.search(kw, clean_code)
+            if match:
+                start, end = match.span()
+                return self.code[:start] + " " + self.code[end:]
+        return self.code + "\ndef\n"
 
     def err_operator_line_start(self) -> str:
-        """Začne logický řádek operátorem (zakázáno dle specifikace)."""
-        ops = ["+", "*", "-", "/", "=="]
+        """Zacne logicky radek binarnim operatorem (zakazano dle sekce 1.2)."""
+        # Vynechame '+' a '-', protoze by mohly byt validnim unarnim operatorem!
+        ops = ["*", "/", "==", "!=", "<="]
         for i, line in enumerate(self.lines):
             match = re.match(r"^(\s*)(\S.*)$", line)
-            if match and not line.strip().startswith("//") and not line.strip().startswith("import"):
+            if match:
                 indent, rest = match.groups()
-                return "".join(self.lines[:i] + [f"{indent}{random.choice(ops)} {rest}\n"] + self.lines[i+1:])
-        return self.code
+                if not rest.startswith("//") and not rest.startswith("/*") and not rest.startswith("import") and not rest.startswith("@"):
+                    return "".join(
+                        self.lines[:i] + [f"{indent}{random.choice(ops)} {rest}\n"] + self.lines[i + 1:]
+                    )
+        return "* " + self.code
 
     def generate_error(self) -> tuple[str, str]:
         errors = [
@@ -115,24 +191,25 @@ class IFJCodeMutator:
 
 def main():
     parser = argparse.ArgumentParser(description="IFJ26 Seed-based Fuzzer")
-    parser.add_argument("--seeds-dir", type=str, default=".", help="Adresář se soubory .scala a .in")
-    parser.add_argument("--out-dir", type=str, default="generated_tests", help="Výstupní adresář")
-    parser.add_argument("--valid-count", type=int, default=15, help="Počet validních testů")
-    parser.add_argument("--invalid-count", type=int, default=30, help="Počet syntaktických chyb")
+    parser.add_argument("--seeds-dir", type=str, default=".", help="Adresar se soubory .scala, .in, .out")
+    parser.add_argument("--out-dir", type=str, default="generated_tests", help="Vystupni adresar")
+    parser.add_argument("--valid-count", type=int, default=15, help="Pocet validnich testu")
+    parser.add_argument("--invalid-count", type=int, default=30, help="Pocet syntaktickych chyb")
     args = parser.parse_args()
 
     seeds_dir = Path(args.seeds_dir)
-    scala_files = list(seeds_dir.glob("*.scala"))
+    # Vyfiltrujeme pripadny knihovni soubor ifj26.scala, aby nebyl mutovan jako test
+    scala_files = [f for f in seeds_dir.glob("*.scala") if f.name != "ifj26.scala"]
     if not scala_files:
-        print(f"❌ Žádné .scala soubory v '{seeds_dir}'.")
+        print(f"Chyba: Zadne .scala soubory v '{seeds_dir}'.")
         return
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f" Nalezeno {len(scala_files)} seedů: {[f.name for f in scala_files]}")
+    print(f"Nalezeno {len(scala_files)} seedu: {[f.name for f in scala_files]}")
 
-    # 1. Generování validních vzorků
+    # 1. Generovani validnich vzorku
     for i in range(1, args.valid_count + 1):
         src = random.choice(scala_files)
         mutator = IFJCodeMutator(src.read_text(encoding="utf-8"))
@@ -141,14 +218,16 @@ def main():
         base_name = f"test_valid_{i:03d}_{src.stem}"
         (out_dir / f"{base_name}.scala").write_text(code, encoding="utf-8")
 
-        # Zkopírování příslušného .in souboru, pokud existuje
-        in_file = src.with_suffix(".in")
-        if in_file.exists():
-            shutil.copy(in_file, out_dir / f"{base_name}.in")
-        else:
-            (out_dir / f"{base_name}.in").touch()
+        # Zkopirovani prislusneho .in a .out souboru, pokud existuji
+        for ext in [".in", ".out"]:
+            ref_file = src.with_suffix(ext)
+            target_file = out_dir / f"{base_name}{ext}"
+            if ref_file.exists():
+                shutil.copy(ref_file, target_file)
+            else:
+                target_file.touch()
 
-    # 2. Generování syntakticky chybných vzorků
+    # 2. Generovani syntakticky chybnych vzorku
     for i in range(1, args.invalid_count + 1):
         src = random.choice(scala_files)
         mutator = IFJCodeMutator(src.read_text(encoding="utf-8"))
@@ -156,11 +235,9 @@ def main():
 
         base_name = f"test_error_{i:03d}_{err_tag}_{src.stem}"
         (out_dir / f"{base_name}.scala").write_text(code, encoding="utf-8")
-        
-        # Pro chybné testy stačí prázdný .in soubor
         (out_dir / f"{base_name}.in").touch()
 
-    print(f" Hotovo. Vygenerováno {args.valid_count + args.invalid_count} testů v '{out_dir}/'.")
+    print(f"Hotovo. Vygenerovano {args.valid_count + args.invalid_count} testu v '{out_dir}/'.")
 
 
 if __name__ == "__main__":

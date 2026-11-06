@@ -23,12 +23,47 @@ static size_t last_line_len = 0; /** The length of the previous line */
 
 static size_t token_start_line = 1; /** Starting line of a token */
 static size_t token_start_col = 1;	/** Starting column of a token */
+static Stack indent_stack;
+static size_t line_indent = 0;
+static size_t pending_outdents = 0;
+static bool at_line_start = true;
+static size_t paren_depth = 0;
+static size_t block_comment_depth = 0;
+static int block_comment_previous = 0;
+
+static size_t indent_top(void) {
+	StackElement *element = stack_top(&indent_stack);
+	return element != NULL ? *(size_t *)element->data : 0;
+}
+
+static void indent_push(size_t value) {
+	size_t *stored = malloc(sizeof(*stored));
+	if (stored == NULL)
+		exit(EXIT_FAILURE);
+	*stored = value;
+	stack_push(&indent_stack, stored);
+}
+
+static void indent_pop(void) {
+	void *element = stack_pop(&indent_stack);
+	free(element);
+}
 
 void lexer_init(FILE *input) {
 	source_file = input;
+	while (indent_stack.top != NULL)
+		indent_pop();
 	current_line = 1;
 	current_col = 0;
 	last_line_len = 0;
+	stack_init(&indent_stack);
+	indent_push(0);
+	line_indent = 0;
+	pending_outdents = 0;
+	at_line_start = true;
+	paren_depth = 0;
+	block_comment_depth = 0;
+	block_comment_previous = 0;
 }
 
 int lexer_take(LexemeState *lexeme, FILE *source_file) {
@@ -137,35 +172,173 @@ Error lexer_get_next_token(Token *out_token) {
 		switch (current_state) {
 			case STATE_START:
 
+				if (block_comment_depth > 0) {
+					if (lexeme.current_lexeme == EOF) {
+						dstring_free(&token_buffer);
+						return ERROR_EMIT(
+							ERR_LEXICAL, current_line, current_col, "Unterminated block comment.");
+					}
+					if (block_comment_previous == '/' && lexeme.current_lexeme == '*')
+						block_comment_depth++;
+					else if (block_comment_previous == '*' && lexeme.current_lexeme == '/') {
+						block_comment_depth--;
+						if (block_comment_depth == 0) {
+							block_comment_previous = 0;
+							continue;
+						}
+					}
+					block_comment_previous = lexeme.current_lexeme;
+					if (lexeme.current_lexeme == '\n') {
+						at_line_start = true;
+						line_indent = 0;
+						token_make_simple(
+							out_token, TOKEN_EOL, lexeme.previous_line, lexeme.previous_col + 1);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					continue;
+				}
 				if (lexeme.current_lexeme == EOF && ferror(source_file) != 0) {
 					dstring_free(&token_buffer);
 					return ERROR_EMIT(
 						ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
 				} // @dev will probably need to be somehow incorporated into lexer_take
 				if (lexeme.current_lexeme == EOF) {
+					if (indent_stack.size > 1) {
+						pending_outdents = indent_stack.size - 1;
+						while (indent_stack.size > 1)
+							indent_pop();
+					}
+					if (pending_outdents > 0) {
+						pending_outdents--;
+						token_make_simple(out_token, TOKEN_OUTDENT, current_line, 1);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
 					token_make_simple(out_token, TOKEN_EOF, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
-				// @dev isspace() will probably come in handy for whitespace handling
-				if (lexeme.current_lexeme == ' ') { // @dev not yet solved whitespace logic
+				if (pending_outdents > 0) {
+					lexer_give(&lexeme, source_file);
+					pending_outdents--;
+					token_make_simple(out_token, TOKEN_OUTDENT, current_line, 1);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (at_line_start && lexeme.current_lexeme == ' ') {
+					line_indent++;
 					continue;
 				}
-				if (lexeme.current_lexeme == '\t') {
+				if (!at_line_start && lexeme.current_lexeme == ' ') {
+					continue;
+				}
+				if (at_line_start && current_line == 1 && line_indent < 4 &&
+					lexeme.current_lexeme != '\n' && lexeme.current_lexeme != '/') {
+					at_line_start = false;
+				}
+				if (at_line_start && lexeme.current_lexeme == '\t') {
 					lexer_give(&lexeme, source_file);
 					dstring_free(&token_buffer);
 					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Tab found.\n");
 				}
-				// @dev When a trailing \n get here, shit goes down.
+				if (at_line_start && paren_depth == 0 && lexeme.current_lexeme != '\n' &&
+					lexeme.current_lexeme != '/') {
+					if (line_indent > indent_top()) {
+						indent_push(line_indent);
+						at_line_start = false;
+						lexer_give(&lexeme, source_file);
+						token_make_simple(out_token, TOKEN_INDENT, current_line, 1);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					while (indent_stack.size > 1 && line_indent < indent_top()) {
+						indent_pop();
+						pending_outdents++;
+					}
+					if (line_indent != indent_top()) {
+						dstring_free(&token_buffer);
+						return ERROR_EMIT(
+							ERR_LEXICAL, current_line, current_col, "Inconsistent indentation.");
+					}
+					at_line_start = false;
+					if (pending_outdents > 0) {
+						lexer_give(&lexeme, source_file);
+						pending_outdents--;
+						token_make_simple(out_token, TOKEN_OUTDENT, current_line, 1);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+				}
 				if (lexeme.current_lexeme == '\n') {
 					token_make_simple(
 						out_token, TOKEN_EOL, lexeme.previous_line, lexeme.previous_col + 1);
+					at_line_start = true;
+					line_indent = 0;
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				} // @dev maybe return this only when it makes sense?
+				if (lexeme.current_lexeme == '/') {
+					LexemeState lookahead;
+					int next = lexer_take(&lookahead, source_file);
+					if (next == '/') {
+						do {
+							next = lexer_take(&lookahead, source_file);
+						} while (next != '\n' && next != EOF);
+						if (next == '\n') {
+							token_make_simple(out_token, TOKEN_EOL, lookahead.previous_line,
+								lookahead.previous_col + 1);
+							at_line_start = true;
+							line_indent = 0;
+							dstring_free(&token_buffer);
+							return ERROR_OK();
+						}
+						token_make_simple(out_token, TOKEN_EOF, current_line, current_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					if (next == '*') {
+						block_comment_depth = 1;
+						block_comment_previous = 0;
+						at_line_start = false;
+						continue;
+					}
+					lexer_give(&lookahead, source_file);
+					if (at_line_start && paren_depth == 0) {
+						if (line_indent > indent_top()) {
+							indent_push(line_indent);
+							at_line_start = false;
+							lexer_give(&lexeme, source_file);
+							token_make_simple(out_token, TOKEN_INDENT, current_line, 1);
+							dstring_free(&token_buffer);
+							return ERROR_OK();
+						}
+						while (indent_stack.size > 1 && line_indent < indent_top()) {
+							indent_pop();
+							pending_outdents++;
+						}
+						if (line_indent != indent_top()) {
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(ERR_LEXICAL, current_line, current_col,
+								"Inconsistent indentation.");
+						}
+						at_line_start = false;
+						if (pending_outdents > 0) {
+							lexer_give(&lexeme, source_file);
+							pending_outdents--;
+							token_make_simple(out_token, TOKEN_OUTDENT, current_line, 1);
+							dstring_free(&token_buffer);
+							return ERROR_OK();
+						}
+					}
+					at_line_start = false;
+					token_make_simple(out_token, TOKEN_DIV, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
 				if (lexeme.current_lexeme == '0') {
-					token_start_line = current_line;
-					token_start_col = current_col;
+					token_start_line = lexeme.previous_line;
+					token_start_col = lexeme.previous_col;
 					current_state = STATE_ZERO_SEEN;
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
@@ -191,6 +364,8 @@ Error lexer_get_next_token(Token *out_token) {
 					}
 					if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
 						(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')) {
+						token_start_line = current_line;
+						token_start_col = current_col;
 						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 						current_state = STATE_CHAR;
 						continue;
@@ -214,11 +389,14 @@ Error lexer_get_next_token(Token *out_token) {
 					continue;
 				}
 				if (lexeme.current_lexeme == '(') {
+					paren_depth++;
 					token_make_simple(out_token, TOKEN_LPAREN, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
 				if (lexeme.current_lexeme == ')') {
+					if (paren_depth > 0)
+						paren_depth--;
 					token_make_simple(out_token, TOKEN_RPAREN, current_line, current_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
@@ -259,6 +437,32 @@ Error lexer_get_next_token(Token *out_token) {
 
 				if (lexeme.current_lexeme == ':') {
 					token_make_simple(out_token, TOKEN_COLON, current_line, current_col);
+					dstring_free(&token_buffer);
+					return ERROR_OK();
+				}
+				if (lexeme.current_lexeme == '@') {
+					token_start_line = lexeme.previous_line;
+					token_start_col = lexeme.previous_col;
+					static const char main_name[] = "main";
+					for (size_t i = 0; i < sizeof(main_name) - 1; i++) {
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (lexeme.current_lexeme != main_name[i]) {
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(
+								ERR_LEXICAL, current_line, current_col, "Expected @main.");
+						}
+					}
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
+						(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z') ||
+						(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') ||
+						lexeme.current_lexeme == '_') {
+						dstring_free(&token_buffer);
+						return ERROR_EMIT(
+							ERR_LEXICAL, current_line, current_col, "Invalid @main token.");
+					}
+					lexer_give(&lexeme, source_file);
+					token_make_simple(out_token, TOKEN_AT_MAIN, token_start_line, token_start_col);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
@@ -422,11 +626,15 @@ Error lexer_get_next_token(Token *out_token) {
 				}
 				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
 					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')) {
+					token_start_line = lexeme.previous_line;
+					token_start_col = lexeme.previous_col;
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					current_state = STATE_CHAR;
 					continue;
 				}
 				if (lexeme.current_lexeme == '"') {
+					token_start_line = lexeme.previous_line;
+					token_start_col = lexeme.previous_col;
 					current_state = STATE_STRING;
 					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
 					if (lexeme.current_lexeme == '"') {
@@ -542,6 +750,7 @@ Error lexer_get_next_token(Token *out_token) {
 					continue;
 				} // @dev single '_' is really a valid input? what the f am I supposed to output
 				else {
+					lexer_give(&lexeme, source_file);
 					token_make_simple(
 						out_token, TOKEN_UNDERSCORE, token_start_line, token_start_col);
 					dstring_free(&token_buffer);
@@ -658,11 +867,36 @@ Error lexer_get_next_token(Token *out_token) {
 				return ERROR_OK();
 				continue;
 			case STATE_STRING:
-				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
-					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z') ||
-					(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') ||
-					lexeme.current_lexeme == '_' || lexeme.current_lexeme == ' ') {
-					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+				if (lexeme.current_lexeme == EOF || lexeme.current_lexeme == '\n') {
+					dstring_free(&token_buffer);
+					return ERROR_EMIT(
+						ERR_LEXICAL, current_line, current_col, "Unterminated string.");
+				}
+				if (lexeme.current_lexeme == '\\') {
+					int escaped = lexer_take(&lexeme, source_file);
+					char value;
+					switch (escaped) {
+						case 'n':
+							value = '\n';
+							break;
+						case 't':
+							value = '\t';
+							break;
+						case 'r':
+							value = '\r';
+							break;
+						case '"':
+							value = '"';
+							break;
+						case '\\':
+							value = '\\';
+							break;
+						default:
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(
+								ERR_LEXICAL, current_line, current_col, "Invalid string escape.");
+					}
+					dstring_append_char(&token_buffer, value);
 					continue;
 				}
 				if (lexeme.current_lexeme == '"') {
@@ -671,17 +905,16 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
-				lexer_give(&lexeme, source_file);
-				dstring_free(&token_buffer);
-				return ERROR_EMIT(
-					ERR_LEXICAL, current_line, current_col, "Malformed string followed by EOF.");
+				dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+				continue;
 				continue;
 			case STATE_ML_STRING: // @dev this is faulty
-				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
-					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z') ||
-					(lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') ||
-					lexeme.current_lexeme == '_' || lexeme.current_lexeme == ' ' ||
-					lexeme.current_lexeme == '.' || lexeme.current_lexeme == '\'') {
+				if (lexeme.current_lexeme == EOF) {
+					dstring_free(&token_buffer);
+					return ERROR_EMIT(
+						ERR_LEXICAL, current_line, current_col, "Unterminated multiline string.");
+				}
+				if (lexeme.current_lexeme != '"') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
 				}
@@ -697,14 +930,9 @@ Error lexer_get_next_token(Token *out_token) {
 						}
 						lexer_give(&lexeme, source_file);
 					}
-					lexer_give(&lexeme, source_file);
-					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col,
-						"Malformed string followed by EOF.");
+					dstring_append_char(&token_buffer, '"');
+					continue;
 				}
-				lexer_give(&lexeme, source_file);
-				dstring_free(&token_buffer);
-				return ERROR_EMIT(
-					ERR_LEXICAL, current_line, current_col, "Malformed string followed by EOF.");
 				continue;
 			default:
 				dstring_free(&token_buffer);

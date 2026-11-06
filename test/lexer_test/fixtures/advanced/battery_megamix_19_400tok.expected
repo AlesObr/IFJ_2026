@@ -169,7 +169,8 @@ EXIT:0
 60:EOL
 61:KEYWORD:class
 61:EOL
-62:LIT_STRING:escape:  carriage return
+62:LIT_STRING:escape: 
+ carriage return
 62:EOL
 63:IDENTIFIER:_var
 63:EOL
@@ -193,7 +194,7 @@ EXIT:0
 70:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 70:EOL
 71:LIT_INT:0
-71:AT
+71:AT_MAIN
 71:IDENTIFIER:camelCase
 71:EOL
 72:LIT_INT:1
@@ -224,7 +225,7 @@ EXIT:0
 83:KEYWORD:extension
 83:LIT_INT:1
 83:LTE
-83:AT
+83:AT_MAIN
 83:IDENTIFIER:result
 83:LIT_INT:1000000
 83:EOL
@@ -285,7 +286,8 @@ EXIT:0
 101:EOL
 102:LIT_INT:1000000
 102:EOL
-103:LIT_STRING:escape:  carriage return
+103:LIT_STRING:escape: 
+ carriage return
 103:EOL
 104:LIT_INT:0
 104:COLON
@@ -308,7 +310,7 @@ EXIT:0
 108:LIT_STRING:
 108:IDENTIFIER:__private
 108:EOL
-109:AT
+109:AT_MAIN
 109:EOL
 110:LIT_STRING:
 110:LIT_INT:102030
@@ -343,7 +345,8 @@ EXIT:0
 	"\
 123:LIT_INT:0
 123:LIT_INT:1
-123:LIT_STRING:escape:  carriage return
+123:LIT_STRING:escape: 
+ carriage return
 123:LIT_INT:123456789
 123:LIT_FLOAT:12.5
 123:EOL
@@ -505,7 +508,8 @@ EXIT:0
 180:EOL
 181:IDENTIFIER:snake_case
 181:IDENTIFIER:with123Numbers
-181:LIT_STRING:escape:  carriage return
+181:LIT_STRING:escape: 
+ carriage return
 181:LIT_INT:102030
 181:NEQ
 181:EOL

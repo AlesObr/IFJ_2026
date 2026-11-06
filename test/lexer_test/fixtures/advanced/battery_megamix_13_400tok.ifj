@@ -126,11 +126,11 @@ if   return  0
 camelCase
 "escape: \r carriage return"  "hello" // comment on line 127
 return // comment on line 128
-0 /* inline comment */ 2147483647   camelCase   @ 0.6 /* comment 
+0 /* inline comment */ 2147483647   camelCase   @main 0.6 /* comment 
 
  */ 
 123_456_789  5e-2 readInt  0 var
-@ /* comment 
+@main /* comment 
  */ 
 result /* inline comment */ def // comment on line 135
 ""  10_20_30   1
@@ -153,7 +153,7 @@ else // comment on line 152
 0.125e+2   match  2147483647  123_456_789   factorial // comment on line 153
 factorial  (  "kombinace: \n\t\"\\"
 123_456_789   with123Numbers
-@ /* comment 
+@main /* comment 
 
  */ 
 factorial   999_999_999

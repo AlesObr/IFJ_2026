@@ -32,7 +32,7 @@ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNam
 1
 ,  5e-2  42
 0.0 readInt _   +
-0.125e+2 >= /* inline comment */ _   @  (  1   100.5e+2 // comment on line 35
+0.125e+2 >= /* inline comment */ _   @main  (  1   100.5e+2 // comment on line 35
 camelCase
 0  42.0d
 __private "" ) 42 __private
@@ -54,7 +54,7 @@ Double
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  100.5e+2  /   "escape: \r carriage return"
 1 /* comment 
  */ 
-@  type // comment on line 57
+@main  type // comment on line 57
 0.0  0.125e+2 ;  5e-2  while // comment on line 58
 * // comment on line 59
 _
@@ -185,7 +185,7 @@ while /* inline comment */ 10_20_30 Int 3.14159 // comment on line 184
 ; /* comment 
  */ 
 extension
-(   42.0d "escape: \\ lomitko"   _var  @ 999_999_999
+(   42.0d "escape: \\ lomitko"   _var  @main 999_999_999
 42 /* inline comment */ | readInt   1
 with123Numbers x
 __private
@@ -200,7 +200,7 @@ case  x  __private  1_000_000
 0.125e+2  0 with123Numbers 2147483647
 for  "escape: \" uvozovka"
 0
-@   veryLongIdentifierNameThatShouldStillWorkInDynamicString >=  =   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString if
+@main   veryLongIdentifierNameThatShouldStillWorkInDynamicString >=  =   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString if
 0.0  2147483647
 "escape: \" uvozovka" _1  =
 "hello"   >  0.5
@@ -279,7 +279,7 @@ type /* comment
 var 0.5 result // comment on line 279
 )
 String
-@ /* inline comment */ )
+@main /* inline comment */ )
 class  veryLongIdentifierNameThatShouldStillWorkInDynamicString   "" thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 2147483647
 readInt
 0.6
@@ -888,7 +888,7 @@ factorial /* inline comment */ "escape: \n nova radka"   x
 extension __private Int   veryLongIdentifierNameThatShouldStillWorkInDynamicString
 0.6 = /* comment 
  */ 
-5e-2 type  @  1_000_000 // comment on line 891
+5e-2 type  @main  1_000_000 // comment on line 891
 _1 /* comment 
 
  */ 
@@ -1086,7 +1086,7 @@ _var   10_20_30
 class
 0.5  "" /* inline comment */ "text s mezerami"   2147483647  1
 "escape: \n nova radka"   0.0   "hello"   .
-@  42 "text s mezerami" // comment on line 1089
+@main  42 "text s mezerami" // comment on line 1089
 "escape: \" uvozovka"
 x
 else 1   "escape: \\ lomitko"  5e-2 // comment on line 1092
@@ -1118,7 +1118,7 @@ _var _var   |  result   __private
 do  0   Unit "escape: \r carriage return" // comment on line 1118
 "escape: \" uvozovka" /* comment 
  */ 
--   @ // comment on line 1121
+-   @main // comment on line 1121
 do  1_000_000  _ // comment on line 1122
 if
 result 100.5e+2 result else

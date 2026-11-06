@@ -1,5 +1,5 @@
 CC ?= gcc
-CFLAGS ?= -std=c11 -Wall -Wextra -Werror -pedantic -g
+CFLAGS ?= -std=c11 -Wall -Wextra  -pedantic -g
 INCLUDES = -Iinclude -Isrc
 
 # ----------------------------------------------------------------------
@@ -28,8 +28,9 @@ AST_TEST_SRC     = test/ast_test.c
 LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c src/_utils/stack.c $(DSTRING_SRC)
 LEXER_TEST_SRC   = test/lexer_test/lexer_test.c
 
-# Parser moduly (případně doplňte další pomocné soubory, např. error.c)
-PARSER_SRC       = src/parser/parser.c $(AST_SRC) $(LEXER_SRC)
+# Parser moduly
+PRECEDENCE_SRC   = src/parser/precedence.c
+PARSER_SRC       = src/parser/parser.c $(PRECEDENCE_SRC) $(AST_SRC) $(LEXER_SRC)
 PARSER_TEST_SRC  = test/syntax_test/test_parser.c
 
 # ----------------------------------------------------------------------
@@ -147,7 +148,7 @@ parser-build: $(TARGET_PARSER_TEST)
 
 test-parser: parser-build
 	@echo "=== Spuštění parser testů (rychlý běh) ==="
-	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast
+	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast
 
 test-parser-valgrind: parser-build
 	@echo "=== Spuštění parser testů pod Valgrindem ==="

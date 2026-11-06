@@ -104,7 +104,7 @@ def main():
         ok, msg = run_test(str(bin_path), test, check_ast=args.check_ast, use_valgrind=args.valgrind)
         if ok:
             passed += 1
-            print(f"  [PASS] {test.name} -> {msg}")
+            print(f"✅  [PASS] {test.name} -> {msg}")
         else:
             failed += 1
             print(f"❌ [FAIL] {test.name}\n      {msg}")

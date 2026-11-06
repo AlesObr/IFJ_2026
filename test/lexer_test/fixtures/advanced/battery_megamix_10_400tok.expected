@@ -16,7 +16,8 @@ EXIT:0
 7:EOL
 8:IDENTIFIER:snake_case
 8:LIT_FLOAT:0
-8:LIT_STRING:escape:  carriage return
+8:LIT_STRING:escape: 
+ carriage return
 8:LIT_FLOAT:0.6
 8:LIT_INT:0
 8:EOL
@@ -83,7 +84,8 @@ EXIT:0
 34:EOL
 35:EOL
 36:EOL
-37:LIT_STRING:escape:  carriage return
+37:LIT_STRING:escape: 
+ carriage return
 37:EOL
 38:LIT_INT:123456789
 38:LIT_INT:2147483647
@@ -119,7 +121,8 @@ EXIT:0
 47:EOL
 48:KEYWORD:do
 48:EOL
-49:LIT_STRING:escape:  carriage return
+49:LIT_STRING:escape: 
+ carriage return
 49:KEYWORD:for
 49:EOL
 50:LIT_INT:1000000
@@ -167,7 +170,8 @@ EXIT:0
 60:EOL
 61:IDENTIFIER:snake_case
 61:KEYWORD:var
-61:LIT_STRING:escape:  carriage return
+61:LIT_STRING:escape: 
+ carriage return
 61:EOL
 62:PIPE
 62:EOL
@@ -241,7 +245,8 @@ EXIT:0
 84:KEYWORD:Boolean
 84:EOL
 85:EOL
-86:LIT_STRING:escape:  carriage return
+86:LIT_STRING:escape: 
+ carriage return
 86:EOL
 87:LIT_STRING:
 87:IDENTIFIER:with123Numbers
@@ -286,7 +291,8 @@ EXIT:0
 100:LIT_FLOAT:3.14159
 100:LIT_STRING:hello
 100:IDENTIFIER:_var
-100:LIT_STRING:escape:  carriage return
+100:LIT_STRING:escape: 
+ carriage return
 100:EOL
 101:LT
 101:EOL
@@ -302,7 +308,8 @@ EXIT:0
 105:LIT_STRING:escape: \ lomitko
 105:LIT_INT:2147483647
 105:EOL
-106:LIT_STRING:escape:  carriage return
+106:LIT_STRING:escape: 
+ carriage return
 106:LIT_INT:123456789
 106:EOL
 107:EOL
@@ -335,7 +342,8 @@ EXIT:0
 116:EOL
 117:KEYWORD:Boolean
 117:EOL
-118:LIT_STRING:escape:  carriage return
+118:LIT_STRING:escape: 
+ carriage return
 118:EOL
 119:IDENTIFIER:readInt
 119:LIT_FLOAT:0.5
@@ -448,12 +456,13 @@ EXIT:0
 152:EOL
 153:LIT_INT:42
 153:EOL
-154:AT
+154:AT_MAIN
 154:IDENTIFIER:_1
 154:LIT_INT:999999999
 154:EOL
 155:KEYWORD:Double
-155:LIT_STRING:escape:  carriage return
+155:LIT_STRING:escape: 
+ carriage return
 155:EOL
 156:LIT_FLOAT:1000.5
 156:EOL
@@ -522,7 +531,8 @@ EXIT:0
 176:EOL
 177:SEMICOLON
 177:EOL
-178:LIT_STRING:escape:  carriage return
+178:LIT_STRING:escape: 
+ carriage return
 178:LIT_INT:0
 178:IDENTIFIER:with123Numbers
 178:IDENTIFIER:_1

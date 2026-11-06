@@ -151,11 +151,11 @@ x 2.5E-3   _1  return  def // comment on line 148
 _var   0 /* comment 
  */ 
 42 /* inline comment */ Double
-@
+@main
 3.14159 123_456_789 /* comment 
  */ 
 do  |
-def /* inline comment */ @ // comment on line 158
+def /* inline comment */ @main // comment on line 158
 then 100.5e+2
 ""   _var /* comment 
 
@@ -167,13 +167,13 @@ val // comment on line 164
 camelCase   _var  5e-2 >   < <=  camelCase /* comment 
  */ 
 import  ,   1_000_000   999_999_999   0.0 def
-@ 1_000_000  1_000.50_1  1_000.50_1 // comment on line 170
-@ "escape: \n nova radka"
+@main 1_000_000  1_000.50_1  1_000.50_1 // comment on line 170
+@main "escape: \n nova radka"
 "escape: \" uvozovka" class 2147483647
 1e10 /* inline comment */ 42  ,
 1_000.50_1 Boolean <
 Int  __private  "hello"
-@  0.6 /* comment 
+@main  0.6 /* comment 
 
  */ 
 0   "escape: \\ lomitko"

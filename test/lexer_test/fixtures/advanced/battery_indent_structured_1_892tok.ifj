@@ -13,7 +13,7 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString 1_000_000 123_456_789 s
     1 x 1_000_000 : 1_000.50_1
     "" Double veryLongIdentifierNameThatShouldStillWorkInDynamicString // line 14 comment
     >= thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 1e10
-    Boolean readInt String _1 @
+    Boolean readInt String _1 @main
     42 "kombinace: \n\t\"\\" with123Numbers _1
     2.5E-3 __private , >=
     0.6 String case
@@ -42,7 +42,7 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString 1_000_000 123_456_789 s
                 __private return // line 42 comment
                 veryLongIdentifierNameThatShouldStillWorkInDynamicString <= 42 _1
                 with123Numbers
-/ ( / camelCase factorial // line 45 comment
+/   / camelCase factorial // line 45 comment
 0.0 "kombinace: \n\t\"\\" "escape: \" uvozovka" 10_20_30 Double 999_999_999
     0.0
     "escape: \t tabulator" 10_20_30 camelCase
@@ -53,16 +53,16 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString 1_000_000 123_456_789 s
         _1 0.0 "hello" >=
         2.5E-3 1_000_000
     1e10
-    __private _1 1_000_000 ( 2.5E-3
+    __private _1 1_000_000   2.5E-3
     if
         123_456_789 __private 10_20_30
     _1 var 2147483647 factorial "escape: \r carriage return"
-    "escape: \n nova radka" / ) 0.125e+2 1e10
+    "escape: \n nova radka" /   0.125e+2 1e10
 readInt factorial 10_20_30 // line 61 comment
     thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString type "text s mezerami" factorial == 1_000_000
     1e5D import
     then / __private 100.5e+2 - 10_20_30
-    42 0.0 ( List
+    42 0.0   List
     0.125e+2 123_456_789 != + 999_999_999 def
 100.5e+2
 / | !=
@@ -70,11 +70,11 @@ readInt factorial 10_20_30 // line 61 comment
 if _var "escape: \n nova radka" // line 70 comment
 veryLongIdentifierNameThatShouldStillWorkInDynamicString camelCase != -
     5e-2 2147483647 1 42
-        veryLongIdentifierNameThatShouldStillWorkInDynamicString ( camelCase
+        veryLongIdentifierNameThatShouldStillWorkInDynamicString   camelCase
             123_456_789 with123Numbers readInt
     readInt with123Numbers 5e-2 then 0 _var // line 75 comment
 then class "escape: \n nova radka"
-1_000_000 42 @ camelCase 123_456_789
+1_000_000 42 @main camelCase 123_456_789
 = >= 42.0d 42 /
 10_20_30 type != Unit
 x result 999_999_999
@@ -85,7 +85,7 @@ readInt == 1
 __private 42.0d class
 <= :
 "escape: \" uvozovka"
-) _var // line 88 comment
+    _var // line 88 comment
 3.14159 2.5E-3
 class
 123_456_789 snake_case // line 91 comment
@@ -103,23 +103,23 @@ while else - then
 999_999_999 1_000.50_1 then <= _1 "text s mezerami"
 100.5e+2 2147483647 | thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 2.5E-3
 42 0.0
-factorial 2147483647 __private 999_999_999 @
+factorial 2147483647 __private 999_999_999 @main
 "escape: \n nova radka" 2147483647 1_000_000
 _var
 0.125e+2
 42.0d __private Boolean
 0.0
-@ if Double else veryLongIdentifierNameThatShouldStillWorkInDynamicString
+@main if Double else veryLongIdentifierNameThatShouldStillWorkInDynamicString
 _1 >= 42 "escape: \r carriage return" List
 42 0 _
-( return 2.5E-3 0
-@ import List // line 116 comment
+    return 2.5E-3 0
+@main import List // line 116 comment
 123_456_789
-(
+
 camelCase 999_999_999 100.5e+2 5e-2 // line 119 comment
-* ( x _1 readInt List
+*   x _1 readInt List
 10_20_30 "escape: \\ lomitko"
-1e10 _var __private ) readInt >= // line 122 comment
+1e10 _var __private   readInt >= // line 122 comment
 readInt "" 10_20_30
 42
     import veryLongIdentifierNameThatShouldStillWorkInDynamicString camelCase x 1e5D
@@ -132,7 +132,7 @@ x 2147483647 1 = result "kombinace: \n\t\"\\"
 999_999_999 _ with123Numbers x def
 match
 0.0 _var
-10_20_30 @ factorial 999_999_999 1e5D 3.14159
+10_20_30 @main factorial 999_999_999 1e5D 3.14159
 Unit
 then 1 0.5 100.5e+2 String "escape: \n nova radka"
 camelCase
@@ -144,13 +144,13 @@ else class x "escape: \\ lomitko"
 List
 0 "" 10_20_30 factorial -
 10_20_30 String
-( _1 = camelCase if
-    camelCase
-    if __private __private 999_999_999 100.5e+2 10_20_30
-    1_000.50_1 0.6 = snake_case 999_999_999
-    ;
+    _1 = camelCase if
+        camelCase
+        if __private __private 999_999_999 100.5e+2 10_20_30
+        1_000.50_1 0.6 = snake_case 999_999_999
+        ;
 Double "escape: \r carriage return" 123_456_789 result // line 152 comment
-result 42 ( _var with123Numbers >=
+result 42   _var with123Numbers >=
 2147483647 __private veryLongIdentifierNameThatShouldStillWorkInDynamicString List
     readInt 2147483647
     List 42 _ 2147483647 "escape: \r carriage return" *
@@ -165,7 +165,7 @@ result 42 ( _var with123Numbers >=
                 extension import
                 readInt 10_20_30 100.5e+2 // line 166 comment
                 readInt 2.5E-3 "kombinace: \n\t\"\\" factorial var 42.0d
-                + ( with123Numbers 0
+                +   with123Numbers 0
                 2.5E-3 Unit 0.5
                 "kombinace: \n\t\"\\" 42 "escape: \r carriage return" 1e5D > __private
                 0 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString import
@@ -175,8 +175,8 @@ result 42 ( _var with123Numbers >=
 1 1_000_000 1e10 __private
 _1 factorial // line 176 comment
 0.0 // line 177 comment
-) <= 0 2147483647 100.5e+2 if
-) "escape: \" uvozovka" 1 "text s mezerami" snake_case -
+    <= 0 2147483647 100.5e+2 if
+    "escape: \" uvozovka" 1 "text s mezerami" snake_case -
 "" readInt <= with123Numbers
 readInt
 999_999_999 _var
@@ -202,7 +202,7 @@ result 1e10 val 10_20_30 List
     + "escape: \" uvozovka" snake_case thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString "text s mezerami" "escape: \r carriage return"
     x != 1 _var List |
         2.5E-3 ; with123Numbers =
-        Unit 10_20_30 0 readInt Boolean (
+        Unit 10_20_30 0 readInt Boolean  
         factorial
         0.0 "escape: \r carriage return" snake_case // line 207 comment
 5e-2 1 42.0d snake_case
@@ -214,13 +214,13 @@ result 1e10 val 10_20_30 List
         result "" ; extension == 1_000.50_1
     0
     123_456_789 "hello" 0.0
-    123_456_789 ) thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 0 123_456_789
+    123_456_789   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 0 123_456_789
 | , 42 def 1e10
 Unit <= 42.0d val
 match 1e10 "escape: \" uvozovka" extension with123Numbers _var
     123_456_789 2147483647
     1 5e-2 42 10_20_30 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString // line 222 comment
-    _1 ) 10_20_30 "escape: \r carriage return"
+    _1   10_20_30 "escape: \r carriage return"
         _var
             x veryLongIdentifierNameThatShouldStillWorkInDynamicString 123_456_789
             | snake_case match _var 123_456_789 5e-2
@@ -237,14 +237,14 @@ match 1e10 "escape: \" uvozovka" extension with123Numbers _var
             10_20_30 0.5 0.6
         snake_case
         2147483647 0.125e+2 != 42 999_999_999 factorial
-@ 10_20_30
-@ extension x 999_999_999 "escape: \r carriage return" // line 241 comment
+@main 10_20_30
+@main extension x 999_999_999 "escape: \r carriage return" // line 241 comment
 snake_case "hello" / 1_000_000
 "text s mezerami"
-class ) factorial 0.5
+class   factorial 0.5
 42.0d : "escape: \" uvozovka"
 with123Numbers extension thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString result 0.6
 1_000_000
 "kombinace: \n\t\"\\"
 100.5e+2 2.5E-3 return _1 1e10 "kombinace: \n\t\"\\" // line 249 comment
-var 10_20_30 0.6 ) Int 42.0d
+var 10_20_30 0.6   Int 42.0d

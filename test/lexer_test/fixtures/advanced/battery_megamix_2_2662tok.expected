@@ -56,12 +56,14 @@ EXIT:0
 18:IDENTIFIER:camelCase
 18:EOL
 19:LIT_FLOAT:0.5
-19:LIT_STRING:escape:  carriage return
+19:LIT_STRING:escape: 
+ carriage return
 19:EOL
 20:LIT_STRING:escape: \ lomitko
 20:EOL
 21:LIT_INT:999999999
-21:LIT_STRING:escape:  carriage return
+21:LIT_STRING:escape: 
+ carriage return
 21:EOL
 22:KEYWORD:while
 22:EOL
@@ -87,7 +89,8 @@ EXIT:0
 29:IDENTIFIER:readInt
 29:LIT_FLOAT:0.5
 29:LIT_FLOAT:42
-29:LIT_STRING:escape:  carriage return
+29:LIT_STRING:escape: 
+ carriage return
 29:IDENTIFIER:result
 29:EOL
 30:KEYWORD:import
@@ -168,7 +171,7 @@ EXIT:0
 56:LIT_INT:42
 56:COLON
 56:EOL
-57:AT
+57:AT_MAIN
 57:KEYWORD:type
 57:LIT_STRING:escape: " uvozovka
 57:LIT_FLOAT:10050
@@ -183,7 +186,8 @@ EXIT:0
 58:IDENTIFIER:x
 58:EOL
 59:MINUS
-59:LIT_STRING:escape:  carriage return
+59:LIT_STRING:escape: 
+ carriage return
 59:LIT_STRING:escape: " uvozovka
 59:EOL
 60:IDENTIFIER:x
@@ -197,7 +201,8 @@ EXIT:0
 61:IDENTIFIER:result
 61:KEYWORD:val
 61:EOL
-62:LIT_STRING:escape:  carriage return
+62:LIT_STRING:escape: 
+ carriage return
 62:LT
 62:IDENTIFIER:_var
 62:KEYWORD:else
@@ -267,7 +272,7 @@ EXIT:0
 85:NEQ
 85:IDENTIFIER:camelCase
 85:PLUS
-85:AT
+85:AT_MAIN
 85:EOL
 86:KEYWORD:extension
 86:KEYWORD:val
@@ -310,8 +315,9 @@ EXIT:0
 100:EOL
 101:EOL
 102:EOL
-103:LIT_STRING:escape:  carriage return
-103:AT
+103:LIT_STRING:escape: 
+ carriage return
+103:AT_MAIN
 103:LIT_INT:1
 103:LIT_STRING:escape: \ lomitko
 103:EOL
@@ -353,7 +359,8 @@ EXIT:0
 117:KEYWORD:do
 117:ASSIGN
 117:IDENTIFIER:_var
-117:LIT_STRING:escape:  carriage return
+117:LIT_STRING:escape: 
+ carriage return
 117:IDENTIFIER:_var
 117:LIT_FLOAT:0
 117:EOL
@@ -543,7 +550,7 @@ EXIT:0
 183:EOL
 184:KEYWORD:val
 184:KEYWORD:extension
-184:AT
+184:AT_MAIN
 184:IDENTIFIER:factorial
 184:LIT_FLOAT:0.0025
 184:LIT_FLOAT:100000
@@ -743,7 +750,8 @@ EXIT:0
 255:KEYWORD:List
 255:EOL
 256:LIT_INT:102030
-256:LIT_STRING:escape:  carriage return
+256:LIT_STRING:escape: 
+ carriage return
 256:EOL
 257:IDENTIFIER:result
 257:KEYWORD:do
@@ -832,7 +840,7 @@ EXIT:0
 285:LIT_STRING:escape: \ lomitko
 285:LIT_FLOAT:10050
 285:KEYWORD:if
-285:AT
+285:AT_MAIN
 285:EOL
 286:GT
 286:LIT_FLOAT:0.0025
@@ -861,7 +869,7 @@ EXIT:0
 296:COLON
 296:IDENTIFIER:readInt
 296:EOL
-297:AT
+297:AT_MAIN
 297:EOL
 298:KEYWORD:def
 298:EOL
@@ -924,7 +932,8 @@ EXIT:0
 314:KEYWORD:else
 314:KEYWORD:if
 314:EOL
-315:LIT_STRING:escape:  carriage return
+315:LIT_STRING:escape: 
+ carriage return
 315:EOL
 316:MINUS
 316:EOL
@@ -1142,7 +1151,7 @@ EXIT:0
 	"\
 387:LIT_STRING:text s mezerami
 387:EOL
-388:AT
+388:AT_MAIN
 388:EOL
 389:IDENTIFIER:__private
 389:EOL
@@ -1305,7 +1314,7 @@ EXIT:0
 446:LIT_STRING:kombinace: 
 	"\
 446:EOL
-447:AT
+447:AT_MAIN
 447:EOL
 448:LIT_INT:102030
 448:KEYWORD:extension
@@ -1726,7 +1735,8 @@ EXIT:0
 604:EOL
 605:IDENTIFIER:factorial
 605:LIT_STRING:escape: 	 tabulator
-605:LIT_STRING:escape:  carriage return
+605:LIT_STRING:escape: 
+ carriage return
 605:EOL
 606:LIT_INT:123456789
 606:EOL
@@ -1756,7 +1766,8 @@ EXIT:0
 616:KEYWORD:match
 616:IDENTIFIER:result
 616:EOL
-617:LIT_STRING:escape:  carriage return
+617:LIT_STRING:escape: 
+ carriage return
 617:LIT_INT:102030
 617:IDENTIFIER:camelCase
 617:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
@@ -1764,7 +1775,7 @@ EXIT:0
 618:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
 618:LIT_FLOAT:0.6
 618:EOL
-619:AT
+619:AT_MAIN
 619:LIT_FLOAT:0.0025
 619:EOL
 620:LIT_INT:102030
@@ -1814,7 +1825,8 @@ EXIT:0
 635:LIT_INT:1
 635:LIT_INT:1
 635:LIT_FLOAT:10050
-635:LIT_STRING:escape:  carriage return
+635:LIT_STRING:escape: 
+ carriage return
 635:EOL
 636:LIT_INT:999999999
 636:EOL
@@ -2014,7 +2026,7 @@ EXIT:0
 696:KEYWORD:def
 696:IDENTIFIER:_1
 696:EOL
-697:AT
+697:AT_MAIN
 697:LIT_FLOAT:12.5
 697:EOL
 698:UNDERSCORE
@@ -2182,7 +2194,7 @@ EXIT:0
 754:KEYWORD:else
 754:LIT_FLOAT:0.5
 754:LIT_INT:102030
-754:AT
+754:AT_MAIN
 754:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 754:LIT_FLOAT:0.6
 754:EOL
@@ -2279,7 +2291,7 @@ EXIT:0
 786:LIT_INT:42
 786:EOL
 787:EOL
-788:AT
+788:AT_MAIN
 788:IDENTIFIER:camelCase
 788:EOL
 789:EOL
@@ -2348,7 +2360,8 @@ EXIT:0
 814:LIT_FLOAT:0
 814:EOL
 815:LIT_FLOAT:0.0025
-815:LIT_STRING:escape:  carriage return
+815:LIT_STRING:escape: 
+ carriage return
 815:EOL
 816:LIT_FLOAT:3.14159
 816:IDENTIFIER:__private
@@ -2385,7 +2398,8 @@ EXIT:0
 828:EOL
 829:LIT_FLOAT:0.6
 829:EOL
-830:LIT_STRING:escape:  carriage return
+830:LIT_STRING:escape: 
+ carriage return
 830:KEYWORD:Unit
 830:LIT_INT:0
 830:EOL
@@ -2717,7 +2731,7 @@ EXIT:0
 940:EOL
 941:LIT_INT:999999999
 941:EOL
-942:AT
+942:AT_MAIN
 942:EOL
 943:GT
 943:EOL
@@ -2765,7 +2779,8 @@ EXIT:0
 957:LIT_FLOAT:42
 957:LIT_INT:999999999
 957:EOL
-958:LIT_STRING:escape:  carriage return
+958:LIT_STRING:escape: 
+ carriage return
 958:EOL
 959:KEYWORD:return
 959:EOL
@@ -2981,7 +2996,8 @@ EXIT:0
 1024:EOL
 1025:LIT_FLOAT:1000.5
 1025:LIT_FLOAT:0
-1025:LIT_STRING:escape:  carriage return
+1025:LIT_STRING:escape: 
+ carriage return
 1025:EOL
 1026:LIT_STRING:text s mezerami
 1026:LIT_STRING:escape: " uvozovka
@@ -3194,7 +3210,8 @@ EXIT:0
 1101:EOL
 1102:IDENTIFIER:veryLongIdentifierNameThatShouldStillWorkInDynamicString
 1102:EOL
-1103:LIT_STRING:escape:  carriage return
+1103:LIT_STRING:escape: 
+ carriage return
 1103:IDENTIFIER:_var
 1103:EOL
 1104:LPAREN
@@ -3447,7 +3464,7 @@ EXIT:0
 1188:LIT_INT:102030
 1188:IDENTIFIER:result
 1188:EOL
-1189:AT
+1189:AT_MAIN
 1189:EOL
 1190:IDENTIFIER:_1
 1190:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
@@ -3674,7 +3691,8 @@ EXIT:0
 1277:EOL
 1278:COLON
 1278:EOL
-1279:LIT_STRING:escape:  carriage return
+1279:LIT_STRING:escape: 
+ carriage return
 1279:LIT_INT:0
 1279:EOL
 1280:LIT_INT:123456789
@@ -3696,7 +3714,8 @@ EXIT:0
 1285:LIT_FLOAT:0.5
 1285:IDENTIFIER:result
 1285:EOL
-1286:LIT_STRING:escape:  carriage return
+1286:LIT_STRING:escape: 
+ carriage return
 1286:LIT_FLOAT:10050
 1286:LIT_FLOAT:1000.5
 1286:EOL
@@ -3855,7 +3874,7 @@ EXIT:0
 1336:LIT_INT:1
 1336:EOL
 1337:KEYWORD:import
-1337:AT
+1337:AT_MAIN
 1337:EOL
 1338:KEYWORD:List
 1338:LIT_FLOAT:1e+10
@@ -3873,7 +3892,8 @@ EXIT:0
 1342:EOL
 1343:LIT_FLOAT:0.5
 1343:EOL
-1344:LIT_STRING:escape:  carriage return
+1344:LIT_STRING:escape: 
+ carriage return
 1344:EOL
 1345:COMMA
 1345:LIT_INT:1000000
@@ -4008,7 +4028,8 @@ EXIT:0
 1385:IDENTIFIER:_var
 1385:EOL
 1386:EOL
-1387:LIT_STRING:escape:  carriage return
+1387:LIT_STRING:escape: 
+ carriage return
 1387:IDENTIFIER:thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 1387:KEYWORD:do
 1387:EOL
@@ -4045,7 +4066,8 @@ EXIT:0
 1396:EQ
 1396:LIT_FLOAT:0.5
 1396:EOL
-1397:LIT_STRING:escape:  carriage return
+1397:LIT_STRING:escape: 
+ carriage return
 1397:MINUS
 1397:LPAREN
 1397:IDENTIFIER:snake_case
@@ -4073,7 +4095,8 @@ EXIT:0
 1404:EOL
 1405:MINUS
 1405:LIT_STRING:
-1405:LIT_STRING:escape:  carriage return
+1405:LIT_STRING:escape: 
+ carriage return
 1405:IDENTIFIER:camelCase
 1405:EOL
 1406:EOL

@@ -11,13 +11,13 @@ class for
     "escape: \r carriage return" _var 5e-2 _var List
     100.5e+2 >
     "text s mezerami" 0 then 123_456_789
-        10_20_30 = ) result for 10_20_30
+        10_20_30 =   result for 10_20_30
         factorial readInt 123_456_789 // line 15 comment
             camelCase 0.125e+2 10_20_30 result 1_000_000 123_456_789
                 "escape: \t tabulator" result "escape: \r carriage return" 123_456_789 // line 17 comment
                 - 1 Double 0.125e+2 snake_case
                 123_456_789 __private <= 42.0d then with123Numbers
-        1e10 (
+        1e10  
 with123Numbers
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
     camelCase "escape: \" uvozovka" result ; snake_case
@@ -90,11 +90,11 @@ import 0.0 camelCase val factorial
 match
 123_456_789 Double 1_000.50_1 // line 91 comment
 1_000_000 import
-42 ) do factorial
+42   do factorial
     type 1 "hello"
 42.0d == 1_000.50_1 42.0d 0.6
 3.14159 1 999_999_999 0
-0.5 >= ( 0 // line 97 comment
+0.5 >=   0 // line 97 comment
 x readInt with123Numbers .
 x "escape: \n nova radka" List
     "kombinace: \n\t\"\\"
@@ -126,7 +126,7 @@ x "escape: \n nova radka" List
                 0.0 5e-2 "escape: \\ lomitko" 42 "hello" 0.0
                 1e10 2147483647 >
                 == 1_000_000 var
-    ; 0 ) x
+    ; 0   x
 "escape: \" uvozovka" 0 ==
 . 0.0 x 1_000_000
 "escape: \t tabulator" <= 0 0 0.6 veryLongIdentifierNameThatShouldStillWorkInDynamicString // line 132 comment
@@ -145,7 +145,7 @@ class 0.5
 _1 for _1 snake_case
 "escape: \r carriage return" thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 with123Numbers import val 123_456_789 = 10_20_30
-@ 0.125e+2 "escape: \t tabulator" var 2147483647 Unit
+@main 0.125e+2 "escape: \t tabulator" var 2147483647 Unit
 10_20_30 "" 1_000_000
 match 1e10 3.14159 42 0.125e+2
 "escape: \t tabulator" extension 1_000_000 |
@@ -174,12 +174,12 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString while
         10_20_30
         0 "escape: \\ lomitko" Int result .
 _1 "escape: \\ lomitko"
-    - snake_case 2147483647 1 @
+    - snake_case 2147483647 1 @main
 1_000_000 1_000_000 then 123_456_789
 case 2147483647 result val
-    ) *
+    *
     "escape: \n nova radka" type 0 "escape: \t tabulator"
-42.0d _ ( return // line 182 comment
+42.0d _   return // line 182 comment
 Unit 0.0 1_000_000 10_20_30
 "text s mezerami" 2147483647 x 42 result
     2.5E-3 ==
@@ -198,7 +198,7 @@ _1 case
 x type "hello"
 > // line 199 comment
 10_20_30
-thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 0.6 @ ; "escape: \\ lomitko"
+thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 0.6 @main ; "escape: \\ lomitko"
     / |
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString _var "text s mezerami" >= extension / // line 203 comment
 import _1
@@ -207,17 +207,17 @@ import _1
     snake_case
     veryLongIdentifierNameThatShouldStillWorkInDynamicString 1 123_456_789
     123_456_789 / List // line 209 comment
-    String / 1_000.50_1 @ val String // line 210 comment
+    String / 1_000.50_1 @main val String // line 210 comment
     "" result "escape: \\ lomitko" factorial 100.5e+2 result
-    @ 999_999_999 123_456_789 Unit veryLongIdentifierNameThatShouldStillWorkInDynamicString def
+    @main 999_999_999 123_456_789 Unit veryLongIdentifierNameThatShouldStillWorkInDynamicString def
     __private * Int
     with123Numbers * 3.14159 camelCase __private
     1_000.50_1 case 1_000_000 - 10_20_30 ==
     factorial 42 2147483647
-    do (
+    do  
     1 10_20_30 - 0 1
     >= 0.5 42 > 10_20_30 result // line 219 comment
-    == val "hello" 42 )
+    == val "hello" 42  
     camelCase veryLongIdentifierNameThatShouldStillWorkInDynamicString camelCase result 0.6 :
         veryLongIdentifierNameThatShouldStillWorkInDynamicString >
         "escape: \t tabulator" 0 1_000_000 == // line 223 comment

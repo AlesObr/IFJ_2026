@@ -35,7 +35,7 @@ Boolean  _var 123_456_789 1e5D 1e5D
 1e10 // comment on line 35
 1   return // comment on line 36
 "kombinace: \n\t\"\\" readInt 100.5e+2
-3.14159   veryLongIdentifierNameThatShouldStillWorkInDynamicString @ /* comment 
+3.14159   veryLongIdentifierNameThatShouldStillWorkInDynamicString @main /* comment 
 
  */ 
 0.6
@@ -165,7 +165,7 @@ __private  1
 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
 0.125e+2 1   while
 "text s mezerami"  Boolean
-@  >=   "kombinace: \n\t\"\\" "escape: \" uvozovka"
+@main  >=   "kombinace: \n\t\"\\" "escape: \" uvozovka"
 __private
 1e10 "" result  ""
 while
@@ -197,7 +197,7 @@ veryLongIdentifierNameThatShouldStillWorkInDynamicString /* inline comment */ 10
  */ 
 __private 1_000.50_1 123_456_789
 0.0  List
-"escape: \r carriage return" 0.6  0   42.0d @   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString /* comment 
+"escape: \r carriage return" 0.6  0   42.0d @main   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString /* comment 
  */ 
 100.5e+2  import  2147483647 _var !=  :   1  !=
 then  case 1_000.50_1 ( ,

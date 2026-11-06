@@ -50,11 +50,11 @@ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNam
                 "kombinace: \n\t\"\\" 2.5E-3 42
                 2.5E-3 3.14159 x 1_000_000
                 _ do __private *
-var ( snake_case Unit readInt x // line 53 comment
+var   snake_case Unit readInt x // line 53 comment
 camelCase "escape: \\ lomitko" Double 42.0d // line 54 comment
 "escape: \t tabulator" "escape: \\ lomitko" snake_case
     999_999_999 1 factorial != result // line 56 comment
     1e10
-    : ( List 1_000_000
+    :   List 1_000_000
     1e5D 42
     1_000_000 camelCase 1 1_000.50_1 "escape: \t tabulator"

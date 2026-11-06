@@ -125,6 +125,13 @@ void token_init(Token *t);
  */
 void token_destroy(Token *t);
 
+/**
+ * @brief Return a human-readable name for a token type.
+ * @param type Token type to describe.
+ * @return Static token type name.
+ */
+const char *token_type_name(TokenType type);
+
 #include <stdbool.h>
 
 /**

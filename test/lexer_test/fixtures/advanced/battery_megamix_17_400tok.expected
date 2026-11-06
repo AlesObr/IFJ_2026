@@ -54,7 +54,8 @@ EXIT:0
 14:EOL
 15:COMMA
 15:IDENTIFIER:snake_case
-15:LIT_STRING:escape:  carriage return
+15:LIT_STRING:escape: 
+ carriage return
 15:EOL
 16:LPAREN
 16:EOL
@@ -394,7 +395,8 @@ EXIT:0
 135:IDENTIFIER:x
 135:EOL
 136:LIT_STRING:escape: \ lomitko
-136:LIT_STRING:escape:  carriage return
+136:LIT_STRING:escape: 
+ carriage return
 136:IDENTIFIER:_var
 136:KEYWORD:do
 136:IDENTIFIER:snake_case
@@ -547,7 +549,8 @@ EXIT:0
 188:LIT_INT:999999999
 188:DIV
 188:EOL
-189:LIT_STRING:escape:  carriage return
+189:LIT_STRING:escape: 
+ carriage return
 189:LIT_INT:1000000
 189:EOL
 190:LIT_INT:2147483647
@@ -588,7 +591,8 @@ EXIT:0
 203:LIT_FLOAT:0.0025
 203:EOL
 204:EOL
-205:LIT_STRING:escape:  carriage return
+205:LIT_STRING:escape: 
+ carriage return
 205:DIV
 205:KEYWORD:Boolean
 205:EOL
@@ -620,6 +624,6 @@ EXIT:0
 216:KEYWORD:import
 216:LIT_INT:123456789
 216:EOL
-217:AT
+217:AT_MAIN
 217:LIT_INT:42
 217:EOF
