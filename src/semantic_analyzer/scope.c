@@ -93,7 +93,7 @@ ScopeResult scope_insert(
 	sym->name = copy;
 	sym->type = type;
 	sym->is_const = is_const;
-	sym->id = s->next_id++;
+	sym->id = ++s->next_id;
 	if (out)
 		*out = sym;
 	return SCOPE_OK;
