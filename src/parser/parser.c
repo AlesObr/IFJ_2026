@@ -447,41 +447,26 @@ ParserStatus parse_for_generator(Token *curr_token, ASTNode *for_node) {
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, true),
 			"Failed to append generator expressiong to for AST node\n");
-		if (dstring_cmp_str(curr_token->data.str_val, "by") != 0) {
-			GET_TOKEN(curr_token, NULL, false);
-			status = parse_expression(curr_token);
-			CHECK_STATUS(status);
-			CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node),
-				"Failed to append generator expressiong to for AST node\n");
-		} else {
-			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								   "Unexpected token after end of for statement generator\n"),
-				PAR_FAIL);
-		}
 	} else if (dstring_cmp_str(curr_token->data.str_val, "until") == 0) {
 		GET_TOKEN(curr_token, NULL, false);
 		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, false),
 			"Failed to append generator expressiong to for AST node\n");
-		if (dstring_cmp_str(curr_token->data.str_val, "by") != 0) {
-			GET_TOKEN(curr_token, NULL, false);
-			status = parse_expression(curr_token);
-			CHECK_STATUS(status);
-			CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node),
-				"Failed to append generator expressiong to for AST node\n");
-		} else {
-			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								   "Unexpected token after end of for statement generator\n"),
-				PAR_FAIL);
-		}
 	} else {
 		ast_destroy(for_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Unexpected token inside of for statement generator\n"),
 			PAR_FAIL);
 	}
-	if (curr_token->type != TOKEN_EOL || dstring_cmp_str(curr_token->data.str_val, "do") != 0 ||
+	if (dstring_cmp_str(curr_token->data.str_val, "by") == 0) {
+		GET_TOKEN(curr_token, NULL, false);
+		status = parse_expression(curr_token);
+		CHECK_STATUS(status);
+		CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node),
+			"Failed to append generator expressiong to for AST node\n");
+	}
+	if (curr_token->type != TOKEN_EOL || curr_token->type != TOKEN_KEYWORD_DO ||
 		curr_token->type != TOKEN_KEYWORD_IF) {
 		return PARSE_OK(PAR_SUCC, NULL);
 	} else {
@@ -502,6 +487,13 @@ ParserStatus parse_for_statement(Token *curr_token) {
 	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type == TOKEN_EOL) {
 		GET_TOKEN(curr_token, NULL, false);
+		if (curr_token->type == TOKEN_INDENT){
+			GET_TOKEN(curr_token, NULL, false);
+		} else {
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Missing generator after for statement\n"),
+			PAR_FAIL);
+		}
 	}
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -530,6 +522,7 @@ ParserStatus parse_for_statement(Token *curr_token) {
 		while (true) {
 			GET_TOKEN(curr_token, for_node, false);
 			if (curr_token->type == TOKEN_KEYWORD_IF) {
+				GET_TOKEN(curr_token, for_node, false);
 				status = parse_expression(curr_token);
 				CHECK_STATUS(status);
 				CHECK_AST_APPEND(for_node, ast_for_append_guard(for_node, status.new_node),
@@ -540,7 +533,7 @@ ParserStatus parse_for_statement(Token *curr_token) {
 						PAR_FAIL);
 				}
 			}
-			if (dstring_cmp_str(curr_token->data.str_val, "do") == 0 ||
+			if (curr_token->type == TOKEN_KEYWORD_DO ||
 				curr_token->type == TOKEN_OUTDENT) {
 				break;
 			}
@@ -549,7 +542,7 @@ ParserStatus parse_for_statement(Token *curr_token) {
 	if (curr_token->type == TOKEN_OUTDENT) {
 		GET_TOKEN(curr_token, for_node, true);
 	}
-	if (dstring_cmp_str(curr_token->data.str_val, "do") != 0) {
+	if (curr_token->type != TOKEN_KEYWORD_DO) {
 		ast_destroy(for_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Expected 'do' at the end of for statement, got different token\n"),
