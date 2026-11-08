@@ -1,0 +1,3 @@
+# Pracovni soubory scala-cli pri spusteni ScalaAstOracle.scala
+.scala-build/
+.bsp/

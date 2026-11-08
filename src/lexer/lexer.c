@@ -258,6 +258,8 @@ Error lexer_get_next_token(Token *out_token) {
 					}
 					if (line_indent != indent_top()) {
 						dstring_free(&token_buffer);
+						fprintf(stderr, "Line %zu, Col %zu: Inconsistent indentation.\n",
+							current_line, current_col);
 						return ERROR_EMIT(
 							ERR_LEXICAL, current_line, current_col, "Inconsistent indentation.");
 					}

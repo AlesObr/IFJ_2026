@@ -11,10 +11,14 @@
 #include "../../src/_utils/error.h"
 
 int main(int argc, char *argv[]) {
+    bool dump_ast = false;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-            fprintf(stderr, "Použití: %s < vstup.scala\n", argv[0]);
+            fprintf(stderr, "Použití: %s [--ast] < vstup.scala\n", argv[0]);
             return 0;
+        }
+        if (strcmp(argv[i], "--ast") == 0) {
+            dump_ast = true;
         }
     }
 
@@ -36,6 +40,13 @@ int main(int argc, char *argv[]) {
     if (ERROR_IS_ERR(status.error)) {
         return (int)status.error.type;
     }
+
+    // Úspěšný průchod: volitelný výpis stromu jako S-výrazu pro porovnání s .ast
+    if (dump_ast) {
+        ast_dump_sexpr(status.new_node, stdout);
+        fputc('\n', stdout);
+    }
+    ast_destroy(status.new_node);
 
     return 0;
 }

@@ -6,12 +6,51 @@ Soubor byl vygenerován nástrojem generativní umělé inteligence (Gemini 3.8 
 
 import argparse
 import difflib
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 
-def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind: bool) -> tuple[bool, str]:
+AST_MATCH_MESSAGE = "OK (AST odpovídá referenci)"
+POSITION_PATTERN = re.compile(r"\bat (\d+:\d+)")
+
+
+def format_stats(passed: int, failed: int) -> str:
+    total = passed + failed
+    percent = 100 * passed / total if total else 0.0
+    return f"{passed} prošlo, {failed} selhalo z {total} testů ({percent:.1f} %)."
+
+
+def last_dump_line(stderr: str) -> str:
+    """Vrátí poslední řádek dumpu; zprávy parseru končí \\n, takže za nimi zbývá samotná uvozovka."""
+    lines = [line.strip() for line in stderr.splitlines() if line.strip() not in ("", '"')]
+    return lines[-1] if lines else "(prázdný výpis)"
+
+
+def print_failure_analysis(failures: dict[str, list[tuple[str, str]]], total_failed: int) -> None:
+    """Vypíše počty selhání podle druhu a pod nimi seskupené poslední řádky dumpu."""
+    print(f"\nAnalýza selhání ({total_failed} testů):")
+    for kind, items in sorted(failures.items(), key=lambda item: -len(item[1])):
+        print(f"  {len(items)}x ({100 * len(items) / total_failed:.1f} %) {kind}")
+
+        # Pozice se liší test od testu, seskupuje se proto bez ní
+        groups: dict[str, list[tuple[str, str]]] = {}
+        for test_name, dump in items:
+            if dump:
+                key = POSITION_PATTERN.sub("at L:S", dump)
+                groups.setdefault(key, []).append((test_name, dump))
+
+        for key, group in sorted(groups.items(), key=lambda item: -len(item[1])):
+            test_name, dump = group[0]
+            position = POSITION_PATTERN.search(dump)
+            where = f" ({position.group(1)})" if position else ""
+            print(f"      {len(group)}x {key}")
+            print(f"          např. {test_name}{where}")
+
+
+def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind: bool) -> tuple[bool, str, str | None, str]:
+    """Vrátí (prošlo, zpráva, druh selhání, poslední řádek dumpu pro analýzu)."""
     cmd = []
     if use_valgrind:
         cmd.extend([
@@ -38,25 +77,38 @@ def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind:
                 timeout=4
             )
     except subprocess.TimeoutExpired:
-        return False, "TIMEOUT (zacyklení)"
+        return False, "TIMEOUT (zacyklení)", "Timeout (zacyklení)", ""
     except Exception as e:
-        return False, f"Chyba při spuštění: {e}"
+        return False, f"Chyba při spuštění: {e}", "Chyba při spuštění", ""
+
+    # Kód 0 skončil bez chyby, jeho poslední řádek dumpu nic neříká
+    dump = last_dump_line(proc.stderr) if proc.returncode != 0 else ""
 
     if proc.returncode < 0:
-        return False, f"CRASH: signál {-proc.returncode} (Segfault/Abort)"
+        return False, f"CRASH: signál {-proc.returncode} (Segfault/Abort)", f"Crash (signál {-proc.returncode})", dump
 
     if use_valgrind and proc.returncode == 99:
-        return False, f"VALGRIND CHYBA (Memory leak / invalid free):\n{proc.stderr.strip()}"
+        return False, f"VALGRIND CHYBA (Memory leak / invalid free):\n{proc.stderr.strip()}", "Valgrind (kód 99)", ""
 
     # 1. Kontrola negativních testů (chyby syntaxe)
     if is_error_test:
         if proc.returncode in (1, 2):
-            return True, f"OK (chyba zachycena, kód {proc.returncode})"
-        return False, f"Chyba nezachycena! Očekáván kód 1 nebo 2, vráceno {proc.returncode}"
+            return True, f"OK (chyba zachycena, kód {proc.returncode})", None, ""
+        return (
+            False,
+            f"Chyba nezachycena! Očekáván kód 1 nebo 2, vráceno {proc.returncode}",
+            f"Chybový test: špatný kód {proc.returncode} (očekáván 1 nebo 2)",
+            dump,
+        )
 
     # 2. Kontrola pozitivních testů (validní kód)
     if proc.returncode != 0:
-        return False, f"Validní kód selhal s kódem {proc.returncode}! Stderr: {proc.stderr.strip()}"
+        return (
+            False,
+            f"Validní kód selhal s kódem {proc.returncode}! Stderr: {proc.stderr.strip()}",
+            f"Nechybový test: špatný kód {proc.returncode} (očekávána 0)",
+            dump,
+        )
 
     # 3. Kontrola AST struktury (pokud existuje referenční soubor .ast)
     ast_ref_file = scala_file.with_suffix(".ast")
@@ -72,9 +124,10 @@ def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind:
                 tofile="actual.ast",
                 lineterm=""
             )
-            return False, "AST S-výraz neodpovídá:\n" + "\n".join(diff)
+            return False, "AST S-výraz neodpovídá:\n" + "\n".join(diff), "Chyba AST (neshoda s referencí)", ""
+        return True, AST_MATCH_MESSAGE, None, ""
 
-    return True, "OK"
+    return True, "OK", None, ""
 
 
 def main():
@@ -99,19 +152,34 @@ def main():
 
     passed = 0
     failed = 0
+    ast_matched = 0
+    # Kategorie -> [prošlo, selhalo]
+    stats = {"Nechybové": [0, 0], "Chybové": [0, 0]}
+    # Druh selhání -> [(název testu, poslední řádek dumpu)]
+    failures: dict[str, list[tuple[str, str]]] = {}
 
     for test in tests:
-        ok, msg = run_test(str(bin_path), test, check_ast=args.check_ast, use_valgrind=args.valgrind)
+        # Absolutni cesta: Path("./bin") zahodi "./" a binarka by se hledala v PATH
+        ok, msg, kind, dump = run_test(str(bin_path.resolve()), test, check_ast=args.check_ast, use_valgrind=args.valgrind)
+        category = "Chybové" if "test_error" in test.name else "Nechybové"
+        stats[category][0 if ok else 1] += 1
         if ok:
             passed += 1
+            ast_matched += msg == AST_MATCH_MESSAGE
             print(f"✅  [PASS] {test.name} -> {msg}")
         else:
             failed += 1
+            failures.setdefault(kind, []).append((test.name, dump))
             print(f"❌ [FAIL] {test.name}\n      {msg}")
 
     print("\n" + "=" * 50)
-    print(f"Celkem: {passed} prošlo, {failed} selhalo z {len(tests)} testů.")
+    for category, (category_passed, category_failed) in stats.items():
+        print(f"{category}: {format_stats(category_passed, category_failed)}")
+    print(f"Celkem: {format_stats(passed, failed)}")
+    if args.check_ast:
+        print(f"AST: {ast_matched} testů prošlo porovnáním s referencí (ostatní .ast nemají).")
     if failed > 0:
+        print_failure_analysis(failures, failed)
         sys.exit(1)
 
 
