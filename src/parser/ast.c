@@ -69,6 +69,7 @@ static const char *val_type_to_str(ValType type) {
 		case ANY:
 			return "Any";
 		case UNDEF:
+			return "Undef";
 		default:
 			return "";
 	}
@@ -98,6 +99,9 @@ static ASTNode *ast_alloc(ASTNodeType type, size_t line, size_t col) {
 	node->type = type;
 	node->line = line;
 	node->col = col;
+	node->expr_type = UNDEF;
+	node->to_double = false;
+	node->sym_id = 0;
 	return node;
 }
 
