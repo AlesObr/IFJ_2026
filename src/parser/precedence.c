@@ -30,19 +30,26 @@ static void precedence_trace_token(const char *location, const Token *token) {
 	fputc('\n', stderr);
 }
 
-#define GET_TOKEN(tok_ptr, err, destroy_node)                                                      \
+#define GET_TOKEN(tok_ptr, err, node, eof_poss)                                            		   \
 	do {                                                                                           \
 		token_destroy(tok_ptr);                                                                    \
 		(err) = lexer_get_next_token((tok_ptr));                                                   \
 		if (ERROR_IS_ERR((err))) {                                                                 \
-			if ((destroy_node) != NULL) {                                                          \
-				ast_destroy(destroy_node);                                                         \
+			if (node != NULL) {                                                            		   \
+				ast_destroy(node);                                                         		   \
 			}                                                                                      \
 			return PARSE_ERROR((err), LEX_FAIL);                                                   \
 		}                                                                                          \
 		precedence_trace_token(__func__, (tok_ptr));                                               \
 		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \
-			return PARSE_OK(PAR_EOF, NULL);                                                        \
+			if ((eof_poss)){																	   \
+				return PARSE_OK(PAR_EOF, node);													   \
+			} else {																			   \
+				if (node != NULL) {                                                        		   \
+					ast_destroy(node);                                                     		   \
+				}                                                                                  \
+				return PARSE_ERROR((err), PAR_EOF);												   \
+			}																					   \
 		}                                                                                          \
 	} while (0)
 
@@ -162,7 +169,7 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 			if (curr_token->type == TOKEN_RPAREN) {
 				break;
 			} else if (curr_token->type == TOKEN_COMMA) {
-				GET_TOKEN(curr_token, (Error){0}, node);
+				GET_TOKEN(curr_token, (Error){0}, node, false);
 				status = parse_climb(curr_token, 0);
 				CHECK_STATUS(status);
 				CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
@@ -174,7 +181,7 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 					PAR_FAIL);
 			}
 		}
-		GET_TOKEN(curr_token, (Error){0}, node);
+		GET_TOKEN(curr_token, (Error){0}, node, false);
 	} while (curr_token->type == TOKEN_LPAREN);
 	return PARSE_OK(PAR_SUCC, node);
 }
@@ -192,7 +199,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 		case TOKEN_MINUS:
 		case TOKEN_NOT:
 			op = (curr_token->type == TOKEN_MINUS) ? OP_UNARY_MINUS : OP_NOT;
-			GET_TOKEN(curr_token, (Error){0}, NULL);
+			GET_TOKEN(curr_token, (Error){0}, NULL, false);
 			status = parse_prefix(curr_token);
 			CHECK_STATUS(status);
 			ALLOC_NODE(
@@ -218,7 +225,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 				ast_create_ident(curr_token->data.str_val, curr_token->line, curr_token->col));
 			break;
 		case TOKEN_LPAREN:
-			GET_TOKEN(curr_token, (Error){0}, NULL);
+			GET_TOKEN(curr_token, (Error){0}, NULL, false);
 			status = parse_climb(curr_token, 0);
 			CHECK_STATUS(status);
 			if (curr_token->type != TOKEN_RPAREN) {
@@ -240,11 +247,11 @@ ParserStatus parse_prefix(Token *curr_token) {
 			break;
 	}
 	if (curr_token->type != TOKEN_RBRACE && curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_COMMA && curr_token->type != TOKEN_SEMICOLON){
-		GET_TOKEN(curr_token, (Error){0}, node);
+		GET_TOKEN(curr_token, (Error){0}, node, false);
 	}
 	while (curr_token->type == TOKEN_DOT || curr_token->type == TOKEN_LPAREN) {
 		if (curr_token->type == TOKEN_DOT) {
-			GET_TOKEN(curr_token, (Error){0}, node);
+			GET_TOKEN(curr_token, (Error){0}, node, false);
 			if (curr_token->type != TOKEN_IDENTIFIER) {
 				ast_destroy(node);
 				return PARSE_ERROR(
@@ -256,7 +263,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 			ALLOC_NODE(tmp_node,
 				ast_create_call(curr_token->data.str_val, curr_token->line, curr_token->col));
 			CHECK_AST_APPEND(tmp_node, ast_call_add_target(tmp_node, node));
-			GET_TOKEN(curr_token, (Error){0}, node);
+			GET_TOKEN(curr_token, (Error){0}, node, false);
 			if (curr_token->type == TOKEN_LPAREN) {
 				status = parse_call_parameters(curr_token, tmp_node);
 				CHECK_STATUS(status);
@@ -278,7 +285,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 			}
 			ALLOC_NODE(tmp_node,
 				ast_create_call(&name, curr_token->line, curr_token->col));
-			GET_TOKEN(curr_token, (Error){0}, node);
+			GET_TOKEN(curr_token, (Error){0}, node, false);
 			status = parse_call_parameters(curr_token, tmp_node);
 			CHECK_STATUS(status);
 			if (node->type == NODE_IDENTIFIER){
@@ -311,7 +318,7 @@ static ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec) {
 		OpType op_type = token_to_op(curr_token);
 		fprintf(stderr, "[precedence] parse_climb: operator=%s precedence=%d\n",
 			token_type_name(curr_token->type), prec);
-		GET_TOKEN(curr_token, (Error){0}, node);
+		GET_TOKEN(curr_token, (Error){0}, node, false);
 		min_prec = (op_type == OP_ASSIGN) ? prec : (prec + 1);
 		status = parse_climb(curr_token, min_prec);
 		CHECK_STATUS(status);
@@ -320,7 +327,7 @@ static ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec) {
 			ast_create_binop(op_type, node, status.new_node, curr_token->line, curr_token->col));
 		prec = translate_token(curr_token);
 		if (prec == RELATIONAL || prec == EQUALITY) {
-			GET_TOKEN(curr_token, (Error){0}, node);
+			GET_TOKEN(curr_token, (Error){0}, node, false);
 			if ((translate_token(curr_token)) != NONE) {
 				ast_destroy(bin_op);
 				return PARSE_ERROR(
