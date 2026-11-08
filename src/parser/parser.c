@@ -42,22 +42,32 @@ static void parser_trace_token(const char *location, const Token *token) {
 /**
  * @brief Macro for safely fetching from scanner
  * @param tok_ptr Token pointer to fetch into
- * @param err Error variable to catch scanner errors
- * @param destroy_node Current rule ASTNode to be destroyed on fail
+ * @param node Current rule ASTNode to be destroyed on fail or sent back on EOF
+ * @param eof_poss Signalizes if EOF is possible in current fetch
  */
-#define GET_TOKEN(tok_ptr, err, destroy_node)                                                      \
+#define GET_TOKEN(tok_ptr, node, eof_poss)                                            		   	   \
 	do {                                                                                           \
 		token_destroy(tok_ptr);                                                                    \
-		(err) = lexer_get_next_token((tok_ptr));                                                   \
+		Error err = lexer_get_next_token((tok_ptr));                                               \
 		if (ERROR_IS_ERR((err))) {                                                                 \
-			if (destroy_node != NULL) {                                                            \
-				ast_destroy(destroy_node);                                                         \
+			if (node != NULL) {                                                            		   \
+				ast_destroy(node);                                                         		   \
 			}                                                                                      \
 			return PARSE_ERROR((err), LEX_FAIL);                                                   \
 		}                                                                                          \
 		parser_trace_token(__func__, (tok_ptr));                                                   \
 		if ((tok_ptr)->type == TOKEN_EOF) {                                                        \
-			return PARSE_OK(PAR_EOF, NULL);                                                        \
+			if ((eof_poss)){																	   \
+				return PARSE_OK(PAR_EOF, node);													   \
+			} else {																			   \
+				if (node != NULL) {                                                        		   \
+					ast_destroy(node);                                                     		   \
+				}                                                                                  \
+				fprintf(stderr, "failed here? \n");												   \
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,       \
+								   "EOF received at invalid place\n"),                      	   \
+				PAR_EOF); 																		   \
+			}																					   \
 		}                                                                                          \
 	} while (0)
 
@@ -108,9 +118,9 @@ static void parser_trace_token(const char *location, const Token *token) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_header(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	while (curr_token->type == TOKEN_EOL) {
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
 	}
 	// Fetched "import"
 	if (curr_token->type != TOKEN_KEYWORD_IMPORT) {
@@ -120,7 +130,7 @@ ParserStatus parse_header(Token *curr_token) {
 	}
 
 	// Expected "ifj26"
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type != TOKEN_IDENTIFIER ||
 		dstring_cmp_str(curr_token->data.str_val, "ifj26") != 0) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -129,20 +139,20 @@ ParserStatus parse_header(Token *curr_token) {
 	}
 
 	// Expected "."
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type != TOKEN_DOT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing ifj type in import (ifj.*)\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	// Expected "*"
 	if (curr_token->type != TOKEN_MUL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Wrong import library in header (ifj.*)\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type != TOKEN_EOL) { // Expected EOL at the end of the declaration
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing EOL after header declaration\n"),
@@ -158,9 +168,9 @@ ParserStatus parse_header(Token *curr_token) {
  */
 ParserStatus parse_at_main(Token *curr_token) {
 	ParserStatus status = {0};
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type == TOKEN_EOL) {
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
 		if (curr_token->type == TOKEN_KEYWORD_DEF) {
 			status = parse_func_def(curr_token, true);
 			CHECK_STATUS(status);
@@ -188,7 +198,7 @@ ParserStatus parse_at_main(Token *curr_token) {
 ParserStatus parse_code_block(Token *curr_token) {
 	ParserStatus status = {0};
 	while (curr_token->type == TOKEN_EOL){
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
 	}
 	if (curr_token->type != TOKEN_INDENT) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -197,10 +207,10 @@ ParserStatus parse_code_block(Token *curr_token) {
 	}
 	ASTNode *new_block;
 	ALLOC_NODE(new_block, ast_create_block(curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, (Error){0}, new_block);
+	GET_TOKEN(curr_token, new_block, false);
 	while (curr_token->type != TOKEN_OUTDENT) {
 		if (curr_token->type == TOKEN_EOL){
-			GET_TOKEN(curr_token, (Error){0}, new_block);
+			GET_TOKEN(curr_token, new_block, false);
 			continue;
 		}
 		status = parse_statement(curr_token);
@@ -216,14 +226,14 @@ ParserStatus parse_code_block(Token *curr_token) {
 				PAR_FAIL);
 		}
 		if (curr_token->type == TOKEN_OUTDENT){
-			GET_TOKEN(curr_token, (Error){0}, new_block);
+			GET_TOKEN(curr_token, new_block, true);
 			continue;
 		}
 		if (curr_token->type == TOKEN_SEMICOLON) {
-			GET_TOKEN(curr_token, (Error){0}, new_block);
+			GET_TOKEN(curr_token, new_block, true);
 		}
 		if (curr_token->type == TOKEN_EOL) {
-			GET_TOKEN(curr_token, (Error){0}, new_block);
+			GET_TOKEN(curr_token, new_block, true);
 		}
 	}
 	return PARSE_OK(PAR_SUCC, new_block);
@@ -237,7 +247,7 @@ ParserStatus parse_code_block(Token *curr_token) {
  */
 ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 	ASTNode *new_decl;
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier name after function declaration\n"),
@@ -245,9 +255,9 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 	}
 	ALLOC_NODE(new_decl, ast_create_var_decl(curr_token->data.str_val, mutability, curr_token->line,
 							 curr_token->col));
-	GET_TOKEN(curr_token, (Error){0}, new_decl);
+	GET_TOKEN(curr_token, new_decl, false);
 	if (curr_token->type == TOKEN_COLON) {
-		GET_TOKEN(curr_token, (Error){0}, new_decl);
+		GET_TOKEN(curr_token, new_decl, false);
 		ValType type;
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
@@ -272,10 +282,10 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 					PAR_FAIL);
 		}
 		ast_add_type(new_decl, type);
-		GET_TOKEN(curr_token, (Error){0}, new_decl);
+		GET_TOKEN(curr_token, new_decl, false);
 	}
 	if (curr_token->type == TOKEN_ASSIGN) {
-		GET_TOKEN(curr_token, (Error){0}, new_decl);
+		GET_TOKEN(curr_token, new_decl, false);
 		ParserStatus status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_decl, ast_var_decl_add_init(new_decl, status.new_node),
@@ -305,16 +315,16 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 ParserStatus parse_else_statement(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *new_else;
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type == TOKEN_EOL) {
 		ALLOC_NODE(new_else, ast_create_else(NULL, curr_token->line, curr_token->col));
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
 		status = parse_code_block(curr_token);
 		CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
 			"Failed to append function body of else block (no if)\n");
 		return PARSE_OK(PAR_SUCC, new_else);
 	} else if (curr_token->type == TOKEN_KEYWORD_IF) {
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
 		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		ALLOC_NODE(new_else, ast_create_else(status.new_node, curr_token->line, curr_token->col));
@@ -324,9 +334,9 @@ ParserStatus parse_else_statement(Token *curr_token) {
 								   "Missing then after else statement with condition\n"),
 				PAR_FAIL);
 		}
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
 		if (curr_token->type == TOKEN_EOL) {
-			GET_TOKEN(curr_token, (Error){0}, NULL);
+			GET_TOKEN(curr_token, NULL, false);
 			status = parse_code_block(curr_token);
 			CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
 				"Failed to append function body of else block (if)\n");
@@ -353,7 +363,7 @@ ParserStatus parse_else_statement(Token *curr_token) {
 ParserStatus parse_if_statement(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *new_if;
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	status = parse_expression(curr_token);
 	CHECK_STATUS(status);
 	ALLOC_NODE(new_if, ast_create_if(status.new_node, curr_token->line, curr_token->col));
@@ -363,19 +373,19 @@ ParserStatus parse_if_statement(Token *curr_token) {
 							   "Missing then after if statement condition\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, new_if);
+	GET_TOKEN(curr_token, new_if, false);
 	if (curr_token->type != TOKEN_EOL) {
 		ast_destroy(new_if);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing EOL after then of if statement\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, new_if);
+	GET_TOKEN(curr_token, new_if, false);
 	status = parse_code_block(curr_token);
 	CHECK_STATUS(status);
 	CHECK_AST_APPEND(new_if, ast_if_else_add_body(new_if, status.new_node),
 		"Failed to append function body of if block\n");
-	GET_TOKEN(curr_token, (Error){0}, new_if);
+	GET_TOKEN(curr_token, new_if, false);
 	while (true)
 		if (curr_token->type == TOKEN_KEYWORD_ELSE) {
 			status = parse_else_statement(curr_token);
@@ -396,7 +406,7 @@ ParserStatus parse_if_statement(Token *curr_token) {
 ParserStatus parse_while_statement(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *new_while;
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	status = parse_expression(curr_token);
 	CHECK_STATUS(status);
 	if (curr_token->type != TOKEN_KEYWORD_DO) {
@@ -406,13 +416,13 @@ ParserStatus parse_while_statement(Token *curr_token) {
 			PAR_FAIL);
 	}
 	ALLOC_NODE(new_while, ast_create_while(status.new_node, curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, (Error){0}, new_while);
+	GET_TOKEN(curr_token, new_while, false);
 	if (curr_token->type != TOKEN_EOL) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing EOL after do of while statement\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, new_while);
+	GET_TOKEN(curr_token, new_while, false);
 	status = parse_code_block(curr_token);
 	CHECK_STATUS(status);
 	CHECK_AST_APPEND(new_while, ast_while_add_body(new_while, status.new_node),
@@ -432,46 +442,31 @@ ParserStatus parse_for_generator(Token *curr_token, ASTNode *for_node) {
 	CHECK_AST_APPEND(for_node, ast_for_add_start(for_node, status.new_node),
 		"Failed to append generator expressiong to for AST node\n");
 	if (dstring_cmp_str(curr_token->data.str_val, "to") == 0) {
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
 		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, true),
 			"Failed to append generator expressiong to for AST node\n");
-		if (dstring_cmp_str(curr_token->data.str_val, "by") != 0) {
-			GET_TOKEN(curr_token, (Error){0}, NULL);
-			status = parse_expression(curr_token);
-			CHECK_STATUS(status);
-			CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node),
-				"Failed to append generator expressiong to for AST node\n");
-		} else {
-			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								   "Unexpected token after end of for statement generator\n"),
-				PAR_FAIL);
-		}
 	} else if (dstring_cmp_str(curr_token->data.str_val, "until") == 0) {
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
 		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, false),
 			"Failed to append generator expressiong to for AST node\n");
-		if (dstring_cmp_str(curr_token->data.str_val, "by") != 0) {
-			GET_TOKEN(curr_token, (Error){0}, NULL);
-			status = parse_expression(curr_token);
-			CHECK_STATUS(status);
-			CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node),
-				"Failed to append generator expressiong to for AST node\n");
-		} else {
-			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								   "Unexpected token after end of for statement generator\n"),
-				PAR_FAIL);
-		}
 	} else {
 		ast_destroy(for_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Unexpected token inside of for statement generator\n"),
 			PAR_FAIL);
 	}
-	if (curr_token->type != TOKEN_EOL || dstring_cmp_str(curr_token->data.str_val, "do") != 0 ||
+	if (dstring_cmp_str(curr_token->data.str_val, "by") == 0) {
+		GET_TOKEN(curr_token, NULL, false);
+		status = parse_expression(curr_token);
+		CHECK_STATUS(status);
+		CHECK_AST_APPEND(for_node, ast_for_add_step(for_node, status.new_node),
+			"Failed to append generator expressiong to for AST node\n");
+	}
+	if (curr_token->type != TOKEN_EOL || curr_token->type != TOKEN_KEYWORD_DO ||
 		curr_token->type != TOKEN_KEYWORD_IF) {
 		return PARSE_OK(PAR_SUCC, NULL);
 	} else {
@@ -489,9 +484,16 @@ ParserStatus parse_for_generator(Token *curr_token, ASTNode *for_node) {
 ParserStatus parse_for_statement(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *for_node;
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type == TOKEN_EOL) {
-		GET_TOKEN(curr_token, (Error){0}, NULL);
+		GET_TOKEN(curr_token, NULL, false);
+		if (curr_token->type == TOKEN_INDENT){
+			GET_TOKEN(curr_token, NULL, false);
+		} else {
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Missing generator after for statement\n"),
+			PAR_FAIL);
+		}
 	}
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -500,26 +502,27 @@ ParserStatus parse_for_statement(Token *curr_token) {
 	}
 	ALLOC_NODE(
 		for_node, ast_create_for(curr_token->data.str_val, curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, (Error){0}, for_node);
+	GET_TOKEN(curr_token, for_node, false);
 	if (curr_token->type != TOKEN_LT) {
 		ast_destroy(for_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing < after for statement generator\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, for_node);
+	GET_TOKEN(curr_token, for_node, false);
 	if (curr_token->type != TOKEN_MINUS) {
 		ast_destroy(for_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing - after < in for statement generator\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, for_node);
+	GET_TOKEN(curr_token, for_node, false);
 	CHECK_STATUS(parse_for_generator(curr_token, for_node));
 	if (curr_token->type == TOKEN_EOL) {
 		while (true) {
-			GET_TOKEN(curr_token, (Error){0}, for_node);
+			GET_TOKEN(curr_token, for_node, false);
 			if (curr_token->type == TOKEN_KEYWORD_IF) {
+				GET_TOKEN(curr_token, for_node, false);
 				status = parse_expression(curr_token);
 				CHECK_STATUS(status);
 				CHECK_AST_APPEND(for_node, ast_for_append_guard(for_node, status.new_node),
@@ -530,16 +533,16 @@ ParserStatus parse_for_statement(Token *curr_token) {
 						PAR_FAIL);
 				}
 			}
-			if (dstring_cmp_str(curr_token->data.str_val, "do") == 0 ||
+			if (curr_token->type == TOKEN_KEYWORD_DO ||
 				curr_token->type == TOKEN_OUTDENT) {
 				break;
 			}
 		}
 	}
 	if (curr_token->type == TOKEN_OUTDENT) {
-		GET_TOKEN(curr_token, (Error){0}, for_node);
+		GET_TOKEN(curr_token, for_node, true);
 	}
-	if (dstring_cmp_str(curr_token->data.str_val, "do") != 0) {
+	if (curr_token->type != TOKEN_KEYWORD_DO) {
 		ast_destroy(for_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Expected 'do' at the end of for statement, got different token\n"),
@@ -577,7 +580,7 @@ ParserStatus parse_statement(Token *curr_token) {
 			status = parse_for_statement(curr_token);
 			break;
 		case TOKEN_KEYWORD_RETURN:
-			GET_TOKEN(curr_token, (Error){0}, NULL);
+			GET_TOKEN(curr_token, NULL, true);
 			if (curr_token->type != TOKEN_EOL) {
 				status = parse_expression(curr_token);
 				CHECK_STATUS(status);
@@ -624,7 +627,7 @@ ParserStatus parse_statement(Token *curr_token) {
 ParserStatus parse_func_body(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *new_block;
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type != TOKEN_EOL) {
 		ALLOC_NODE(new_block, ast_create_block(curr_token->line, curr_token->col));
 		status = parse_statement(curr_token);
@@ -633,7 +636,7 @@ ParserStatus parse_func_body(Token *curr_token) {
 			"Failed to append statement into block in one line function body\n");
 	} else {
 		while (curr_token->type == TOKEN_EOL){
-			GET_TOKEN(curr_token, (Error){0}, NULL);
+			GET_TOKEN(curr_token, NULL, false);
 		}
 		if (curr_token->type == TOKEN_INDENT){
 			status = parse_code_block(curr_token);
@@ -656,7 +659,7 @@ ParserStatus parse_func_body(Token *curr_token) {
 ParserStatus parse_param_section(Token *curr_token) {
 	ASTNode *param_window;
 	ALLOC_NODE(param_window, ast_create_param_window(curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, (Error){0}, param_window);
+	GET_TOKEN(curr_token, param_window, false);
 	ASTNode *param_node;
 	while (true) {
 		if (curr_token->type == TOKEN_RPAREN) {
@@ -671,7 +674,7 @@ ParserStatus parse_param_section(Token *curr_token) {
 			ast_create_func_param(curr_token->data.str_val, curr_token->line, curr_token->col));
 		CHECK_AST_APPEND(param_window, ast_window_add_param(param_window, param_node),
 			"Failed to add function parameter into AST\n");
-		GET_TOKEN(curr_token, (Error){0}, param_window);
+		GET_TOKEN(curr_token, param_window, false);
 		if (curr_token->type != TOKEN_COLON) {
 			ast_destroy(param_window);
 			return PARSE_ERROR(
@@ -679,7 +682,7 @@ ParserStatus parse_param_section(Token *curr_token) {
 					"Missing colon after identifier of parameter in function declaration\n"),
 				PAR_FAIL);
 		}
-		GET_TOKEN(curr_token, (Error){0}, param_window);
+		GET_TOKEN(curr_token, param_window, false);
 		ValType param_type = UNDEF;
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
@@ -704,11 +707,11 @@ ParserStatus parse_param_section(Token *curr_token) {
 					PAR_FAIL);
 		}
 		ast_add_type(param_node, param_type);
-		GET_TOKEN(curr_token, (Error){0}, param_window);
+		GET_TOKEN(curr_token, param_window, false);
 		if (curr_token->type == TOKEN_COMMA) {
-			GET_TOKEN(curr_token, (Error){0}, param_window);
+			GET_TOKEN(curr_token, param_window, false);
 			if (curr_token->type == TOKEN_EOL) {
-				GET_TOKEN(curr_token, (Error){0}, param_window);
+				GET_TOKEN(curr_token, param_window, false);
 			} else if (curr_token->type == TOKEN_IDENTIFIER) {
 				continue;
 			} else {
@@ -738,7 +741,7 @@ ParserStatus parse_param_section(Token *curr_token) {
  */
 ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	ParserStatus status = {0};
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier in function declaration\n"),
@@ -748,7 +751,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	ALLOC_NODE(new_func,
 		ast_create_func(curr_token->data.str_val, main_flag, curr_token->line, curr_token->col));
 	while (true) {
-		GET_TOKEN(curr_token, (Error){0}, new_func);
+		GET_TOKEN(curr_token, new_func, false);
 		if (curr_token->type == TOKEN_LPAREN) {
 			status = parse_param_section(curr_token);
 			CHECK_STATUS(status);
@@ -759,7 +762,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 		}
 	}
 	if (curr_token->type == TOKEN_COLON) {
-		GET_TOKEN(curr_token, (Error){0}, new_func);
+		GET_TOKEN(curr_token, new_func, false);
 		ValType type = UNDEF;
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
@@ -785,7 +788,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 		}
 		ast_add_type(new_func, type);
 	}
-	GET_TOKEN(curr_token, (Error){0}, new_func);
+	GET_TOKEN(curr_token, new_func, false);
 	if (curr_token->type == TOKEN_ASSIGN) {
 		status = parse_func_body(curr_token);
 		new_func->func_decl.body = status.new_node;
@@ -805,7 +808,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
  * @return Status structure containing flags for caller
  */
 ParserStatus parse_extension_param(Token *curr_token) {
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing identifier in extension parameter\n"),
@@ -814,14 +817,14 @@ ParserStatus parse_extension_param(Token *curr_token) {
 	ASTNode *new_node;
 	ALLOC_NODE(
 		new_node, ast_ext_create(curr_token->data.str_val, curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, (Error){0}, new_node);
+	GET_TOKEN(curr_token, new_node, false);
 	if (curr_token->type != TOKEN_COLON) {
 		ast_destroy(new_node);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing colon in extension parameter\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, new_node);
+	GET_TOKEN(curr_token, new_node, false);
 	ValType type = UNDEF;
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_INT:
@@ -857,7 +860,7 @@ ParserStatus parse_extension_param(Token *curr_token) {
  */
 ParserStatus parse_extension_body(Token *curr_token, ASTNode *ext_node) {
 	ParserStatus status = {0};
-	GET_TOKEN(curr_token, (Error){0}, NULL);
+	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type == TOKEN_AT_MAIN) {
 		status = parse_at_main(curr_token);
 		CHECK_STATUS(status);
@@ -872,15 +875,19 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode *ext_node) {
 	CHECK_AST_APPEND(ext_node, ast_ext_add_func(ext_node, status.new_node),
 		"Failed to add function into extension\n");
 	while (curr_token->type != TOKEN_OUTDENT) {
-		GET_TOKEN(curr_token, (Error){0}, ext_node);
+		GET_TOKEN(curr_token, ext_node, false);
 		switch (curr_token->type) {
 			case TOKEN_AT_MAIN:
 				status = parse_at_main(curr_token);
 				CHECK_STATUS(status);
+				CHECK_AST_APPEND(ext_node, ast_ext_add_func(ext_node, status.new_node),
+						"Failed to add function into extension\n");
 				break;
 			case TOKEN_KEYWORD_DEF:
 				status = parse_func_def(curr_token, false);
 				CHECK_STATUS(status);
+				CHECK_AST_APPEND(ext_node, ast_ext_add_func(ext_node, status.new_node),
+						"Failed to add function into extension\n");
 				break;
 			case TOKEN_EOL:
 				break;
@@ -890,8 +897,6 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode *ext_node) {
 									   "Invalid token at end of extension declaration\n"),
 					PAR_FAIL);
 		}
-		CHECK_AST_APPEND(ext_node, ast_ext_add_func(ext_node, status.new_node),
-			"Failed to add function into extension\n");
 	}
 	return PARSE_OK(PAR_SUCC, NULL);
 }
@@ -904,7 +909,7 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode *ext_node) {
 ParserStatus parse_extension(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *ext_header;
-	GET_TOKEN(curr_token, (Error){0}, NULL); // Consume left parenthesis
+	GET_TOKEN(curr_token, NULL, false); // Consume left parenthesis
 	if (curr_token->type != TOKEN_LPAREN) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing left bracket of extension parameter\n"),
@@ -913,16 +918,16 @@ ParserStatus parse_extension(Token *curr_token) {
 	status = parse_extension_param(curr_token); // Parse the type the extension extends
 	CHECK_STATUS(status);
 	ext_header = status.new_node; // Extension header node was allocated in parse_extesion_param
-	GET_TOKEN(curr_token, (Error){0}, ext_header);
+	GET_TOKEN(curr_token, ext_header, false);
 	if (curr_token->type != TOKEN_RPAREN) { // Parse_extension param should stop at right parenthesis
 		ast_destroy(ext_header);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing right bracket of extension parameter\n"),
 			PAR_FAIL);
 	}
-	GET_TOKEN(curr_token, (Error){0}, ext_header);
+	GET_TOKEN(curr_token, ext_header, false);
 	while (curr_token->type == TOKEN_EOL){ // Consume EOL after right parenthesis and any EOLs between header and body of extension
-		GET_TOKEN(curr_token, (Error){0}, ext_header);
+		GET_TOKEN(curr_token, ext_header, false);
 		if (curr_token->type == TOKEN_INDENT){
 			status = parse_extension_body(curr_token, ext_header);
 			CHECK_STATUS(status);
@@ -950,7 +955,7 @@ ParserStatus parse_extension(Token *curr_token) {
  */
 ParserStatus parse_program(Token *curr_token) {
 	ParserStatus status = {0};
-	GET_TOKEN(curr_token, (Error){0}, NULL); // Fetch first body token
+	GET_TOKEN(curr_token, NULL, true); // Fetch first body token
 	ASTNode *program = NULL;
 	ALLOC_NODE(program, ast_create_block(curr_token->line, curr_token->col));
 	while (curr_token->type != TOKEN_EOF) {
@@ -981,7 +986,7 @@ ParserStatus parse_program(Token *curr_token) {
 									   "Missing EOL after header declaration\n"),
 					PAR_FAIL);
 		}
-		GET_TOKEN(curr_token, (Error){0}, program); // Get token for next highest level construct
+		GET_TOKEN(curr_token, program, true); // Get token for next highest level construct
 	}
 	return PARSE_OK(PAR_EOF, program);
 }
