@@ -30,6 +30,10 @@ typedef enum {
 	NODE_VAR_DECL,
 	NODE_ASSIGNMENT,
 
+	/* Data types*/
+	NODE_TYPE_ORIG,
+	NODE_TYPE_USER,
+
 	/* Expressions and Operations */
 	NODE_BINARY_OP,
 	NODE_UNARY_OP,
@@ -105,14 +109,20 @@ struct ASTNode {
 	size_t line; 		/**< Source code line where the construct starts. */
 	size_t col;	 		/**< Source code column where the construct starts. */
 
-	ValType expr_type;	/**< Determines which type of operation to use (DIV / IDIV) for example*/
-	bool to_double;		/**< Determines if conversion to int / double needed*/
-	size_t sym_id;		/**< Identifier of the variable in symtable if needed */
+	ASTNodeList *expr_types;	/**< Determines which type of operation to use (DIV / IDIV) for example*/
+	bool to_double;				/**< Determines if conversion to int / double needed*/
+	size_t sym_id;				/**< Identifier of the variable in symtable if needed */
 
 	union {
 		long int_val;	   /**< Literal integer value. */
 		double float_val;  /**< Literal float value. */
 		dstring_t str_val; /**< Dynamic string for literal strings and identifiers. */
+
+		/** @brief Node for data types */
+		struct{
+			ASTNode *defined_type;	/**< Type unification defined by user */
+			ValType orig_type;		/**< Languages predefined type */
+		} data_type;
 
 		/** @brief Structure for binary and unary operations. */
 		struct {
@@ -123,10 +133,10 @@ struct ASTNode {
 
 		/** @brief Structure for variable declaration nodes. */
 		struct {
-			dstring_t var_name; /**< Dynamic string holding declared variable name. */
-			ValType type_name;	/**< Type of the variable */
-			bool is_const;		/**< True if declared as const, false for var. */
-			ASTNode *init_expr; /**< Initializer expression or NULL. */
+			dstring_t var_name; 	/**< Dynamic string holding declared variable name. */
+			ASTNodeList *type_name;	/**< Types of the variable */
+			bool is_const;			/**< True if declared as const, false for var. */
+			ASTNode *init_expr; 	/**< Initializer expression or NULL. */
 		} var_decl;
 
 		/** @brief Structure for function call nodes. */
@@ -138,30 +148,29 @@ struct ASTNode {
 
 		/** @brief Structure for function parameters */
 		struct {
-			dstring_t param_name; /**< Name of the function parameter. */
-			ValType param_type;	  /**< Type of the function parameter. */
+			dstring_t param_name; 		/**< Name of the function parameter. */
+			ASTNodeList *param_type;	/**< Type of the function parameter. */
 		} func_param;
 
 		/** @brief Structure for function param window */
 		struct {
 			ASTNodeList params; /**< List of parameters for said function parameter window */
-			int size;			/**< Amount of function parameter lists in said window */
 		} param_window;
 
 		/** @brief Structure for function declaration */
 		struct {
-			dstring_t func_name;	   /**< Identifier of declared function */
-			ValType return_type;	   /**< Type that function should return */
-			bool is_main;			   /**< Flag tracking whether function is the main one */
-			ASTNodeList param_windows; /**< List of parameter windows */
-			ASTNode *body;			   /**< Expressions inside function body */
+			dstring_t func_name;	   		/**< Identifier of declared function */
+			ASTNodeList *return_type;	    /**< Types that function should return */
+			bool is_main;			   		/**< Flag tracking whether function is the main one */
+			ASTNodeList param_windows; 		/**< List of parameter windows */
+			ASTNode *body;			   		/**< Expressions inside function body */
 		} func_decl;
 
 		/** @brief Structure for extension declaration */
 		struct {
-			dstring_t param_name; /**< Dynamic string holding extension parameter  */
-			ValType type_name;	  /**< Type that extension extension */
-			ASTNodeList funcs;	  /**< List of functions inside said extension */
+			dstring_t param_name; 		/**< Dynamic string holding extension parameter  */
+			ASTNodeList *type_name;	  	/**< Type that extension extension */
+			ASTNodeList funcs;	  		/**< List of functions inside said extension */
 		} ext_decl;
 
 		/** @brief Structure for composite statement blocks. */
@@ -508,9 +517,12 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col);
 /**
  * @brief Addes a type AST node if node is valid (compatible only with some nodes)
  * @param node ASTNode to add type into
- * @param type_name Name of type to be added
+ * @param type_name_orig Name of original type to be added
+ * @param type_name_def Name of defined type to be added
+ * @param is_orig Determines if data type is original or user defined
+ * @return True if success, false if problem occurs or wrong parameters passed
  */
-void ast_add_type(ASTNode *node, ValType type_name);
+void ast_add_type(ASTNode *node, ValType type_name_orig, dstring type_name_def, bool is_orig);
 
 /**
  * @brief Appends a function to extension AST_NODE
