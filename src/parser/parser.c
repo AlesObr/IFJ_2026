@@ -24,8 +24,8 @@ ParserStatus parse_param_mem(Token *curr_token);
 ParserStatus parse_func_def(Token *curr_token, bool main_flag);
 ParserStatus parse_if_statement(Token *curr_token);
 ParserStatus parse_statement(Token *curr_token);
-ParserStatus parse_code_block(Token *curr_token);
-ParserStatus parse_func_body(Token *curr_token);
+ParserStatus parse_code_block(Token *curr_token, bool indent);
+ParserStatus parse_func_body(Token *curr_token, bool indent);
 
 static void parser_trace_token(const char *location, const Token *token) {
 	const char *value = "";
@@ -63,7 +63,6 @@ static void parser_trace_token(const char *location, const Token *token) {
 				if (node != NULL) {                                                        		   \
 					ast_destroy(node);                                                     		   \
 				}                                                                                  \
-				fprintf(stderr, "failed here? \n");												   \
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,       \
 								   "EOF received at invalid place\n"),                      	   \
 				PAR_EOF); 																		   \
@@ -171,6 +170,9 @@ ParserStatus parse_at_main(Token *curr_token) {
 	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type == TOKEN_EOL) {
 		GET_TOKEN(curr_token, NULL, false);
+		while (curr_token->type == TOKEN_EOL){
+			GET_TOKEN(curr_token, NULL, false);
+		}
 		if (curr_token->type == TOKEN_KEYWORD_DEF) {
 			status = parse_func_def(curr_token, true);
 			CHECK_STATUS(status);
@@ -193,21 +195,24 @@ ParserStatus parse_at_main(Token *curr_token) {
 /**
  * @brief Parsing of code blocks
  * @param curr_token Token pointer filled with current token
+ * @param indent Flag handling special cases when INDENT was consumed somewhere before
  * @return Status structure containing flags for caller
  */
-ParserStatus parse_code_block(Token *curr_token) {
+ParserStatus parse_code_block(Token *curr_token, bool indent) {
 	ParserStatus status = {0};
+	ASTNode *new_block;
 	while (curr_token->type == TOKEN_EOL){
 		GET_TOKEN(curr_token, NULL, false);
 	}
-	if (curr_token->type != TOKEN_INDENT) {
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Expected start of indented block, got something else\n"),
-			PAR_FAIL);
+	if (!indent){
+		if (curr_token->type != TOKEN_INDENT) {
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								"Expected start of indented block, got something else\n"),
+				PAR_FAIL);
+		}
+		GET_TOKEN(curr_token, NULL, false);
 	}
-	ASTNode *new_block;
 	ALLOC_NODE(new_block, ast_create_block(curr_token->line, curr_token->col));
-	GET_TOKEN(curr_token, new_block, false);
 	while (curr_token->type != TOKEN_OUTDENT) {
 		if (curr_token->type == TOKEN_EOL){
 			GET_TOKEN(curr_token, new_block, false);
@@ -319,7 +324,8 @@ ParserStatus parse_else_statement(Token *curr_token) {
 	if (curr_token->type == TOKEN_EOL) {
 		ALLOC_NODE(new_else, ast_create_else(NULL, curr_token->line, curr_token->col));
 		GET_TOKEN(curr_token, NULL, false);
-		status = parse_code_block(curr_token);
+		status = parse_code_block(curr_token, false);
+		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
 			"Failed to append function body of else block (no if)\n");
 		return PARSE_OK(PAR_SUCC, new_else);
@@ -337,7 +343,8 @@ ParserStatus parse_else_statement(Token *curr_token) {
 		GET_TOKEN(curr_token, NULL, false);
 		if (curr_token->type == TOKEN_EOL) {
 			GET_TOKEN(curr_token, NULL, false);
-			status = parse_code_block(curr_token);
+			status = parse_code_block(curr_token, false);
+			CHECK_STATUS(status);
 			CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
 				"Failed to append function body of else block (if)\n");
 			return PARSE_OK(PAR_SUCC, new_else);
@@ -381,7 +388,7 @@ ParserStatus parse_if_statement(Token *curr_token) {
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, new_if, false);
-	status = parse_code_block(curr_token);
+	status = parse_code_block(curr_token, false);
 	CHECK_STATUS(status);
 	CHECK_AST_APPEND(new_if, ast_if_else_add_body(new_if, status.new_node),
 		"Failed to append function body of if block\n");
@@ -423,7 +430,7 @@ ParserStatus parse_while_statement(Token *curr_token) {
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, new_while, false);
-	status = parse_code_block(curr_token);
+	status = parse_code_block(curr_token, false);
 	CHECK_STATUS(status);
 	CHECK_AST_APPEND(new_while, ast_while_add_body(new_while, status.new_node),
 		"Failed to append block of while statement\n");
@@ -548,7 +555,7 @@ ParserStatus parse_for_statement(Token *curr_token) {
 							   "Expected 'do' at the end of for statement, got different token\n"),
 			PAR_FAIL);
 	}
-	CHECK_STATUS(parse_func_body(curr_token));
+	CHECK_STATUS(parse_func_body(curr_token, false));
 	return PARSE_OK(PAR_SUCC, for_node);
 }
 
@@ -565,10 +572,10 @@ ParserStatus parse_statement(Token *curr_token) {
 	}
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_VAL:
-			status = parse_declaration(curr_token, false);
+			status = parse_declaration(curr_token, true);
 			break;
 		case TOKEN_KEYWORD_VAR:
-			status = parse_declaration(curr_token, true);
+			status = parse_declaration(curr_token, false);
 			break;
 		case TOKEN_KEYWORD_IF:
 			status = parse_if_statement(curr_token);
@@ -622,9 +629,10 @@ ParserStatus parse_statement(Token *curr_token) {
 /**
  * @brief Parsing of inner function body
  * @param curr_token Token pointer filled with current token
+ * @param indent Flag handling special cases when INDENT was consumed somewhere before
  * @return Status structure containing flags for caller
  */
-ParserStatus parse_func_body(Token *curr_token) {
+ParserStatus parse_func_body(Token *curr_token, bool indent) {
 	ParserStatus status = {0};
 	ASTNode *new_block;
 	GET_TOKEN(curr_token, NULL, false);
@@ -638,8 +646,8 @@ ParserStatus parse_func_body(Token *curr_token) {
 		while (curr_token->type == TOKEN_EOL){
 			GET_TOKEN(curr_token, NULL, false);
 		}
-		if (curr_token->type == TOKEN_INDENT){
-			status = parse_code_block(curr_token);
+		if (curr_token->type == TOKEN_INDENT || (curr_token->type != TOKEN_EOL && indent)){
+			status = parse_code_block(curr_token, indent);
 			CHECK_STATUS(status);
 			new_block = status.new_node;
 		} else if (curr_token->type != TOKEN_EOL) {
@@ -661,6 +669,9 @@ ParserStatus parse_param_section(Token *curr_token) {
 	ALLOC_NODE(param_window, ast_create_param_window(curr_token->line, curr_token->col));
 	GET_TOKEN(curr_token, param_window, false);
 	ASTNode *param_node;
+	while (curr_token->type == TOKEN_EOL || curr_token->type == TOKEN_INDENT){
+		GET_TOKEN(curr_token, param_window, false);
+	}
 	while (true) {
 		if (curr_token->type == TOKEN_RPAREN) {
 			return PARSE_OK(PAR_SUCC, param_window);
@@ -710,8 +721,11 @@ ParserStatus parse_param_section(Token *curr_token) {
 		GET_TOKEN(curr_token, param_window, false);
 		if (curr_token->type == TOKEN_COMMA) {
 			GET_TOKEN(curr_token, param_window, false);
-			if (curr_token->type == TOKEN_EOL) {
+			while (curr_token->type == TOKEN_EOL || curr_token->type == TOKEN_OUTDENT){
 				GET_TOKEN(curr_token, param_window, false);
+			}
+			if (curr_token->type == TOKEN_RPAREN) {
+				return PARSE_OK(PAR_SUCC, param_window);
 			} else if (curr_token->type == TOKEN_IDENTIFIER) {
 				continue;
 			} else {
@@ -741,6 +755,7 @@ ParserStatus parse_param_section(Token *curr_token) {
  */
 ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	ParserStatus status = {0};
+	bool found_indent = false;
 	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type != TOKEN_IDENTIFIER) {
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -760,6 +775,10 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 		} else {
 			break;
 		}
+	}
+	if (curr_token->type == TOKEN_INDENT){
+		found_indent = true;
+		GET_TOKEN(curr_token, new_func, false);
 	}
 	if (curr_token->type == TOKEN_COLON) {
 		GET_TOKEN(curr_token, new_func, false);
@@ -787,10 +806,14 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 					PAR_FAIL);
 		}
 		ast_add_type(new_func, type);
+		GET_TOKEN(curr_token, new_func, false);
 	}
-	GET_TOKEN(curr_token, new_func, false);
+	if (curr_token->type == TOKEN_INDENT){
+		found_indent = true;
+		GET_TOKEN(curr_token, new_func, false);
+	}
 	if (curr_token->type == TOKEN_ASSIGN) {
-		status = parse_func_body(curr_token);
+		status = parse_func_body(curr_token, found_indent);
 		new_func->func_decl.body = status.new_node;
 		CHECK_STATUS(status);
 	} else {
@@ -874,8 +897,8 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode *ext_node) {
 	}
 	CHECK_AST_APPEND(ext_node, ast_ext_add_func(ext_node, status.new_node),
 		"Failed to add function into extension\n");
+	GET_TOKEN(curr_token, ext_node, false);
 	while (curr_token->type != TOKEN_OUTDENT) {
-		GET_TOKEN(curr_token, ext_node, false);
 		switch (curr_token->type) {
 			case TOKEN_AT_MAIN:
 				status = parse_at_main(curr_token);
@@ -897,6 +920,7 @@ ParserStatus parse_extension_body(Token *curr_token, ASTNode *ext_node) {
 									   "Invalid token at end of extension declaration\n"),
 					PAR_FAIL);
 		}
+		GET_TOKEN(curr_token, ext_node, false);
 	}
 	return PARSE_OK(PAR_SUCC, NULL);
 }
@@ -983,10 +1007,17 @@ ParserStatus parse_program(Token *curr_token) {
 			default:
 				ast_destroy(program);
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									   "Missing EOL after header declaration\n"),
+									   "Invalid token at top level\n"),
 					PAR_FAIL);
 		}
-		GET_TOKEN(curr_token, program, true); // Get token for next highest level construct
+		if (curr_token->type == TOKEN_OUTDENT || curr_token->type == TOKEN_EOL){
+			GET_TOKEN(curr_token, program, true);
+		} else {
+			ast_destroy(program);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Invalid token after returning control to top level parsing\n"),
+				PAR_FAIL);
+		}
 	}
 	return PARSE_OK(PAR_EOF, program);
 }
