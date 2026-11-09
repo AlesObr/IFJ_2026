@@ -99,7 +99,7 @@ static ASTNode *ast_alloc(ASTNodeType type, size_t line, size_t col) {
 	node->type = type;
 	node->line = line;
 	node->col = col;
-	node->expr_type = UNDEF;
+	ast_nodelist_init(&node->expr.type);
 	node->to_double = false;
 	node->sym_id = 0;
 	return node;
@@ -216,7 +216,7 @@ ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, 
 		free(node);
 		return NULL;
 	}
-	node->var_decl.type_name = UNDEF;
+	ast_nodelist_init(&node->func_decl.param_windows);
 	node->var_decl.is_const = is_const;
 	node->var_decl.init_expr = NULL;
 	return node;
@@ -294,7 +294,7 @@ ASTNode *ast_create_func_param(const dstring_t *param_name, size_t line, size_t 
 		free(node);
 		return NULL;
 	}
-	node->func_param.param_type = UNDEF;
+	ast_nodelist_init(&node->func_param.param_type);
 	return node;
 }
 
@@ -311,9 +311,9 @@ ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, 
 		return NULL;
 	}
 	node->func_decl.is_main = is_main;
-	node->func_decl.return_type = UNDEF;
 	node->func_decl.body = NULL;
 	ast_nodelist_init(&node->func_decl.param_windows);
+	ast_nodelist_init(&node->func_decl.return_type);
 	return node;
 }
 
@@ -322,7 +322,6 @@ ASTNode *ast_create_param_window(size_t line, size_t col) {
 	if (node == NULL) {
 		return NULL;
 	}
-	node->param_window.size = 0;
 	ast_nodelist_init(&node->param_window.params);
 	return node;
 }
@@ -349,7 +348,6 @@ bool ast_window_add_param(ASTNode *param_window, ASTNode *param) {
 		ast_destroy(param);
 		return false;
 	}
-	param_window->param_window.size += 1;
 	return true;
 }
 
@@ -372,22 +370,50 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col) {
 		free(node);
 		return NULL;
 	}
-	node->ext_decl.type_name = UNDEF;
 	ast_nodelist_init(&node->ext_decl.funcs);
+	ast_nodelist_init(&node->ext_decl.data_type);
 	return node;
 }
 
-void ast_add_type(ASTNode *node, ValType type_name) {
+bool ast_add_type(ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig) {
 	if (node != NULL) {
-		if (node->type == NODE_EXT_DECL) {
-			node->ext_decl.type_name = type_name;
-		} else if (node->type == NODE_FUNC_PARAM) {
-			node->func_param.param_type = type_name;
-		} else if (node->type == NODE_FUNC_DECL) {
-			node->func_decl.return_type = type_name;
-		} else if (node->type == NODE_VAR_DECL) {
-			node->var_decl.type_name = type_name;
+		ASTNode *new_node = NULL;
+		bool res;
+		if (is_orig){
+			new_node = ast_alloc(NODE_TYPE_ORIG, line, col);
+			if (new_node == NULL) {
+				return false;
+			}
+			new_node->data_type.orig_type = ValType;
+		} else {
+			new_node = ast_alloc(NODE_TYPE_USER, line, col);
+			if (new_node == NULL) {
+				return false;
+			}
+			if (!ast_dstring_clone(&node->data_type.defined_type, type_name_def)) {
+				ast_destroy(new_node);
+				return NULL;
+			}
 		}
+		if (node->type == NODE_EXT_DECL) {
+			res = ast_nodelist_append(node->ext_decl.type_name, new_node);
+		} else if (node->type == NODE_FUNC_PARAM) {
+			res = ast_nodelist_append(node->func_param.param_type, new_node);
+		} else if (node->type == NODE_FUNC_DECL) {
+			res = ast_nodelist_append(node->func_decl.return_type, new_node);
+		} else if (node->type == NODE_VAR_DECL) {
+			res = ast_nodelist_append(&block_node->block.stmts, stmt)(&node->var_decl.type_name, new_node);
+		} else {
+			ast_destroy(new_node);
+			return false;
+		}
+		if (!res){
+			ast_destroy(new_node);
+			return false;
+		}
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -792,6 +818,9 @@ void ast_destroy(ASTNode *node) {
 	if (node == NULL) {
 		return;
 	}
+	if (node.expr_type != NULL){
+		ast_nodelist_destroy(&node->expr.type);
+	}
 
 	switch (node->type) {
 		case NODE_INT_LITERAL:
@@ -815,6 +844,7 @@ void ast_destroy(ASTNode *node) {
 
 		case NODE_VAR_DECL:
 			dstring_free(&node->var_decl.var_name);
+			ast_nodelist_destroy(&node->var_decl.type_name);
 			ast_destroy(node->var_decl.init_expr);
 			break;
 
@@ -836,17 +866,20 @@ void ast_destroy(ASTNode *node) {
 			break;
 
 		case NODE_FUNC_PARAM:
+			ast_nodelist_destroy(&node->func_decl.param_type);
 			dstring_free(&node->func_param.param_name);
 			break;
 
 		case NODE_FUNC_DECL:
 			dstring_free(&node->func_decl.func_name);
 			ast_destroy(node->func_decl.body);
+			ast_nodelist_destroy(&node->func_decl.return_type);
 			ast_nodelist_destroy(&node->func_decl.param_windows);
 			break;
 
 		case NODE_EXT_DECL:
 			dstring_free(&node->ext_decl.param_name);
+			ast_nodelist_destroy(&node->ext_decl.data_type);
 			ast_nodelist_destroy(&node->ext_decl.funcs);
 			break;
 
@@ -858,7 +891,11 @@ void ast_destroy(ASTNode *node) {
 			ast_destroy(node->for_stmt.body);
 			ast_nodelist_destroy(&node->for_stmt.guards);
 			break;
-
+		case NODE_TYPE_ORIG:
+			dstring_free(&node->data_type.defined_type);
+			break;
+		case NODE_TYPE_USER:
+			break;
 		case NODE_IF:
 		case NODE_ELSE:
 			ast_destroy(node->if_else_stmt.cond);
