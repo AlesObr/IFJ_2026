@@ -160,7 +160,11 @@ OpType token_to_op(Token *curr_token) {
  * @param node Node to append parameters into
  */
 ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
+	bool first_iter = true;
 	do {
+		if (curr_token->type == TOKEN_LPAREN && !first_iter){
+			GET_TOKEN(curr_token, node, false);
+		}
 		ASTNode *window = NULL;
 		ALLOC_NODE(window, ast_create_param_window(curr_token->line, curr_token->col));
 		CHECK_AST_APPEND(node, ast_call_add_window(node, window));
@@ -184,6 +188,10 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 			}
 		}
 		GET_TOKEN(curr_token, node, false);
+		if (curr_token->type == TOKEN_EOL){
+			break;
+		}
+		first_iter = false;
 	} while (curr_token->type == TOKEN_LPAREN);
 	return PARSE_OK(PAR_SUCC, node);
 }
@@ -252,7 +260,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 			break;
 	}
 	if (curr_token->type != TOKEN_RBRACE && curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_COMMA && curr_token->type != TOKEN_SEMICOLON && !skip_fetch){
-		GET_TOKEN(curr_token, node, false);
+		GET_TOKEN(curr_token, node, true);
 	}
 	while (curr_token->type == TOKEN_DOT || curr_token->type == TOKEN_LPAREN) {
 		if (curr_token->type == TOKEN_DOT) {
@@ -270,6 +278,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 			CHECK_AST_APPEND(tmp_node, ast_call_add_target(tmp_node, node));
 			GET_TOKEN(curr_token, node, false);
 			if (curr_token->type == TOKEN_LPAREN) {
+				GET_TOKEN(curr_token, node, false);
 				status = parse_call_parameters(curr_token, tmp_node);
 				CHECK_STATUS(status);
 			}
