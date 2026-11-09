@@ -48,7 +48,9 @@ static void precedence_trace_token(const char *location, const Token *token) {
 				if (node != NULL) {                                                        		   \
 					ast_destroy(node);                                                     		   \
 				}                                                                                  \
-				return PARSE_ERROR((err), PAR_EOF);												   \
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,       \
+								   "EOF received at invalid place\n"),                      	   \
+				PAR_EOF); 																		   \
 			}																					   \
 		}                                                                                          \
 	} while (0)
@@ -195,6 +197,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *node = NULL;
 	OpType op;
+	bool skip_fetch = false;
 	switch (curr_token->type) {
 		case TOKEN_MINUS:
 		case TOKEN_NOT:
@@ -204,6 +207,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 			CHECK_STATUS(status);
 			ALLOC_NODE(
 			node, ast_create_unop(op, status.new_node, curr_token->line, curr_token->col));
+			skip_fetch = true;
 			break;
 		case TOKEN_LIT_INT:
 			ALLOC_NODE(
@@ -217,25 +221,26 @@ ParserStatus parse_prefix(Token *curr_token) {
 			ALLOC_NODE(node,
 				ast_create_string(curr_token->data.str_val, curr_token->line, curr_token->col));
 			break;
-		case TOKEN_KEYWORD_NULL:
-			ALLOC_NODE(node, ast_create_null(curr_token->line, curr_token->col));
-			break;
 		case TOKEN_IDENTIFIER:
 			ALLOC_NODE(node,
 				ast_create_ident(curr_token->data.str_val, curr_token->line, curr_token->col));
 			break;
 		case TOKEN_LPAREN:
 			GET_TOKEN(curr_token, NULL, false);
-			status = parse_climb(curr_token, 0);
-			CHECK_STATUS(status);
-			if (curr_token->type != TOKEN_RPAREN) {
-				ast_destroy(status.new_node);
-				return PARSE_ERROR(
-					ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-						"Invalid token in expression prefix parsing (expected TOKEN_RBRACE)\n"),
-					PAR_FAIL);
+			if (curr_token->type == TOKEN_RPAREN){
+				ALLOC_NODE(node, ast_create_null(curr_token->line, curr_token->col));
+			} else {
+				status = parse_climb(curr_token, 0);
+				CHECK_STATUS(status);
+				if (curr_token->type != TOKEN_RPAREN) {
+					ast_destroy(status.new_node);
+					return PARSE_ERROR(
+						ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							"Invalid token in expression prefix parsing (expected TOKEN_RBRACE)\n"),
+						PAR_FAIL);
+				}
+				node = status.new_node;
 			}
-			node = status.new_node;
 			break;
 		case TOKEN_RPAREN:
 			ALLOC_NODE(node, ast_create_null(curr_token->line, curr_token->col));
@@ -246,7 +251,7 @@ ParserStatus parse_prefix(Token *curr_token) {
 				PAR_FAIL);
 			break;
 	}
-	if (curr_token->type != TOKEN_RBRACE && curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_COMMA && curr_token->type != TOKEN_SEMICOLON){
+	if (curr_token->type != TOKEN_RBRACE && curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_COMMA && curr_token->type != TOKEN_SEMICOLON && !skip_fetch){
 		GET_TOKEN(curr_token, node, false);
 	}
 	while (curr_token->type == TOKEN_DOT || curr_token->type == TOKEN_LPAREN) {
@@ -319,16 +324,16 @@ static ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec) {
 		fprintf(stderr, "[precedence] parse_climb: operator=%s precedence=%d\n",
 			token_type_name(curr_token->type), prec);
 		GET_TOKEN(curr_token, node, false);
-		min_prec = (op_type == OP_ASSIGN) ? prec : (prec + 1);
-		status = parse_climb(curr_token, min_prec);
+		PrecLevel new_min_prec = (op_type == OP_ASSIGN) ? prec : (prec + 1);
+		status = parse_climb(curr_token, new_min_prec);
 		CHECK_STATUS(status);
 		ASTNode *bin_op = NULL;
 		ALLOC_NODE(bin_op,
 			ast_create_binop(op_type, node, status.new_node, curr_token->line, curr_token->col));
 		prec = translate_token(curr_token);
-		if (prec == RELATIONAL || prec == EQUALITY) {
-			GET_TOKEN(curr_token, node, false);
-			if ((translate_token(curr_token)) != NONE) {
+		if (op_type == OP_EQ || op_type == OP_NEQ || op_type == OP_LT || op_type == OP_GT || op_type == OP_GTE || op_type == OP_GTE){
+			prec = translate_token(curr_token);
+			if (prec == RELATIONAL || prec == EQUALITY){
 				ast_destroy(bin_op);
 				return PARSE_ERROR(
 					ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
