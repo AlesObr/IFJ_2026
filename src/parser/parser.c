@@ -110,7 +110,7 @@ static void parser_trace_token(const char *location, const Token *token) {
 			return (status);                                                                       \
 		}                                                                                          \
 	} while (0)
-// handle not yet assigned nodes after error
+
 /**
  * @brief Parsing of mandatory program header
  * @param curr_token Token pointer filled with current token
@@ -986,7 +986,47 @@ ParserStatus parse_extension(Token *curr_token) {
 }
 
 /**
- * @brief Parsing of highest level program constructs (functions, extensions)
+ * @brief Parsing of type unification
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+ */
+ParserStatus parse_type_unif(Token *curr_token){
+	GET_TOKEN(curr_token, NULL, false);
+	ASTNode *type_node;
+	if (curr_token->type != TOKEN_IDENTIFIER){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Missing new type name after type keyword\n"),
+			PAR_FAIL);
+	}
+	ALLOC_NODE(type_node, );
+	GET_TOKEN(curr_token, type_node, false);
+	if (curr_token->type != TOKEN_ASSIGN){
+		ast_destroy(type_node);
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Missing = after type identifier\n"),
+			PAR_FAIL);
+	}
+	GET_TOKEN(curr_token, type_node, false);
+	if (curr_token->type != TOKEN_IDENTIFIER){
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Missing data type after = in type unification\n"),
+			PAR_FAIL);
+	}
+	CHECK_AST_APPEND(type_node, );
+	while (curr_token->type == TOKEN_PIPE){
+		GET_TOKEN(curr_token, type_node, false);
+		if (curr_token->type != TOKEN_IDENTIFIER){
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								"Missing data type after | in type unification\n"),
+				PAR_FAIL);
+		}
+		CHECK_AST_APPEND(type_node, );
+	}
+	return PAR_OK(PAR_SUCC, type_node);
+}
+
+/**
+ * @brief Parsing of highest level program constructs (functions, extensions, type, class)
  * @param curr_token Token pointer filled with current token
  * @return Status structure containing flags for caller
  */
@@ -999,6 +1039,12 @@ ParserStatus parse_program(Token *curr_token) {
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_EXTENSION:
 				status = parse_extension(curr_token); // Parse extension
+				CHECK_STATUS(status);
+				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
+					"Failed to append extension node into AST Tree\n");
+				break;
+			case TOKEN_KEYWORD_TYPE:
+				status = parse_type_unif(curr_token);
 				CHECK_STATUS(status);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
 					"Failed to append extension node into AST Tree\n");
