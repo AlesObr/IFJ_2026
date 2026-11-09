@@ -498,6 +498,9 @@ ParserStatus parse_for_statement(Token *curr_token) {
 	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type == TOKEN_EOL) {
 		GET_TOKEN(curr_token, NULL, false);
+		while (curr_token->type == TOKEN_EOL){
+			GET_TOKEN(curr_token, NULL, false);
+		}
 		if (curr_token->type == TOKEN_INDENT){
 			GET_TOKEN(curr_token, NULL, false);
 		} else {
@@ -532,6 +535,9 @@ ParserStatus parse_for_statement(Token *curr_token) {
 	if (curr_token->type == TOKEN_EOL) {
 		while (true) {
 			GET_TOKEN(curr_token, for_node, false);
+			while (curr_token->type == TOKEN_EOL){
+				GET_TOKEN(curr_token, NULL, false);
+			}
 			if (curr_token->type == TOKEN_KEYWORD_IF) {
 				GET_TOKEN(curr_token, for_node, false);
 				status = parse_expression(curr_token);
@@ -543,6 +549,9 @@ ParserStatus parse_for_statement(Token *curr_token) {
 										   "Invalid token at the end of for loop guard\n"),
 						PAR_FAIL);
 				}
+			}
+			while (curr_token->type == TOKEN_EOL){
+				GET_TOKEN(curr_token, NULL, false);
 			}
 			if (curr_token->type == TOKEN_KEYWORD_DO ||
 				curr_token->type == TOKEN_OUTDENT) {
