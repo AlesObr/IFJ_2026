@@ -168,6 +168,14 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 		ASTNode *window = NULL;
 		ALLOC_NODE(window, ast_create_param_window(curr_token->line, curr_token->col));
 		CHECK_AST_APPEND(node, ast_call_add_window(node, window));
+		if (curr_token->type == TOKEN_RPAREN){
+			GET_TOKEN(curr_token, node, false);
+			first_iter = false;
+			if (curr_token->type == TOKEN_EOL || curr_token->type == TOKEN_SEMICOLON){
+				break;
+			}
+			continue;
+		}
 		ParserStatus status = parse_climb(curr_token, 0);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
@@ -256,9 +264,6 @@ ParserStatus parse_prefix(Token *curr_token) {
 				node = status.new_node;
 			}
 			break;
-		case TOKEN_RPAREN:
-			ALLOC_NODE(node, ast_create_null(curr_token->line, curr_token->col));
-			return PARSE_OK(PAR_SUCC, node);
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid token in expression prefix parsing\n"),
