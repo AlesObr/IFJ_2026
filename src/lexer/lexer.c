@@ -141,8 +141,6 @@ TokenType is_it_keyword(const char *str) {
 		return TOKEN_KEYWORD_IMPORT;
 	} else if (strcmp(str, "return") == 0) {
 		return TOKEN_KEYWORD_RETURN;
-	} else if (strcmp(str, "null") == 0) {
-		return TOKEN_KEYWORD_NULL;
 	} else if (strcmp(str, "true") == 0) {
 		return TOKEN_KEYWORD_TRUE;
 	} else if (strcmp(str, "false") == 0) {
