@@ -47,6 +47,14 @@ typedef struct {
  * @param f Inner parser flag
  */
 #define PARSE_ERROR(e, f) ((ParserStatus){.error = (e), .flag = (f)})
+
+/**
+ * @brief Parsing of if decision statement (exported for precedence, viz Control expansion)
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+ */
+ParserStatus parse_if_statement(Token *curr_token);
+
 /**
  * @brief Initializes parser inner loop
  * @return Returns ParserStatus containing head of AST tree if no error occured

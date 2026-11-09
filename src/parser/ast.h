@@ -406,10 +406,10 @@ ASTNode *ast_create_else(ASTNode *cond, size_t line, size_t col);
 /**
  * @brief Appends code block to if / else AST node
  * @param if_else_node If-else statement to node to append code block into
- * @param code_block Code block to be appended
+ * @param expr_block Code block or expression (viz Control) to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
  */
-bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *code_block);
+bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *expr_block);
 
 /**
  * @brief Appends code block to while AST node
