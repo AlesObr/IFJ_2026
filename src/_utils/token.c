@@ -61,8 +61,6 @@ const char *token_type_name(TokenType type) {
 			return "TOKEN_KEYWORD_IMPORT";
 		case TOKEN_KEYWORD_RETURN:
 			return "TOKEN_KEYWORD_RETURN";
-		case TOKEN_KEYWORD_NULL:
-			return "TOKEN_KEYWORD_NULL";
 		case TOKEN_KEYWORD_TRUE:
 			return "TOKEN_KEYWORD_TRUE";
 		case TOKEN_KEYWORD_FALSE:
