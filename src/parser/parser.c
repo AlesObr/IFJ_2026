@@ -323,7 +323,7 @@ ParserStatus parse_else_statement(Token *curr_token) {
 	GET_TOKEN(curr_token, NULL, false);
 	if (curr_token->type == TOKEN_EOL) {
 		ALLOC_NODE(new_else, ast_create_else(NULL, curr_token->line, curr_token->col));
-		GET_TOKEN(curr_token, NULL, false);
+		GET_TOKEN(curr_token, new_else, false);
 		status = parse_code_block(curr_token, false);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
@@ -340,25 +340,28 @@ ParserStatus parse_else_statement(Token *curr_token) {
 								   "Missing then after else statement with condition\n"),
 				PAR_FAIL);
 		}
-		GET_TOKEN(curr_token, NULL, false);
+		GET_TOKEN(curr_token, new_else, false);
 		if (curr_token->type == TOKEN_EOL) {
-			GET_TOKEN(curr_token, NULL, false);
+			GET_TOKEN(curr_token, new_else, false);
 			status = parse_code_block(curr_token, false);
 			CHECK_STATUS(status);
 			CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
 				"Failed to append function body of else block (if)\n");
 			return PARSE_OK(PAR_SUCC, new_else);
 		} else {
-			ast_destroy(new_else);
-			return PARSE_ERROR(
-				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-					"Unexpected token after else statemenent (expected if or EOL)\n"),
-				PAR_FAIL);
+			status = parse_expression(curr_token);
+			CHECK_STATUS(status);
+			CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
+				"Failed to append function body of else block (if)\n");
+			return PARSE_OK(PAR_SUCC, new_else);
 		}
 	} else {
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Unexpected token after else statemenent (expected if or EOL)\n"),
-			PAR_FAIL);
+		ALLOC_NODE(new_else, ast_create_else(NULL, curr_token->line, curr_token->col));
+		status = parse_expression(curr_token);
+		CHECK_STATUS(status);
+		CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
+			"Failed to append function body of else block (no if oneline)\n");
+		return PARSE_OK(PAR_SUCC, new_else);
 	}
 }
 
@@ -382,17 +385,18 @@ ParserStatus parse_if_statement(Token *curr_token) {
 	}
 	GET_TOKEN(curr_token, new_if, false);
 	if (curr_token->type != TOKEN_EOL) {
-		ast_destroy(new_if);
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing EOL after then of if statement\n"),
-			PAR_FAIL);
+		status = parse_expression(curr_token);
+		CHECK_STATUS(status);
+		CHECK_AST_APPEND(new_if, ast_if_else_add_body(new_if, status.new_node),
+			"Failed to append function body of if block\n");
+	} else {
+		GET_TOKEN(curr_token, new_if, false);
+		status = parse_code_block(curr_token, false);
+		CHECK_STATUS(status);
+		CHECK_AST_APPEND(new_if, ast_if_else_add_body(new_if, status.new_node),
+			"Failed to append function body of if block\n");
+		GET_TOKEN(curr_token, new_if, false);
 	}
-	GET_TOKEN(curr_token, new_if, false);
-	status = parse_code_block(curr_token, false);
-	CHECK_STATUS(status);
-	CHECK_AST_APPEND(new_if, ast_if_else_add_body(new_if, status.new_node),
-		"Failed to append function body of if block\n");
-	GET_TOKEN(curr_token, new_if, false);
 	while (true)
 		if (curr_token->type == TOKEN_KEYWORD_ELSE) {
 			status = parse_else_statement(curr_token);

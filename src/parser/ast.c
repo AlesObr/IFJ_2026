@@ -449,14 +449,13 @@ ASTNode *ast_create_else(ASTNode *cond, size_t line, size_t col) {
 	return node;
 }
 
-bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *code_block) {
+bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *expr_block) {
 	if (if_else_node == NULL ||
-		!(if_else_node->type == NODE_IF || if_else_node->type == NODE_ELSE) || code_block == NULL ||
-		code_block->type != NODE_BLOCK) {
-		ast_destroy(code_block);
+		!(if_else_node->type == NODE_IF || if_else_node->type == NODE_ELSE) || expr_block == NULL) {
+		ast_destroy(expr_block);
 		return false;
 	}
-	if_else_node->if_else_stmt.body = code_block;
+	if_else_node->if_else_stmt.body = expr_block;
 	return true;
 }
 
