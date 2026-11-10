@@ -135,7 +135,7 @@ struct ASTNode {
 		/** @brief Structure for data class */
 		struct{
 			dstring_t class_name;		/**< Name of the data_class */
-			ASTNodeList param_list;		/**< List of data_class parameters */
+			ASTNode *param_list;		/**< List of data_class parameters */
 		} data_class;
 
 		/** @brief Structure for binary and unary operations. */
@@ -246,12 +246,10 @@ ASTNode *ast_create_data_class(const dstring_t *class_name, size_t line, size_t 
 /**
  * @brief Inserts parameter list into data class ASTNode
  * @param data_class Data class node
- * @param param_list Node containing parameters
- * @param line Source line index.
- * @param col Source column index.
+ * @param param_window Node containing windows of parameters
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-bool ast_data_class_add_param(ASTNode *data_class, ASTNode *param_list, size_t line, size_t col);
+bool ast_class_add_param(ASTNode *data_class, ASTNode *param_window);
 
 /**
  * @brief Creates a new AST node for for loop statement
