@@ -33,6 +33,7 @@ typedef enum {
 	/* Data types*/
 	NODE_TYPE_ORIG,
 	NODE_TYPE_USER,
+	NODE_UNIF,
 
 	/* Expressions and Operations */
 	NODE_BINARY_OP,
@@ -46,6 +47,7 @@ typedef enum {
 	NODE_FUNC_WINDOW,
 	NODE_FUNC_DECL,
 	NODE_EXT_DECL,
+	NODE_CLASS_DECL,
 	NODE_BLOCK,
 	NODE_IF,
 	NODE_ELSE,
@@ -109,7 +111,7 @@ struct ASTNode {
 	size_t line; 		/**< Source code line where the construct starts. */
 	size_t col;	 		/**< Source code column where the construct starts. */
 
-	ASTNodeList *expr_types;	/**< Determines which type of operation to use (DIV / IDIV) for example*/
+	ASTNodeList expr_types;	/**< Determines which type of operation to use (DIV / IDIV) for example*/
 	bool to_double;				/**< Determines if conversion to int / double needed*/
 	size_t sym_id;				/**< Identifier of the variable in symtable if needed */
 
@@ -118,11 +120,23 @@ struct ASTNode {
 		double float_val;  /**< Literal float value. */
 		dstring_t str_val; /**< Dynamic string for literal strings and identifiers. */
 
-		/** @brief Node for data types */
+		/** @brief Structure for data types */
 		struct{
-			ASTNode *defined_type;	/**< Type unification defined by user */
+			dstring_t defined_type;	/**< Type unification defined by user */
 			ValType orig_type;		/**< Languages predefined type */
 		} data_type;
+
+		/** @brief Structure for type unification */
+		struct{
+			dstring_t unif_name;	/**< Name of type unification*/
+			ASTNodeList types;		/**< List of types in type unification */
+		} type_unif;
+
+		/** @brief Structure for data class */
+		struct{
+			dstring_t class_name;		/**< Name of the data_class */
+			ASTNodeList param_list;		/**< List of data_class parameters */
+		} data_class;
 
 		/** @brief Structure for binary and unary operations. */
 		struct {
@@ -134,7 +148,7 @@ struct ASTNode {
 		/** @brief Structure for variable declaration nodes. */
 		struct {
 			dstring_t var_name; 	/**< Dynamic string holding declared variable name. */
-			ASTNodeList *type_name;	/**< Types of the variable */
+			ASTNodeList type_name;	/**< Types of the variable */
 			bool is_const;			/**< True if declared as const, false for var. */
 			ASTNode *init_expr; 	/**< Initializer expression or NULL. */
 		} var_decl;
@@ -149,7 +163,7 @@ struct ASTNode {
 		/** @brief Structure for function parameters */
 		struct {
 			dstring_t param_name; 		/**< Name of the function parameter. */
-			ASTNodeList *param_type;	/**< Type of the function parameter. */
+			ASTNodeList param_type;	/**< Type of the function parameter. */
 		} func_param;
 
 		/** @brief Structure for function param window */
@@ -160,7 +174,7 @@ struct ASTNode {
 		/** @brief Structure for function declaration */
 		struct {
 			dstring_t func_name;	   		/**< Identifier of declared function */
-			ASTNodeList *return_type;	    /**< Types that function should return */
+			ASTNodeList return_type;	    /**< Types that function should return */
 			bool is_main;			   		/**< Flag tracking whether function is the main one */
 			ASTNodeList param_windows; 		/**< List of parameter windows */
 			ASTNode *body;			   		/**< Expressions inside function body */
@@ -169,7 +183,7 @@ struct ASTNode {
 		/** @brief Structure for extension declaration */
 		struct {
 			dstring_t param_name; 		/**< Dynamic string holding extension parameter  */
-			ASTNodeList *type_name;	  	/**< Type that extension extension */
+			ASTNodeList type_name;	  	/**< Type that extension extension */
 			ASTNodeList funcs;	  		/**< List of functions inside said extension */
 		} ext_decl;
 
@@ -210,6 +224,34 @@ struct ASTNode {
 };
 
 /*===================================================*/
+
+/**
+ * @brief Creates a new AST node for for data type unification
+ * @param unif_name Name of the newly created unification
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_type_unif(const dstring_t *unif_name, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for for data class
+ * @param unif_name Name of the newly created data class
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_data_class(const dstring_t *class_name, size_t line, size_t col);
+
+/**
+ * @brief Inserts parameter list into data class ASTNode
+ * @param data_class Data class node
+ * @param param_list Node containing parameters
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+bool ast_data_class_add_param(ASTNode *data_class, ASTNode *param_list, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for for loop statement
@@ -522,7 +564,7 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col);
  * @param is_orig Determines if data type is original or user defined
  * @return True if success, false if problem occurs or wrong parameters passed
  */
-void ast_add_type(ASTNode *node, ValType type_name_orig, dstring type_name_def, bool is_orig);
+bool ast_add_type(ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig);
 
 /**
  * @brief Appends a function to extension AST_NODE
