@@ -855,7 +855,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 			}
 			CHECK_AST_APPEND(new_func, ast_add_type(new_func, type, user_type, is_orig), "Failed to append data type into function declaration node\n");
 			GET_TOKEN(curr_token, new_func, false);
-		} while (curr_token->type != TOKEN_PIPE);
+		} while (curr_token->type == TOKEN_PIPE);
 	}
 	if (curr_token->type == TOKEN_INDENT){
 		found_indent = true;
@@ -1041,25 +1041,48 @@ ParserStatus parse_type_unif(Token *curr_token){
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing = after type identifier\n"),
 			PAR_FAIL);
-	} // add do while here
-	GET_TOKEN(curr_token, type_node, false);
-	if (curr_token->type != TOKEN_IDENTIFIER){
-		ast_destroy(type_node);
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing data type after = in type unification\n"),
-			PAR_FAIL);
 	}
-	CHECK_AST_APPEND(type_node, ast_add_type());
-	while (curr_token->type == TOKEN_PIPE){
+	bool is_orig;
+	ValType type;
+	dstring_t *user_type = NULL;
+	do {
+		is_orig = true;
+		type = UNDEF;
 		GET_TOKEN(curr_token, type_node, false);
-		if (curr_token->type != TOKEN_IDENTIFIER){
-			ast_destroy(type_node);
-			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-								"Missing data type after | in type unification\n"),
-				PAR_FAIL);
+		switch (curr_token->type) {
+			case TOKEN_KEYWORD_INT:
+				type = INT;
+				break;
+			case TOKEN_KEYWORD_DOUBLE:
+				type = DOUBLE;
+				break;
+			case TOKEN_KEYWORD_UNIT:
+				type = UNIT;
+				break;
+			case TOKEN_KEYWORD_STRING:
+				type = STRING;
+				break;
+			case TOKEN_KEYWORD_BOOLEAN:
+				type = BOOLEAN;
+				break;
+			case TOKEN_IDENTIFIER:
+				is_orig = false;
+				if (!dstring_copy(curr_token->data.str_val, user_type)){
+					ast_destroy(type_node);
+					return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
+											"Failed to copy dstring for type unification identification in type unification alias\n"),
+						PAR_FAIL);
+				}
+				break;
+			default:
+				ast_destroy(type_node);
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Missing data type after = in type unification\n"),
+					PAR_FAIL);
 		}
-		CHECK_AST_APPEND(type_node, );
-	}
+		CHECK_AST_APPEND(type_node, ast_add_type(type_node, type, user_type, is_orig), "Failed to addpened data type into type unification\n");
+		GET_TOKEN(curr_token, type_node, false);
+	} while (curr_token->type == TOKEN_PIPE);
 	return PARSE_OK(PAR_SUCC, type_node);
 }
 
@@ -1071,7 +1094,7 @@ ParserStatus parse_type_unif(Token *curr_token){
 ParserStatus parse_data_class(Token *curr_token){
 	ASTNode *class_node;
 	GET_TOKEN(curr_token, NULL, false);
-	if (curr_token->type != TOKEN_IDENTIFIER){
+	if (curr_token->type != TOKEN_KEYWORD_CLASS){
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 							   "Missing class keyword after case keyword on top level\n"),
 			PAR_FAIL);
@@ -1084,15 +1107,9 @@ ParserStatus parse_data_class(Token *curr_token){
 	}
 	ALLOC_NODE(class_node, ast_create_data_class(curr_token->data.str_val, curr_token->line, curr_token->col));
 	GET_TOKEN(curr_token, class_node, false);
-	if (curr_token->type != TOKEN_ASSIGN){
-		ast_destroy(class_node);
-		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-							   "Missing = after data class identifier\n"),
-			PAR_FAIL);
-	}
 	ParserStatus status = parse_param_section(curr_token);
 	CHECK_STATUS(status);
-	CHECK_AST_APPEND(class_node,);
+	CHECK_AST_APPEND(class_node, ast_class_add_param(class_node, status.new_node), "Failed to append function parameter window into data class\n");
 	GET_TOKEN(curr_token, class_node, true);
 	return PARSE_OK(PAR_SUCC, class_node);
 }
