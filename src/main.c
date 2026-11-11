@@ -22,8 +22,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	lexer_init(input_file);
-	Token token;
-	Error err;
 
 	lexer_free();
 	if (input_file != stdin) {

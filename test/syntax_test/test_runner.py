@@ -141,7 +141,13 @@ def main():
     parser.add_argument("--dir", type=str, default="generated_tests", help="Adresář s testy")
     parser.add_argument("--valgrind", action="store_true", help="Ověřovat paměť přes Valgrind")
     parser.add_argument("--check-ast", action="store_true", help="Porovnávat AST výstup s .ast soubory")
+    parser.add_argument("--repeat", type=int, default=1,
+                        help="Spustit celou sadu N× a vypsat jen souhrn a testy, které se mezi běhy lišily")
     args = parser.parse_args()
+
+    if args.repeat < 1:
+        print("❌ --repeat musí být alespoň 1.")
+        sys.exit(1)
 
     bin_path = Path(args.bin)
     if not bin_path.is_file():
@@ -153,39 +159,105 @@ def main():
         print(f"❌ Nenalezeny žádné soubory *.scala v '{args.dir}'.")
         sys.exit(1)
 
-    print(f"🚀 Spouštím {len(tests)} testů (Valgrind: {'ZAPNUT' if args.valgrind else 'VYPNUT'}, AST kontrola: {'ZAPNUTA' if args.check_ast else 'VYPNUTA'})...\n")
+    repeat_info = f", opakování: {args.repeat}×" if args.repeat > 1 else ""
+    print(f"🚀 Spouštím {len(tests)} testů (Valgrind: {'ZAPNUT' if args.valgrind else 'VYPNUT'}, AST kontrola: {'ZAPNUTA' if args.check_ast else 'VYPNUTA'}{repeat_info})...\n")
 
-    passed = 0
-    failed = 0
-    ast_matched = 0
+    # Absolute path: Path("./bin") drops "./" and the binary would be looked up in PATH
+    compiler_bin = str(bin_path.resolve())
+    runs: list[dict[str, TestResult]] = []
+    for run_index in range(args.repeat):
+        # Výpis jednotlivých testů jen při jediném běhu, jinak by byl N× delší
+        results = run_suite(compiler_bin, tests, args, verbose=args.repeat == 1)
+        runs.append(results)
+        if args.repeat > 1:
+            run_failed = sum(not r.ok for r in results.values())
+            print(f"Běh {run_index + 1}/{args.repeat}: {format_stats(len(results) - run_failed, run_failed)}")
+
+    print("\n" + "=" * 50)
+    if args.repeat > 1:
+        print_run_differences(runs)
+        print("Souhrn prvního běhu:")
+    failed = print_summary(runs[0], args.check_ast)
+    if failed > 0 or any(not r.ok for results in runs for r in results.values()):
+        sys.exit(1)
+
+
+class TestResult:
+    """Výsledek jednoho spuštění testu."""
+
+    def __init__(self, test_name: str, ok: bool, msg: str, kind: str | None, dump: str):
+        self.test_name = test_name
+        self.ok = ok
+        self.msg = msg
+        self.kind = kind
+        self.dump = dump
+
+    def outcome(self) -> str:
+        """Krátký popis výsledku pro porovnání běhů (stejný popis = stejný výsledek)."""
+        return "PASS" if self.ok else f"FAIL: {self.kind}"
+
+
+def run_suite(compiler_bin: str, tests: list[Path], args: argparse.Namespace, verbose: bool) -> dict[str, TestResult]:
+    """Spustí všechny testy jednou; při verbose vypisuje každý test."""
+    results: dict[str, TestResult] = {}
+    for test in tests:
+        ok, msg, kind, dump = run_test(compiler_bin, test, check_ast=args.check_ast, use_valgrind=args.valgrind)
+        results[test.name] = TestResult(test.name, ok, msg, kind, dump)
+        if verbose:
+            if ok:
+                print(f"✅  [PASS] {test.name} -> {msg}")
+            else:
+                print(f"❌ [FAIL] {test.name}\n      {msg}")
+    return results
+
+
+def print_summary(results: dict[str, TestResult], check_ast: bool) -> int:
+    """Vypíše statistiku a analýzu selhání jednoho běhu; vrátí počet selhání."""
+    passed = failed = ast_matched = 0
     # Category -> [passed, failed]
     stats = {"Nechybové": [0, 0], "Chybové": [0, 0]}
     # Failure kind -> [(test name, last dump line)]
     failures: dict[str, list[tuple[str, str]]] = {}
-
-    for test in tests:
-        # Absolute path: Path("./bin") drops "./" and the binary would be looked up in PATH
-        ok, msg, kind, dump = run_test(str(bin_path.resolve()), test, check_ast=args.check_ast, use_valgrind=args.valgrind)
-        category = "Chybové" if "test_error" in test.name else "Nechybové"
-        stats[category][0 if ok else 1] += 1
-        if ok:
+    for result in results.values():
+        category = "Chybové" if "test_error" in result.test_name else "Nechybové"
+        stats[category][0 if result.ok else 1] += 1
+        if result.ok:
             passed += 1
-            ast_matched += msg == AST_MATCH_MESSAGE
-            print(f"✅  [PASS] {test.name} -> {msg}")
+            ast_matched += result.msg == AST_MATCH_MESSAGE
         else:
             failed += 1
-            failures.setdefault(kind, []).append((test.name, dump))
-            print(f"❌ [FAIL] {test.name}\n      {msg}")
+            failures.setdefault(result.kind, []).append((result.test_name, result.dump))
 
-    print("\n" + "=" * 50)
     for category, (category_passed, category_failed) in stats.items():
         print(f"{category}: {format_stats(category_passed, category_failed)}")
     print(f"Celkem: {format_stats(passed, failed)}")
-    if args.check_ast:
+    if check_ast:
         print(f"AST: {ast_matched} testů prošlo porovnáním s referencí (ostatní .ast nemají).")
     if failed > 0:
         print_failure_analysis(failures, failed)
-        sys.exit(1)
+    return failed
+
+
+def print_run_differences(runs: list[dict[str, TestResult]]) -> None:
+    """Vypíše testy, jejichž výsledek se mezi běhy lišil."""
+    unstable = []
+    for test_name in runs[0]:
+        outcomes = [results[test_name].outcome() for results in runs]
+        if len(set(outcomes)) > 1:
+            unstable.append((test_name, outcomes))
+
+    if not unstable:
+        print(f"✅ Všech {len(runs)} běhů dopadlo u každého testu stejně.\n")
+        return
+
+    print(f"⚠️  Výsledek se mezi {len(runs)} běhy lišil u {len(unstable)} testů:")
+    for test_name, outcomes in unstable:
+        counts: dict[str, int] = {}
+        for outcome in outcomes:
+            counts[outcome] = counts.get(outcome, 0) + 1
+        summary = ", ".join(f"{outcome} {count}×" for outcome, count in counts.items())
+        print(f"  {test_name}: {summary}")
+    print()
 
 
 if __name__ == "__main__":

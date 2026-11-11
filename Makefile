@@ -1,11 +1,15 @@
 CC ?= gcc
 CFLAGS ?= -std=c11 -Wall -Wextra  -pedantic -g
 INCLUDES = -Iinclude -Isrc
+# Kolikrat spustit parser testy (napr. make test-parser REPEAT=5); pri REPEAT>1 jen souhrn
+REPEAT ?= 1
+# Limit (s) na test dostupnosti Dockeru před spuštěním is_it_ok.sh
+DOCKER_PROBE_TIMEOUT ?= 10
 
 # ----------------------------------------------------------------------
 # Konfigurace odevzdání (parsování loginu z team.json nebo fallback)
 # ----------------------------------------------------------------------
-LOGIN ?= $(shell python3 -c "import json; print(json.load(open('team.json'))['leader'])" 2>/dev/null || echo "xobrale00")
+LOGIN ?= $(shell python3 -c "import json; t = json.load(open('team.json')); print(t.get('leader') or t['members'][0]['login'])" 2>/dev/null || echo "xobrale00")
 ZIP_NAME = $(LOGIN).zip
 
 # ----------------------------------------------------------------------
@@ -13,7 +17,7 @@ ZIP_NAME = $(LOGIN).zip
 # ----------------------------------------------------------------------
 BUILD_DIR  = build
 OUTPUT_DIR = output
-DIST_DIR   = $(BUILD_DIR)/dist
+DIST_DIR   = $(BUILD_DIR)/submission
 
 # ----------------------------------------------------------------------
 # Zdrojové soubory modulů a testů
@@ -62,7 +66,7 @@ TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
         scanner-build test-scanner test-scanner-valgrind \
         parser-build test-parser test-parser-valgrind \
         linter linter-full linter-fix headers format \
-        zip make_us_happy dist-prep
+        zip make_us_happy dist-prep is-it-ok
 
 # Výchozí cíl: spustí rychlé jednotkové i parser testy
 all: check test-parser
@@ -182,11 +186,11 @@ parser-build: $(TARGET_PARSER_TEST)
 
 test-parser: parser-build
 	@echo "=== Spuštění parser testů (rychlý běh) ==="
-	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast
+	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --repeat $(REPEAT)
 
 test-parser-valgrind: parser-build
 	@echo "=== Spuštění parser testů pod Valgrindem ==="
-	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind
+	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind --repeat $(REPEAT)
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery
@@ -220,7 +224,7 @@ dist-prep: format linter-full | $(DIST_DIR)
 	@rm -rf $(DIST_DIR)/*
 	@if [ -f scripts/flatten.py ]; then \
 		echo "=== Zplošťuji projekt pomocí flatten.py ==="; \
-		python3 scripts/flatten.py --out $(DIST_DIR); \
+		python3 scripts/flatten.py --out $(DIST_DIR) --no-archive || exit 1; \
 	else \
 		echo "=== Kopíruji zdrojové soubory do $(DIST_DIR) ==="; \
 		cp -r src/* $(DIST_DIR)/; \
@@ -234,8 +238,25 @@ zip: dist-prep
 	@echo "\033[32m✓ Archiv $(ZIP_NAME) byl úspěšně vygenerován.\033[0m"
 	@echo "--- Obsah archivu: ---"
 	@unzip -l $(ZIP_NAME)
+	@$(MAKE) --no-print-directory is-it-ok
 
 make_us_happy: zip
+
+# Oficiální kontrola archivu; log ifj26_is-it-ok_*.log zůstává v $(BUILD_DIR)/
+is-it-ok:
+	@if [ ! -x ./is_it_ok.sh ]; then \
+		echo "\033[31m✗ Chybí spustitelný ./is_it_ok.sh, archiv nelze zkontrolovat.\033[0m"; exit 1; \
+	fi
+	@echo "=== Kontrola archivu $(ZIP_NAME) pomocí is_it_ok.sh ==="
+	@mkdir -p $(BUILD_DIR)
+	@# is_it_ok.sh volá `docker info` bez časového limitu; když Docker (Desktop) neběží,
+	@# visí navždy. Neodpovídající Docker proto skryjeme a kontrola proběhne bez kontejneru.
+	@if command -v docker >/dev/null 2>&1 && ! timeout $(DOCKER_PROBE_TIMEOUT) docker info >/dev/null 2>&1; then \
+		echo "\033[33m⚠ Docker neodpověděl do $(DOCKER_PROBE_TIMEOUT) s (běží Docker Desktop?), kontrola proběhne bez překladu v kontejneru.\033[0m"; \
+		cd $(BUILD_DIR) && DOCKER_HOST=unix:///nonexistent-ifj26.sock ../is_it_ok.sh ../$(ZIP_NAME); \
+	else \
+		cd $(BUILD_DIR) && ../is_it_ok.sh ../$(ZIP_NAME); \
+	fi
 
 # ----------------------------------------------------------------------
 # Úklid
