@@ -150,6 +150,7 @@ struct ASTNode {
 		struct {
 			ASTNode *case_member;	/**< Expression based on which is match switching */
 			ASTNode *guard;			/**< Unmandatory condition after switching expression */
+			ASTNode *type;			/**< Supposed type of case member */
 			ASTNode *body_expr;		/**< Expression to be executed in case pattern is matched */
 		} case_node;
 

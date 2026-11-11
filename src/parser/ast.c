@@ -412,6 +412,9 @@ bool ast_add_type(
 			case NODE_UNIF:
 				res = ast_nodelist_append(&node->type_unif.types, new_node);
 				break;
+			case NODE_CASE:
+				res = true;
+				node->case_node.type = new_node;
 			default:
 				res = false;
 				break;
@@ -659,7 +662,7 @@ bool ast_match_add_case(ASTNode *match_node, ASTNode *case_node){
 }
 
 bool ast_case_add_guard(ASTNode *case_node, ASTNode *guard){
-	if (case_node == NULL || case_node->type != NODE_CASE || guard == NULL) {
+	if (case_node == NULL || case_node->type != NODE_CASE || guard == NULL || guard != NODE_IF) {
 		ast_destroy(guard);
 		return false;
 	}
@@ -1046,6 +1049,7 @@ void ast_destroy(ASTNode *node) {
 			ast_destroy(node->case_node.case_member);
 			ast_destroy(node->case_node.guard);
 			ast_destroy(node->case_node.body_expr);
+			ast_destroy(node->case_node.type);
 			break;
 
 		case NODE_UNIF:
