@@ -614,9 +614,9 @@ ParserStatus parse_for_statement(Token *curr_token) {
 }
 
 ParserStatus parse_match_case(Token *curr_token){
+	ParserStatus status = {0};
 	ASTNode *case_node = NULL;
 	ASTNode *expr_node = NULL;
-	ALLOC_NODE(case_node, curr_token->line, curr_token->col);
 	GET_TOKEN(curr_token, case_node, false);
 	switch (curr_token->type){
 		case TOKEN_LIT_FLOAT:
@@ -640,13 +640,13 @@ ParserStatus parse_match_case(Token *curr_token){
 			ALLOC_NODE(expr_node, ast_create_null(curr_token->line, curr_token->col));
 			break;
 		default:
-			ast_destroy(match_node);
+			ast_destroy(case_node);
 			return PARSE_ERROR(
 				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 					"Invalid token type after case keyword\n"),
 				PAR_FAIL);
 	}
-	ALLOC_NODE(case_node, ast_create_case_node(case_node, expr_node, curr_token->line, curr_token->col));
+	ALLOC_NODE(case_node, ast_create_case_node(expr_node, curr_token->line, curr_token->col));
 	if (curr_token->type == TOKEN_COLON){
 		GET_TOKEN(curr_token, case_node, false);
 		bool is_orig = false;
@@ -678,15 +678,15 @@ ParserStatus parse_match_case(Token *curr_token){
 				}
 				break;
 			default:
-				ast_destroy(param_window);
+				ast_destroy(case_node);
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 										"Missing data type in function parameter\n"),
 					PAR_FAIL);
 		}
 		CHECK_AST_APPEND(case_node, ast_add_type(case_node, type, user_type, is_orig), "Failed to addpened data type into case\n");
 	}
-	if (curr_token->type == TOKEN_IF){
-		status = parse_expr(curr_token);
+	if (curr_token->type == TOKEN_KEYWORD_IF){
+		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(case_node, ast_case_add_guard(case_node, status.new_node), "Failed to append guard into case node\n");
 	}
@@ -749,7 +749,7 @@ ParserStatus parse_match(Token *curr_token, ASTNode *match_expr){
 	bool case_found = false;
 	while(curr_token->type == TOKEN_KEYWORD_CASE){
 		case_found = true;
-		status = parse_match_case;
+		status = parse_match_case(curr_token);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(match_node, ast_match_add_case(match_node, status.new_node), "Failed to append case node into match node");
 	}
@@ -760,7 +760,7 @@ ParserStatus parse_match(Token *curr_token, ASTNode *match_expr){
 				"Failed to find mandatory case inside match block\n"),
 			PAR_FAIL);
 	}
-	return PARSE_OK(PAR_SUCC, new_node);
+	return PARSE_OK(PAR_SUCC, match_node);
 }
 
 /**
@@ -816,7 +816,7 @@ ParserStatus parse_statement(Token *curr_token) {
 		case TOKEN_NOT:
 			status = parse_expression(curr_token);
 			CHECK_STATUS(status);
-			if (curr_token->type == TOKEN_MATCH){
+			if (curr_token->type == TOKEN_KEYWORD_MATCH){
 				parse_match(curr_token, status.new_node);
 			}
 			break;

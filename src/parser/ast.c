@@ -415,6 +415,7 @@ bool ast_add_type(
 			case NODE_CASE:
 				res = true;
 				node->case_node.type = new_node;
+				break;
 			default:
 				res = false;
 				break;
@@ -638,14 +639,14 @@ ASTNode *ast_create_case_node(ASTNode *case_expr, size_t line, size_t col){
 	if (case_expr == NULL){
 		return NULL;
 	}
-	ASTNode new_node = ast_alloc(NODE_CASE, line, col);
+	ASTNode *new_node = ast_alloc(NODE_CASE, line, col);
 	if (new_node == NULL){
 		ast_destroy(case_expr);
 		return NULL;
 	}
 	new_node->case_node.case_member = case_expr;
-	case_node->case_node.guard = NULL;
-	case_node->case_node.body_expr = NULL;
+	new_node->case_node.guard = NULL;
+	new_node->case_node.body_expr = NULL;
 	return new_node;
 }
 
@@ -662,7 +663,7 @@ bool ast_match_add_case(ASTNode *match_node, ASTNode *case_node){
 }
 
 bool ast_case_add_guard(ASTNode *case_node, ASTNode *guard){
-	if (case_node == NULL || case_node->type != NODE_CASE || guard == NULL || guard != NODE_IF) {
+	if (case_node == NULL || case_node->type != NODE_CASE || guard == NULL || guard->type != NODE_IF) {
 		ast_destroy(guard);
 		return false;
 	}
@@ -835,6 +836,8 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 			break;
 		}
 
+		case NODE_MATCH:
+		case NODE_CASE:
 		case NODE_TYPE_ORIG:
 		case NODE_TYPE_USER:
 		case NODE_CLASS_DECL:
