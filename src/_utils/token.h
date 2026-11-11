@@ -4,6 +4,7 @@
  * @brief Token module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
  * @author Admiral (xkolekj00)
+ * @author Štěpán Hořenek (xhorens00)
  * @note Standard: ISO C11
  */
 
@@ -91,6 +92,7 @@ typedef enum token_type {
 	TOKEN_RBRACKET,
 	TOKEN_SEMICOLON,
 	TOKEN_COMMA,
+	TOKEN_ARROW,
 } TokenType;
 
 /**

@@ -493,6 +493,19 @@ Error lexer_get_next_token(Token *out_token) {
 						token_make_simple(out_token, TOKEN_EQ, token_start_line, token_start_col);
 						dstring_free(&token_buffer);
 						return ERROR_OK();
+					} else if (lexeme.current_lexeme == '>'){
+						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (continues_operator(lexeme.current_lexeme)) {
+							lexer_give(&lexeme, source_file);
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(
+								ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
+						}
+						lexer_give(&lexeme, source_file);
+						token_make_simple(out_token, TOKEN_ARROW, token_start_line, token_start_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
 					}
 					lexer_give(&lexeme, source_file);
 					token_make_simple(out_token, TOKEN_ASSIGN, token_start_line, token_start_col);
