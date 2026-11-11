@@ -617,8 +617,67 @@ bool ast_for_append_guard(ASTNode *for_node, ASTNode *guard) {
 	return true;
 }
 
-ASTNode *ast_create_type_unif(const dstring_t *unif_name, size_t line, size_t col) {
-	if (unif_name == NULL) {
+ASTNode *ast_create_match_node(ASTNode *match_expr, size_t line, size_t col){
+	if (match_expr == NULL){
+		return NULL;
+	}
+	ASTNode *new_node = ast_alloc(NODE_MATCH, line, col);
+	if (new_node == NULL){
+		ast_destroy(match_expr);
+		return NULL;
+	}
+	new_node->match.switch_expr = match_expr;
+	ast_nodelist_init(&new_node->match.cases);
+	return new_node;
+}
+
+ASTNode *ast_create_case_node(ASTNode *case_expr, size_t line, size_t col){
+	if (case_expr == NULL){
+		return NULL;
+	}
+	ASTNode new_node = ast_alloc(NODE_CASE, line, col);
+	if (new_node == NULL){
+		ast_destroy(case_expr);
+		return NULL;
+	}
+	new_node->case_node.case_member = case_expr;
+	case_node->case_node.guard = NULL;
+	case_node->case_node.body_expr = NULL;
+	return new_node;
+}
+
+bool ast_match_add_case(ASTNode *match_node, ASTNode *case_node){
+	if (match_node == NULL || match_node->type != NODE_MATCH || case_node == NULL || case_node->type != NODE_CASE){
+		ast_destroy(case_node);
+		return false;
+	}
+	if (!ast_nodelist_append(&match_node->match.cases, case_node)) {
+		ast_destroy(case_node);
+		return false;
+	}
+	return true;
+}
+
+bool ast_case_add_guard(ASTNode *case_node, ASTNode *guard){
+	if (case_node == NULL || case_node->type != NODE_CASE || guard == NULL) {
+		ast_destroy(guard);
+		return false;
+	}
+	case_node->case_node.guard = guard;
+	return true;
+}
+
+bool ast_case_add_body(ASTNode *case_node, ASTNode *body){
+	if (case_node == NULL || case_node->type != NODE_CASE || body == NULL) {
+		ast_destroy(body);
+		return false;
+	}
+	case_node->case_node.body_expr = body;
+	return true;
+}
+
+ASTNode *ast_create_type_unif(const dstring_t *unif_name, size_t line, size_t col){
+	if (unif_name == NULL){
 		return false;
 	}
 	ASTNode *node = ast_alloc(NODE_UNIF, line, col);
@@ -976,6 +1035,17 @@ void ast_destroy(ASTNode *node) {
 			break;
 		case NODE_TYPE_USER:
 			dstring_free(&node->data_type.defined_type);
+			break;
+
+		case NODE_MATCH:
+			ast_destroy(node->match.switch_expr);
+			ast_nodelist_destroy(&node->match.cases);
+			break;
+
+		case NODE_CASE:
+			ast_destroy(node->case_node.case_member);
+			ast_destroy(node->case_node.guard);
+			ast_destroy(node->case_node.body_expr);
 			break;
 
 		case NODE_UNIF:

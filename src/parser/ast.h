@@ -53,6 +53,8 @@ typedef enum {
 	NODE_ELSE,
 	NODE_WHILE,
 	NODE_FOR,
+	NODE_MATCH,
+	NODE_CASE,
 	NODE_RETURN
 } ASTNodeType;
 
@@ -133,10 +135,23 @@ struct ASTNode {
 		} type_unif;
 
 		/** @brief Structure for data class */
-		struct{
+		struct {
 			dstring_t class_name;		/**< Name of the data_class */
 			ASTNode *param_list;		/**< List of data_class parameters */
 		} data_class;
+
+		/** @brief Structure for matching cases */
+		struct {
+			ASTNode *switch_expr; 	/**< Expression by which match is switching */
+			ASTNodeList cases;		/**< Cases of the match */
+		} match;
+
+		/** @brief Structure for switching cases of match */
+		struct {
+			ASTNode *case_member;	/**< Expression based on which is match switching */
+			ASTNode *guard;			/**< Unmandatory condition after switching expression */
+			ASTNode *body_expr;		/**< Expression to be executed in case pattern is matched */
+		} case_node;
 
 		/** @brief Structure for binary and unary operations. */
 		struct {
@@ -226,6 +241,48 @@ struct ASTNode {
 /*===================================================*/
 
 /**
+ * @brief Creates a new AST node for match
+ * @param match_expr Expression to match with cases
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_match_node(ASTNode *match_expr, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for match case
+ * @param case_expr Expression that can be matched
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_case_node(ASTNode *case_expr, size_t line, size_t col);
+
+/**
+ * @brief Appends case node into match node
+ * @param match_node Match node to append case into
+ * @param case_node Case node to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_match_add_case(ASTNode *match_node, ASTNode *case_node);
+
+/**
+ * @brief Appends nonmandatory guard to case ASTNode created by ast_create_case_node
+ * @param case_node Node of case the guard belongs to
+ * @param guard Condition under wich the expreession in case can be matched
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_case_add_guard(ASTNode *case_node, ASTNode *guard);
+
+/**
+ * @brief Appends expression to case ASTNode created by ast_create_case_node
+ * @param case_node Node of case the expression belongs to
+ * @param body Expression that executes if the case is matched
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_case_add_body(ASTNode *case_node, ASTNode *body);
+
+/**
  * @brief Creates a new AST node for for data type unification
  * @param unif_name Name of the newly created unification
  * @param line Source line index.
@@ -247,7 +304,7 @@ ASTNode *ast_create_data_class(const dstring_t *class_name, size_t line, size_t 
  * @brief Inserts parameter list into data class ASTNode
  * @param data_class Data class node
  * @param param_window Node containing windows of parameters
- * @return Allocated ASTNode pointer or NULL on failure.
+ * @return True if success, false if problem occurs or wrong parameters passed
  */
 bool ast_class_add_param(ASTNode *data_class, ASTNode *param_window);
 
