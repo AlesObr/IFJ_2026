@@ -29,24 +29,20 @@ int main(int argc, char *argv[]) {
     // RC = 1: lexikální chyba
     // RC = 2: syntaktická chyba
     // RC = 0: úspěch
+    int rc = 0;
     if (status.flag == LEX_FAIL || status.error.type == ERR_LEXICAL) {
-        return 1;
-    }
-
-    if (status.flag == PAR_FAIL || status.error.type == ERR_SYNTAX) {
-        return 2;
-    }
-
-    if (ERROR_IS_ERR(status.error)) {
-        return (int)status.error.type;
-    }
-
-    // Success: optionally dump the tree as an S-expression for comparison with .ast
-    if (dump_ast) {
+        rc = 1;
+    } else if (status.flag == PAR_FAIL || status.error.type == ERR_SYNTAX) {
+        rc = 2;
+    } else if (ERROR_IS_ERR(status.error)) {
+        rc = (int)status.error.type;
+    } else if (dump_ast) {
+        // Úspěch: volitelný výpis stromu jako S-výrazu pro porovnání s .ast
         ast_dump_sexpr(status.new_node, stdout);
         fputc('\n', stdout);
     }
-    ast_destroy(status.new_node);
 
-    return 0;
+    // Strom se uvolní na všech cestách; případný částečný strom z chybové cesty také
+    ast_destroy(status.new_node);
+    return rc;
 }

@@ -14,6 +14,11 @@ from pathlib import Path
 
 AST_MATCH_MESSAGE = "OK (AST odpovídá referenci)"
 POSITION_PATTERN = re.compile(r"\bat (\d+:\d+)")
+# Kód 99 je ERR_INTERNAL překladače, Valgrind proto musí hlásit chybu jiným kódem
+VALGRIND_EXIT_CODE = 77
+TIMEOUT_SECONDS = 4
+# Valgrind zpomaluje běh zhruba desetkrát (část testů běží pod ním přes 4 s)
+VALGRIND_TIMEOUT_SECONDS = 60
 
 
 def format_stats(passed: int, failed: int) -> str:
@@ -57,7 +62,7 @@ def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind:
             "valgrind",
             "--leak-check=full",
             "--show-leak-kinds=all",
-            "--error-exitcode=99",
+            f"--error-exitcode={VALGRIND_EXIT_CODE}",
             "-q"
         ])
     
@@ -74,7 +79,7 @@ def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind:
                 stdin=f_in,
                 capture_output=True,
                 text=True,
-                timeout=4
+                timeout=VALGRIND_TIMEOUT_SECONDS if use_valgrind else TIMEOUT_SECONDS
             )
     except subprocess.TimeoutExpired:
         return False, "TIMEOUT (zacyklení)", "Timeout (zacyklení)", ""
@@ -87,8 +92,8 @@ def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind:
     if proc.returncode < 0:
         return False, f"CRASH: signál {-proc.returncode} (Segfault/Abort)", f"Crash (signál {-proc.returncode})", dump
 
-    if use_valgrind and proc.returncode == 99:
-        return False, f"VALGRIND CHYBA (Memory leak / invalid free):\n{proc.stderr.strip()}", "Valgrind (kód 99)", ""
+    if use_valgrind and proc.returncode == VALGRIND_EXIT_CODE:
+        return False, f"VALGRIND CHYBA (Memory leak / invalid free):\n{proc.stderr.strip()}", f"Valgrind (kód {VALGRIND_EXIT_CODE})", ""
 
     # 1. Kontrola negativních testů (chyby syntaxe)
     if is_error_test:

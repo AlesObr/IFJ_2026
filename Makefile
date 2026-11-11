@@ -152,7 +152,7 @@ test-parser: parser-build
 
 test-parser-valgrind: parser-build
 	@echo "=== Spuštění parser testů pod Valgrindem ==="
-	@python3 test/run_tests.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind
+	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery

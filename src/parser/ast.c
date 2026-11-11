@@ -216,7 +216,7 @@ ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, 
 		free(node);
 		return NULL;
 	}
-	ast_nodelist_init(&node->func_decl.param_windows);
+	ast_nodelist_init(&node->var_decl.type_name);
 	node->var_decl.is_const = is_const;
 	node->var_decl.init_expr = NULL;
 	return node;
@@ -375,11 +375,12 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col) {
 	return node;
 }
 
-bool ast_add_type(ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig) {
+bool ast_add_type(
+	ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig) {
 	if (node != NULL) {
 		ASTNode *new_node = NULL;
 		bool res;
-		if (is_orig){
+		if (is_orig) {
 			new_node = ast_alloc(NODE_TYPE_ORIG, node->line, node->col);
 			if (new_node == NULL) {
 				return false;
@@ -390,12 +391,12 @@ bool ast_add_type(ASTNode *node, ValType type_name_orig, const dstring_t *type_n
 			if (new_node == NULL) {
 				return false;
 			}
-			if (!ast_dstring_clone(&node->data_type.defined_type, type_name_def)) {
+			if (!ast_dstring_clone(&new_node->data_type.defined_type, type_name_def)) {
 				ast_destroy(new_node);
 				return NULL;
 			}
 		}
-		switch(node->type){
+		switch (node->type) {
 			case NODE_EXT_DECL:
 				res = ast_nodelist_append(&node->ext_decl.type_name, new_node);
 				break;
@@ -415,7 +416,7 @@ bool ast_add_type(ASTNode *node, ValType type_name_orig, const dstring_t *type_n
 				res = false;
 				break;
 		}
-		if (!res){
+		if (!res) {
 			ast_destroy(new_node);
 			return false;
 		}
@@ -538,7 +539,7 @@ ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col) {
 	return node;
 }
 
-bool ast_class_add_param(ASTNode *data_class, ASTNode *param_window){
+bool ast_class_add_param(ASTNode *data_class, ASTNode *param_window) {
 	if (data_class == NULL || data_class->type != NODE_CLASS_DECL || param_window == NULL ||
 		param_window->type != NODE_FUNC_WINDOW) {
 		ast_destroy(param_window);
@@ -616,30 +617,31 @@ bool ast_for_append_guard(ASTNode *for_node, ASTNode *guard) {
 	return true;
 }
 
-ASTNode *ast_create_type_unif(const dstring_t *unif_name, size_t line, size_t col){
-	if (unif_name == NULL){
+ASTNode *ast_create_type_unif(const dstring_t *unif_name, size_t line, size_t col) {
+	if (unif_name == NULL) {
 		return false;
 	}
 	ASTNode *node = ast_alloc(NODE_UNIF, line, col);
-	if (node == NULL){
+	if (node == NULL) {
 		return NULL;
 	}
-	if(!ast_dstring_clone(&node->type_unif.unif_name, unif_name)){
+	if (!ast_dstring_clone(&node->type_unif.unif_name, unif_name)) {
 		free(node);
 		return NULL;
 	}
+	ast_nodelist_init(&node->type_unif.types);
 	return node;
 }
 
-ASTNode *ast_create_data_class(const dstring_t *class_name, size_t line, size_t col){
-	if (class_name == NULL){
+ASTNode *ast_create_data_class(const dstring_t *class_name, size_t line, size_t col) {
+	if (class_name == NULL) {
 		return false;
 	}
 	ASTNode *node = ast_alloc(NODE_CLASS_DECL, line, col);
-	if (node == NULL){
+	if (node == NULL) {
 		return NULL;
 	}
-	if(!ast_dstring_clone(&node->data_class.class_name, class_name)){
+	if (!ast_dstring_clone(&node->data_class.class_name, class_name)) {
 		free(node);
 		return NULL;
 	}
@@ -684,6 +686,31 @@ static const char *op_to_str(OpType op) {
 			return "-";
 		default:
 			return "?";
+	}
+}
+
+/**
+ * @brief Dumps a type annotation as ":T" or ":T1|T2" for a union; no annotation is ":Undef".
+ * @param types List of NODE_TYPE_ORIG / NODE_TYPE_USER nodes.
+ * @param out Output stream.
+ */
+static void ast_dump_type_list(const ASTNodeList *types, FILE *out) {
+	fputc(':', out);
+	if (types->count == 0) {
+		fputs(val_type_to_str(UNDEF), out);
+		return;
+	}
+	for (size_t i = 0; i < types->count; ++i) {
+		const ASTNode *type = types->items[i];
+		if (i > 0) {
+			fputc('|', out);
+		}
+		if (type->type == NODE_TYPE_USER) {
+			const char *name = dstring_get(&type->data_type.defined_type);
+			fputs(name ? name : "<null>", out);
+		} else {
+			fputs(val_type_to_str(type->data_type.orig_type), out);
+		}
 	}
 }
 
@@ -737,10 +764,10 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 
 		case NODE_VAR_DECL: {
 			const char *name = dstring_get(&node->var_decl.var_name);
-			const char *type = val_type_to_str(node->var_decl.type_name);
-			bool has_type = type[0] != '\0';
-			fprintf(out, "(%s %s%s%s ", node->var_decl.is_const ? "const" : "var",
-				name ? name : "<null>", has_type ? ":" : "", has_type ? type : "");
+			fprintf(
+				out, "(%s %s", node->var_decl.is_const ? "const" : "var", name ? name : "<null>");
+			ast_dump_type_list(&node->var_decl.type_name, out);
+			fputc(' ', out);
 			ast_dump_sexpr(node->var_decl.init_expr, out);
 			fputc(')', out);
 			break;
@@ -809,9 +836,9 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 
 		case NODE_FUNC_PARAM: {
 			const char *name = dstring_get(&node->func_param.param_name);
-			const char *type = val_type_to_str(node->func_param.param_type);
-			fprintf(
-				out, "(param %s%s%s)", name ? name : "<null>", type[0] != '\0' ? ":" : "", type);
+			fprintf(out, "(param %s", name ? name : "<null>");
+			ast_dump_type_list(&node->func_param.param_type, out);
+			fputc(')', out);
 			break;
 		}
 
@@ -823,12 +850,9 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 
 		case NODE_FUNC_DECL: {
 			const char *name = dstring_get(&node->func_decl.func_name);
-			const char *type = val_type_to_str(node->func_decl.return_type);
 			fprintf(out, "(def %s", name ? name : "<null>");
 			ast_dump_nodelist(&node->func_decl.param_windows, out);
-			if (type[0] != '\0') {
-				fprintf(out, ":%s", type);
-			}
+			ast_dump_type_list(&node->func_decl.return_type, out);
 			fputc(' ', out);
 			ast_dump_sexpr(node->func_decl.body, out);
 			fputc(')', out);
@@ -837,11 +861,8 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 
 		case NODE_EXT_DECL: {
 			const char *name = dstring_get(&node->ext_decl.param_name);
-			const char *type = val_type_to_str(node->ext_decl.type_name);
 			fprintf(out, "(extension %s", name ? name : "<null>");
-			if (type[0] != '\0') {
-				fprintf(out, ":%s", type);
-			}
+			ast_dump_type_list(&node->ext_decl.type_name, out);
 			ast_dump_nodelist(&node->ext_decl.funcs, out);
 			fputc(')', out);
 			break;
@@ -872,7 +893,7 @@ void ast_destroy(ASTNode *node) {
 	if (node == NULL) {
 		return;
 	}
-	if (node->expr_types.count != 0){
+	if (node->expr_types.count != 0) {
 		ast_nodelist_destroy(&node->expr_types);
 	}
 
@@ -952,9 +973,9 @@ void ast_destroy(ASTNode *node) {
 			break;
 
 		case NODE_TYPE_ORIG:
-			dstring_free(&node->data_type.defined_type);
 			break;
 		case NODE_TYPE_USER:
+			dstring_free(&node->data_type.defined_type);
 			break;
 
 		case NODE_UNIF:
