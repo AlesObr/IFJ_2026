@@ -3,6 +3,7 @@
  * @file lexer.h
  * @brief Lexer module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
+ * @author Admiral (xkolekj00)
  * @note Standard: ISO C11
  */
 
@@ -10,6 +11,7 @@
 #define IFJ26_LEXER_H
 
 #include "../_utils/error.h"
+#include "../_utils/stack.h"
 #include "../_utils/token.h"
 #include <stdio.h>
 
@@ -18,13 +20,58 @@
  */
 typedef enum {
 	STATE_START,
+	STATE_NUMBER_SEEN,
+	STATE_ZERO_SEEN,
+	STATE_WANNA_BE_DOUBLE,
+	STATE_DOUBLE,
+	STATE_DIV_DEC,
+	STATE_EXP_UNDER_SCORE,
+	STATE_UNDER_SCORE,
+	STATE_WANNA_BE_EXP_1,
+	STATE_WANNA_BE_EXP_2,
+	STATE_EXP_SIGN_1,
+	STATE_EXP_SIGN_2,
+	STATE_EXPONENT,
+	STATE_SUFFIX,
+
+	STATE_IDENTIFIER,
+	STATE_WANNABE_FLOAT,
+	STATE_WANNABE_INT,
+	STATE_NUMBER,
+	STATE_LEADING_ZERO,
+	STATE_FLOAT,
+	STATE_STRING,
+	STATE_COMMENT,
+	STATE_ML_COMMENT,
+	STATE_OPERATOR,
+	STATE_ERROR,
+
+	STATE_CHAR,
+	STATE_ML_STRING,
+
+	STATE_INDENT
 } LexerState;
+
+/**
+ * @brief Support structure for lexemes, keeps track of previous position for pushbacks
+ */
+typedef struct {
+	size_t previous_line;
+	size_t previous_col;
+	int current_lexeme;
+} LexemeState;
 
 /**
  * @brief Initializes the lexer with an input stream.
  * @param input Open file stream to read source characters from (e.g. stdin).
  */
 void lexer_init(FILE *input);
+
+/**
+ * @brief Releases memory held by the lexer (indentation stack).
+ * @note Call after the last lexer_get_next_token(); lexer_init() may be called again later.
+ */
+void lexer_free(void);
 
 /**
  * @brief Reads characters from the input stream and returns the next token.
@@ -37,5 +84,27 @@ void lexer_init(FILE *input);
  * @return Error code indicating success or failure of the operation.
  */
 Error lexer_get_next_token(Token *out_token);
+
+/**
+ * @brief Tells whether a line break inside parentheses preceded the last token.
+ * @return True if the token lies on a later physical line.
+ */
+bool lexer_newline_before_token(void);
+
+/**
+ * @brief Loads in a single character from the input stream.
+ *
+ * @param lexeme The character to be read and companion information for correct pushbacks
+ * @param input Opened stream to be read from
+ */
+int lexer_take(LexemeState *lexeme, FILE *input);
+
+/**
+ * @brief Return a single character to the input stream.
+ *
+ * @param lexeme The character to be returned and companion information for correct pushbacks
+ * @param input Opened stream where the character will be returned to
+ */
+void lexer_give(LexemeState *lexeme, FILE *input);
 
 #endif /* IFJ26_LEXER_H */

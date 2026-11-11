@@ -30,9 +30,9 @@ typedef enum {
  * @brief Representation of an error payload propagated up the call stack.
  */
 typedef struct {
-	ErrorType type;      /**Specific error type and process exit code. */
-	size_t line;         /** Source code line where the error occurred. */
-	size_t col;          /** Source code column where the error occurred. */
+	ErrorType type;		 /**Specific error type and process exit code. */
+	size_t line;		 /** Source code line where the error occurred. */
+	size_t col;			 /** Source code column where the error occurred. */
 	const char *message; /** Descriptive error diagnostics message. */
 } Error;
 

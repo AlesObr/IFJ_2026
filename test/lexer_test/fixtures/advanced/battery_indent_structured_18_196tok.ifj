@@ -1,0 +1,60 @@
+    2147483647 "escape: \" uvozovka" if
+    def 42.0d
+    0.5 camelCase // line 3 comment
+    10_20_30 var var "kombinace: \n\t\"\\" match >= // line 4 comment
+    camelCase _
+        1_000.50_1 "escape: \t tabulator" type
+        "escape: \n nova radka" + thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 1_000_000 "escape: \\ lomitko"
+        0.0 "" // line 8 comment
+        42.0d 0.6 1_000_000 0.0 2147483647 3.14159
+        3.14159 Boolean readInt : veryLongIdentifierNameThatShouldStillWorkInDynamicString camelCase
+    0 1_000.50_1
+        123_456_789 "escape: \n nova radka"
+            with123Numbers "escape: \t tabulator" camelCase
+                match * "hello" = 10_20_30
+Boolean extension 123_456_789 0.6 1_000.50_1
++
+snake_case camelCase camelCase : 1_000_000 // line 17 comment
+1e10 _1 10_20_30 42
+__private . "kombinace: \n\t\"\\" 42 2147483647
+10_20_30 _1 class thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 1e5D
+readInt 42 0 import camelCase
+while "escape: \\ lomitko" 123_456_789 1_000_000
+"kombinace: \n\t\"\\" with123Numbers 1e10 0.5 // line 23 comment
+999_999_999 5e-2 with123Numbers
+Double * 42 List
+camelCase _var <= // line 26 comment
+5e-2
+"escape: \\ lomitko" else
+camelCase 1_000_000 factorial 1e5D 5e-2
+do // line 30 comment
+1 Unit __private // line 31 comment
+_
+_
+    3.14159
+999_999_999 _1 "hello"
+"escape: \" uvozovka" var
+"escape: \t tabulator" extension // line 37 comment
+thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 5e-2 123_456_789 Boolean 2.5E-3 0.0
+2.5E-3 __private
+    5e-2
+        1e5D thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString "escape: \t tabulator"
+        "" 0.6 < // line 42 comment
+        1_000.50_1 1e10 10_20_30 "escape: \t tabulator" 999_999_999 factorial
+        Double
+            : var
+            2147483647 Unit : 0.0 1e5D // line 46 comment
+                999_999_999 2.5E-3 - 0.6 1e10
+                return
+                10_20_30
+                "kombinace: \n\t\"\\" 2.5E-3 42
+                2.5E-3 3.14159 x 1_000_000
+                _ do __private *
+var   snake_case Unit readInt x // line 53 comment
+camelCase "escape: \\ lomitko" Double 42.0d // line 54 comment
+"escape: \t tabulator" "escape: \\ lomitko" snake_case
+    999_999_999 1 factorial != result // line 56 comment
+    1e10
+    :   List 1_000_000
+    1e5D 42
+    1_000_000 camelCase 1 1_000.50_1 "escape: \t tabulator"

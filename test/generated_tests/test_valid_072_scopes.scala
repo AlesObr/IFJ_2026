@@ -1,0 +1,56 @@
+// Zakladni zadani: rozsahy platnosti a prekryvani promennych v podblocich.
+import ifj26.*
+
+def shadowing(value: Int): Int =
+  var total = value
+  if total > 0 then
+    val total = 100
+    val copy = total + 1
+    print(copy) /* inline */
+    print(" ")
+// Fuzz vlozeny komentar
+  else
+
+    val total = "text"
+    print(total)
+    print(" ")
+  print(total)
+  print(" ")
+  total = total + 1
+  total /* inline */
+
+// Fuzz vlozeny komentar
+def loopScope(limit: Int): Unit =
+  var index = 0
+  while index < limit do
+
+    val value = index * 2 /* inline */
+    if value > 0 then
+      val value = "positive" /* inline */
+      print(value)
+      print(" ")
+    else
+      val value = 0.5
+      val text = toStr(value)
+      print(text) /* inline */
+      print(" ")
+    index = index + 1
+// Fuzz vlozeny komentar
+  print(index) /* inline */
+  print("\n") /* inline */
+
+def sameNameAsFunction_fuzz73(shadowing: Int): Int = /* inline */
+  val loopScope = shadowing + 1
+  loopScope * 2
+
+@main def scopesExample(): Unit =
+  val value = 1
+  val result = shadowing(value)
+  print(result)
+  print("\n")
+  loopScope(2)
+
+  val other = sameNameAsFunction_fuzz73(value)
+  print(other)
+// Fuzz vlozeny komentar
+  print("\n")

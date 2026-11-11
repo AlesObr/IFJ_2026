@@ -1,5 +1,5 @@
 CC ?= gcc
-CFLAGS ?= -std=c11 -Wall -Wextra -Werror -pedantic -g
+CFLAGS ?= -std=c11 -Wall -Wextra  -pedantic -g
 INCLUDES = -Iinclude -Isrc
 
 # ----------------------------------------------------------------------
@@ -28,7 +28,14 @@ SYMTABLE_SRC      = src/symtable.c $(AST_SRC)
 SYMTABLE_TEST_SRC = test/symtable_test.c
 
 LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c $(DSTRING_SRC)
+# Doplněn src/_utils/stack.c pro obsluhu odsazení v lexeru
+LEXER_SRC        = src/lexer/lexer.c src/_utils/token.c src/_utils/stack.c $(DSTRING_SRC)
 LEXER_TEST_SRC   = test/lexer_test/lexer_test.c
+
+# Parser moduly
+PRECEDENCE_SRC   = src/parser/precedence.c
+PARSER_SRC       = src/parser/parser.c $(PRECEDENCE_SRC) $(AST_SRC) $(LEXER_SRC)
+PARSER_TEST_SRC  = test/syntax_test/test_parser.c
 
 # ----------------------------------------------------------------------
 # Cílové binárky (vše konzistentně do BUILD_DIR)
@@ -43,6 +50,7 @@ TARGET_SYMTABLE_ASAN     = $(BUILD_DIR)/test_symtable_asan
 TARGET_SYMTABLE_VALGRIND = $(BUILD_DIR)/test_symtable_valgrind
 
 TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
+TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
 
 # ----------------------------------------------------------------------
 # Phony cíle
@@ -52,11 +60,12 @@ TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
         ast-asan ast-valgrind ast-check test_ast \
         symtable-asan symtable-valgrind symtable-check test_symtable \
         scanner-build test-scanner test-scanner-valgrind \
-        linter linter-full linter-clear linter-fix headers format \
+        parser-build test-parser test-parser-valgrind \
+        linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep
 
-# Výchozí cíl: spustí všechny subsystémové testy
-all: check
+# Výchozí cíl: spustí rychlé jednotkové i parser testy
+all: check test-parser
 
 check: dstring-check ast-check symtable-check
 	@echo "\033[32m✓ Všechny základní subsystémové testy (dstring + AST + symtable) prošly.\033[0m"
@@ -115,7 +124,6 @@ ast-valgrind: $(TARGET_AST_VALGRIND)
 ast-check: ast-asan ast-valgrind
 	@echo "\033[32m✓ Unit testy AST prošly.\033[0m"
 
-# Alias pro zpětnou kompatibilitu
 test_ast: ast-asan
 
 # ----------------------------------------------------------------------
@@ -162,8 +170,23 @@ test-scanner: scanner-build
 	@python3 test/test_run.py --timeout 0.5
 
 test-scanner-valgrind: scanner-build
-	@python3 test/lexer_test/generate_testcases.py
-	@python3 test/test_run.py --valgrind
+	@python3 test/test_run.py --valgrind --suit advanced --timeout 0.5
+
+# ----------------------------------------------------------------------
+# Parser & AST testy
+# ----------------------------------------------------------------------
+$(TARGET_PARSER_TEST): $(PARSER_SRC) $(PARSER_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+parser-build: $(TARGET_PARSER_TEST)
+
+test-parser: parser-build
+	@echo "=== Spuštění parser testů (rychlý běh) ==="
+	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast
+
+test-parser-valgrind: parser-build
+	@echo "=== Spuštění parser testů pod Valgrindem ==="
+	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery

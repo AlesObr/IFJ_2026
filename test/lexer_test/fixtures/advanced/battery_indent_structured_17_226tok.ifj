@@ -1,0 +1,60 @@
+Boolean 1 "escape: \" uvozovka"
+"text s mezerami" 999_999_999 veryLongIdentifierNameThatShouldStillWorkInDynamicString // line 2 comment
+999_999_999 def
+= import 10_20_30 1e10
+"escape: \" uvozovka" 5e-2 == > "kombinace: \n\t\"\\" x
+"escape: \n nova radka" 123_456_789 for 999_999_999 1 // line 6 comment
+    0
+0 then camelCase 10_20_30 42
+camelCase 0.0 - | 10_20_30
+camelCase
+"" camelCase __private x
+veryLongIdentifierNameThatShouldStillWorkInDynamicString def 1 String x
+__private 42.0d _1
+    factorial 999_999_999 1_000.50_1 42.0d 0.5
+    "kombinace: \n\t\"\\"
+    1e10 0 0 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString Unit  
+        String , // line 17 comment
+        - _1 == result "escape: \t tabulator"
+        veryLongIdentifierNameThatShouldStillWorkInDynamicString // line 19 comment
+            Double 123_456_789 != Unit "escape: \\ lomitko" , // line 20 comment
+                100.5e+2 // line 21 comment
+                0.6 123_456_789   <= // line 22 comment
+                __private camelCase 42.0d 1_000_000 __private .
+            "hello"   > 2147483647 Double 42
+            "escape: \n nova radka" 3.14159 "escape: \\ lomitko" "escape: \n nova radka" "escape: \t tabulator"
+            1_000.50_1 for 999_999_999 List camelCase
+            0 3.14159 "escape: \n nova radka" 1_000.50_1
+            _var 1_000_000
+            0.125e+2 readInt _var x 2.5E-3 "kombinace: \n\t\"\\"
+        String 123_456_789 1_000_000 1_000_000
+        1 0.0 123_456_789
+        * "escape: \r carriage return" 123_456_789 !=
+        factorial 0 != 2147483647 0 // line 33 comment
+            2147483647 "escape: \\ lomitko" "text s mezerami"
+            @main __private _1
+            5e-2 1e5D case "kombinace: \n\t\"\\" x for
+            - readInt __private "escape: \\ lomitko" 0.125e+2
+            x type
+            return 999_999_999 with123Numbers
+            class __private
+            "escape: \n nova radka"
+with123Numbers 100.5e+2 "text s mezerami"
+_var String
+factorial
+while x
+val 1 return // line 46 comment
+while 10_20_30 * __private "" snake_case // line 47 comment
+- | 0.5 type while 0.125e+2 // line 48 comment
+"escape: \r carriage return" / thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString @main case
+    _ "text s mezerami" == + _ 42
+        x 1e10
+        1_000.50_1 val 0 "escape: \" uvozovka" >= if
+    thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+    "escape: \r carriage return" 0.6 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString "" ==
+    "text s mezerami" thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString _1
+    + 1_000_000 == 2147483647
+thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 1_000.50_1 with123Numbers
+thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString "escape: \r carriage return" "escape: \r carriage return" "escape: \r carriage return" __private
+_1 snake_case Double 42.0d  
+3.14159 var 999_999_999 factorial thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString

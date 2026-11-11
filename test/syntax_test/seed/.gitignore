@@ -1,0 +1,2 @@
+# Ocekavane vystupy seedu jsou soucasti testovacich dat (koren ignoruje *.out)
+!*.out

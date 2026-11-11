@@ -3,14 +3,8 @@
  * @file token.h
  * @brief Token module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
+ * @author Admiral (xkolekj00)
  * @note Standard: ISO C11
- *
- * @par Ownership contract
- * Functions receiving a Token pointer borrow the instance; they do NOT take ownership.
- * The caller retains full ownership and is strictly responsible for calling token_destroy()
- * when the token is no longer needed.
- *
- * If any operation fails, the Token is guaranteed to remain in a valid, destructible state.
  */
 
 #ifndef IFJ26_TOKEN_H
@@ -21,6 +15,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * @brief Enumeration of token types.
@@ -34,7 +30,7 @@ typedef enum token_type {
 	TOKEN_KEYWORD_DO,
 	TOKEN_KEYWORD_CLASS,
 	TOKEN_KEYWORD_CASE,
-	TOKEN_KEYWORD_EXT,
+	TOKEN_KEYWORD_EXTENSION,
 	TOKEN_KEYWORD_TYPE,
 	TOKEN_KEYWORD_MATCH,
 	TOKEN_KEYWORD_BOOLEAN,
@@ -49,11 +45,9 @@ typedef enum token_type {
 	TOKEN_KEYWORD_IF,
 	TOKEN_KEYWORD_ELSE,
 	TOKEN_KEYWORD_WHILE,
-	TOKEN_KEYWORD_FOR,
 	TOKEN_KEYWORD_THEN,
 	TOKEN_KEYWORD_IMPORT,
 	TOKEN_KEYWORD_RETURN,
-	TOKEN_KEYWORD_NULL,
 	TOKEN_KEYWORD_TRUE,
 	TOKEN_KEYWORD_FALSE,
 
@@ -68,9 +62,10 @@ typedef enum token_type {
 	TOKEN_MUL,
 	TOKEN_DIV,
 	TOKEN_DOT,
-	TOKEN_AT,
+	TOKEN_AT_MAIN,
 	TOKEN_EOL,
 	TOKEN_INDENT,
+	TOKEN_OUTDENT,
 	TOKEN_UNDERSCORE,
 	TOKEN_COLON,
 
@@ -84,6 +79,7 @@ typedef enum token_type {
 	TOKEN_GTE,
 	TOKEN_AND,
 	TOKEN_OR,
+	TOKEN_PIPE,
 	TOKEN_NOT,
 
 	// Parentheses and punctuation
@@ -91,11 +87,10 @@ typedef enum token_type {
 	TOKEN_RPAREN,
 	TOKEN_LBRACE,
 	TOKEN_RBRACE,
-	TOKEN_COLON,
 	TOKEN_LBRACKET,
 	TOKEN_RBRACKET,
 	TOKEN_SEMICOLON,
-	TOKEN_COMMA
+	TOKEN_COMMA,
 } TokenType;
 
 /**
@@ -128,5 +123,80 @@ void token_init(Token *t);
  * @param t Pointer to the token to clean up.
  */
 void token_destroy(Token *t);
+
+/**
+ * @brief Return a human-readable name for a token type.
+ * @param type Token type to describe.
+ * @return Static token type name.
+ */
+const char *token_type_name(TokenType type);
+
+#include <stdbool.h>
+
+/**
+ * Helper for simple tokens without attributes (operators, punctuation, EOF, keywords).
+ */
+static inline Error token_make_simple(Token *t, TokenType type, size_t line, size_t col) {
+	t->type = type;
+	t->line = line;
+	t->col = col;
+	t->data.str_val = NULL;
+	return ERROR_OK();
+}
+
+/**
+ * Helper for integer literals.
+ */
+static inline Error token_make_int(Token *t, int64_t val, size_t line, size_t col) {
+	t->type = TOKEN_LIT_INT;
+	t->line = line;
+	t->col = col;
+	t->data.int_val = val;
+	return ERROR_OK();
+}
+
+/**
+ * Helper for floating point literals.
+ */
+static inline Error token_make_float(Token *t, double val, size_t line, size_t col) {
+	t->type = TOKEN_LIT_FLOAT;
+	t->line = line;
+	t->col = col;
+	t->data.float_val = val;
+	return ERROR_OK();
+}
+
+/**
+ * Helper for tokens with dynamic string data (identifiers, string literals).
+ * Takes ownership of the allocated string buffer or copies it.
+ */
+/**
+ * @brief Helper constructor for tokens with dynamic string data.
+ * @param t Target token to initialize.
+ * @param type Token type (identifier, string literal, etc.).
+ * @param src Dynamic string source buffer.
+ * @param line Line position in source code.
+ * @param col Column position in source code.
+ * @return ERROR_OK on success, ERR_INTERNAL on allocation failure.
+ */
+static inline Error token_make_str(
+	Token *t, TokenType type, dstring_t *src, size_t line, size_t col) {
+	t->type = type;
+	t->line = line;
+	t->col = col;
+
+	t->data.str_val = malloc(sizeof(dstring_t));
+	if (!t->data.str_val) {
+		return ERROR_EMIT(ERR_INTERNAL, line, col, "Allocation failure for token string.");
+	}
+
+	if (!dstring_init(t->data.str_val) || !dstring_copy(t->data.str_val, src)) {
+		free(t->data.str_val);
+		t->data.str_val = NULL;
+		return ERROR_EMIT(ERR_INTERNAL, line, col, "Failed to copy dynamic string.");
+	}
+
+	return ERROR_OK();
+}
 
 #endif /* IFJ26_TOKEN_H */
