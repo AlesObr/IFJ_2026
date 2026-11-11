@@ -4,6 +4,7 @@
  * @brief Lexer module implementation for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
  * @author Admiral (xkolekj00)
+ * @author Štěpán Hořenek (xhorens00)
  * @note Standard: ISO C11
  */
 
@@ -80,6 +81,11 @@ static void indent_push(size_t value) {
 static void indent_pop(void) {
 	void *element = stack_pop(&indent_stack);
 	free(element);
+}
+
+void lexer_free(void) {
+	while (indent_stack.top != NULL)
+		indent_pop();
 }
 
 void lexer_init(FILE *input) {
@@ -484,8 +490,7 @@ Error lexer_get_next_token(Token *out_token) {
 								ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
 						}
 						lexer_give(&lexeme, source_file);
-						token_make_str(
-							out_token, TOKEN_EQ, &token_buffer, token_start_line, token_start_col);
+						token_make_simple(out_token, TOKEN_EQ, token_start_line, token_start_col);
 						dstring_free(&token_buffer);
 						return ERROR_OK();
 					}
@@ -552,8 +557,7 @@ Error lexer_get_next_token(Token *out_token) {
 								ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
 						}
 						lexer_give(&lexeme, source_file);
-						token_make_str(
-							out_token, TOKEN_GTE, &token_buffer, token_start_line, token_start_col);
+						token_make_simple(out_token, TOKEN_GTE, token_start_line, token_start_col);
 						dstring_free(&token_buffer);
 						return ERROR_OK();
 					}
@@ -577,8 +581,7 @@ Error lexer_get_next_token(Token *out_token) {
 								ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
 						}
 						lexer_give(&lexeme, source_file);
-						token_make_str(
-							out_token, TOKEN_LTE, &token_buffer, token_start_line, token_start_col);
+						token_make_simple(out_token, TOKEN_LTE, token_start_line, token_start_col);
 						dstring_free(&token_buffer);
 						return ERROR_OK();
 					}
@@ -612,8 +615,7 @@ Error lexer_get_next_token(Token *out_token) {
 								ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
 						}
 						lexer_give(&lexeme, source_file);
-						token_make_str(
-							out_token, TOKEN_OR, &token_buffer, token_start_line, token_start_col);
+						token_make_simple(out_token, TOKEN_OR, token_start_line, token_start_col);
 						dstring_free(&token_buffer);
 						return ERROR_OK();
 					}
@@ -647,8 +649,7 @@ Error lexer_get_next_token(Token *out_token) {
 								ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
 						}
 						lexer_give(&lexeme, source_file);
-						token_make_str(
-							out_token, TOKEN_NEQ, &token_buffer, token_start_line, token_start_col);
+						token_make_simple(out_token, TOKEN_NEQ, token_start_line, token_start_col);
 						dstring_free(&token_buffer);
 						return ERROR_OK();
 					}

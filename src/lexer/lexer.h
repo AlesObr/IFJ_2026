@@ -68,6 +68,12 @@ typedef struct {
 void lexer_init(FILE *input);
 
 /**
+ * @brief Releases memory held by the lexer (indentation stack).
+ * @note Call after the last lexer_get_next_token(); lexer_init() may be called again later.
+ */
+void lexer_free(void);
+
+/**
  * @brief Reads characters from the input stream and returns the next token.
  *
  * Functions on a pull principle. Advances input until a full token is recognized.
