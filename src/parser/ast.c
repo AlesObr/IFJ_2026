@@ -663,7 +663,7 @@ bool ast_match_add_case(ASTNode *match_node, ASTNode *case_node){
 }
 
 bool ast_case_add_guard(ASTNode *case_node, ASTNode *guard){
-	if (case_node == NULL || case_node->type != NODE_CASE || guard == NULL || guard->type != NODE_IF) {
+	if (case_node == NULL || case_node->type != NODE_CASE || guard == NULL) {
 		ast_destroy(guard);
 		return false;
 	}

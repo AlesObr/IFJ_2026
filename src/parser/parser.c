@@ -278,7 +278,7 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 	if (curr_token->type == TOKEN_COLON) {
 		bool is_orig;
 		ValType type;
-		dstring_t *user_type = NULL;
+		dstring_t user_type;
 		do {
 			is_orig = true;
 			type = UNDEF;
@@ -301,7 +301,7 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 					break;
 				case TOKEN_IDENTIFIER:
 					is_orig = false;
-					if (!dstring_copy(curr_token->data.str_val, user_type)) {
+					if (!dstring_init(&user_type) || !dstring_copy(curr_token->data.str_val, &user_type)) {
 						ast_destroy(new_decl);
 						return PARSE_ERROR(
 							ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
@@ -316,7 +316,7 @@ ParserStatus parse_declaration(Token *curr_token, bool mutability) {
 										   "Missing data type in function parameter\n"),
 						PAR_FAIL);
 			}
-			CHECK_AST_APPEND(new_decl, ast_add_type(new_decl, type, user_type, is_orig),
+			CHECK_AST_APPEND(new_decl, ast_add_type(new_decl, type, &user_type, is_orig),
 				"Failed to append data type into function declaration\n");
 			GET_TOKEN(curr_token, new_decl, false);
 		} while (curr_token->type == TOKEN_PIPE);
@@ -613,6 +613,11 @@ ParserStatus parse_for_statement(Token *curr_token) {
 	return PARSE_OK(PAR_SUCC, for_node);
 }
 
+/**
+ * @brief Parsing of match case (ALGEBDT expansion)
+ * @param curr_token Token pointer filled with current token
+ * @return Status structure containing flags for caller
+*/
 ParserStatus parse_match_case(Token *curr_token){
 	ParserStatus status = {0};
 	ASTNode *case_node = NULL;
@@ -638,6 +643,7 @@ ParserStatus parse_match_case(Token *curr_token){
 			break;
 		case TOKEN_UNDERSCORE:
 			ALLOC_NODE(expr_node, ast_create_null(curr_token->line, curr_token->col));
+			GET_TOKEN(curr_token, case_node, false);
 			break;
 		default:
 			ast_destroy(case_node);
@@ -649,9 +655,9 @@ ParserStatus parse_match_case(Token *curr_token){
 	ALLOC_NODE(case_node, ast_create_case_node(expr_node, curr_token->line, curr_token->col));
 	if (curr_token->type == TOKEN_COLON){
 		GET_TOKEN(curr_token, case_node, false);
-		bool is_orig = false;
+		bool is_orig = true;
 		ValType type = UNDEF;
-		dstring_t *user_type = NULL;
+		dstring_t user_type;
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_INT:
 				type = INT;
@@ -670,7 +676,7 @@ ParserStatus parse_match_case(Token *curr_token){
 				break;
 			case TOKEN_IDENTIFIER:
 				is_orig = false;
-				if (!dstring_copy(curr_token->data.str_val, user_type)){
+				if (!dstring_init(&user_type) || !dstring_copy(curr_token->data.str_val, &user_type)){
 					ast_destroy(case_node);
 					return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
 											"Failed to copy dstring for case in match section\n"),
@@ -683,15 +689,16 @@ ParserStatus parse_match_case(Token *curr_token){
 										"Missing data type in function parameter\n"),
 					PAR_FAIL);
 		}
-		CHECK_AST_APPEND(case_node, ast_add_type(case_node, type, user_type, is_orig), "Failed to addpened data type into case\n");
+		CHECK_AST_APPEND(case_node, ast_add_type(case_node, type, &user_type, is_orig), "Failed to addpened data type into case\n");
+		GET_TOKEN(curr_token, case_node, false);
 	}
 	if (curr_token->type == TOKEN_KEYWORD_IF){
+		GET_TOKEN(curr_token, case_node, false);
 		status = parse_expression(curr_token);
 		CHECK_STATUS(status);
 		CHECK_AST_APPEND(case_node, ast_case_add_guard(case_node, status.new_node), "Failed to append guard into case node\n");
 	}
-	GET_TOKEN(curr_token, case_node, false);
-	if (curr_token->type != TOKEN_ASSIGN){
+	if (curr_token->type != TOKEN_ARROW){
 		ast_destroy(case_node);
 		return PARSE_ERROR(
 			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -699,15 +706,15 @@ ParserStatus parse_match_case(Token *curr_token){
 			PAR_FAIL);
 	}
 	GET_TOKEN(curr_token, case_node, false);
-	if (curr_token->type != TOKEN_GT){
-		ast_destroy(case_node);
-		return PARSE_ERROR(
-			ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-				"Expected = after case argument / guard, got different token\n"),
-			PAR_FAIL);
+	while (curr_token->type == TOKEN_EOL){
+		GET_TOKEN(curr_token, case_node, false);
 	}
-	GET_TOKEN(curr_token, case_node, false);
-	status = parse_expression(curr_token);
+	if (curr_token->type == TOKEN_INDENT){
+		status = parse_code_block(curr_token, false);
+		GET_TOKEN(curr_token, case_node, false);
+	} else {
+		status = parse_expression(curr_token);
+	}
 	CHECK_STATUS(status);
 	CHECK_AST_APPEND(case_node, ast_case_add_body(case_node, status.new_node), "Failed to append expression to be executed if case is matched\n");
 	while (curr_token->type == TOKEN_EOL){
@@ -817,7 +824,7 @@ ParserStatus parse_statement(Token *curr_token) {
 			status = parse_expression(curr_token);
 			CHECK_STATUS(status);
 			if (curr_token->type == TOKEN_KEYWORD_MATCH){
-				parse_match(curr_token, status.new_node);
+				status = parse_match(curr_token, status.new_node);
 			}
 			break;
 		default:
@@ -902,7 +909,7 @@ ParserStatus parse_param_section(Token *curr_token) {
 		}
 		bool is_orig;
 		ValType param_type;
-		dstring_t *user_type = NULL;
+		dstring_t user_type;
 		do {
 			is_orig = true;
 			param_type = UNDEF;
@@ -925,7 +932,7 @@ ParserStatus parse_param_section(Token *curr_token) {
 					break;
 				case TOKEN_IDENTIFIER:
 					is_orig = false;
-					if (!dstring_copy(curr_token->data.str_val, user_type)) {
+					if (!dstring_init(&user_type) || !dstring_copy(curr_token->data.str_val, &user_type)) {
 						ast_destroy(param_node);
 						return PARSE_ERROR(
 							ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
@@ -940,7 +947,7 @@ ParserStatus parse_param_section(Token *curr_token) {
 										   "Missing data type in function parameter\n"),
 						PAR_FAIL);
 			}
-			CHECK_AST_APPEND(param_node, ast_add_type(param_node, param_type, user_type, is_orig),
+			CHECK_AST_APPEND(param_node, ast_add_type(param_node, param_type, &user_type, is_orig),
 				"Failed to append data type into function parameter node\n");
 			GET_TOKEN(curr_token, param_window, false);
 		} while (curr_token->type == TOKEN_COLON);
@@ -999,7 +1006,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	if (curr_token->type == TOKEN_COLON) {
 		bool is_orig;
 		ValType type;
-		dstring_t *user_type = NULL;
+		dstring_t user_type;
 		do {
 			is_orig = true;
 			type = UNDEF;
@@ -1022,7 +1029,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 					break;
 				case TOKEN_IDENTIFIER:
 					is_orig = false;
-					if (!dstring_copy(curr_token->data.str_val, user_type)) {
+					if (!dstring_init(&user_type) || !dstring_copy(curr_token->data.str_val, &user_type)) {
 						ast_destroy(new_func);
 						return PARSE_ERROR(
 							ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
@@ -1037,7 +1044,7 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 										   "Invalid function return type\n"),
 						PAR_FAIL);
 			}
-			CHECK_AST_APPEND(new_func, ast_add_type(new_func, type, user_type, is_orig),
+			CHECK_AST_APPEND(new_func, ast_add_type(new_func, type, &user_type, is_orig),
 				"Failed to append data type into function declaration node\n");
 			GET_TOKEN(curr_token, new_func, false);
 		} while (curr_token->type == TOKEN_PIPE);
@@ -1236,7 +1243,7 @@ ParserStatus parse_type_unif(Token *curr_token) {
 	}
 	bool is_orig;
 	ValType type;
-	dstring_t *user_type = NULL;
+	dstring_t user_type;
 	do {
 		is_orig = true;
 		type = UNDEF;
@@ -1259,7 +1266,7 @@ ParserStatus parse_type_unif(Token *curr_token) {
 				break;
 			case TOKEN_IDENTIFIER:
 				is_orig = false;
-				if (!dstring_copy(curr_token->data.str_val, user_type)) {
+				if (!dstring_init(&user_type) || !dstring_copy(curr_token->data.str_val, &user_type)) {
 					ast_destroy(type_node);
 					return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
 										   "Failed to copy dstring for type unification "
@@ -1273,7 +1280,7 @@ ParserStatus parse_type_unif(Token *curr_token) {
 									   "Missing data type after = in type unification\n"),
 					PAR_FAIL);
 		}
-		CHECK_AST_APPEND(type_node, ast_add_type(type_node, type, user_type, is_orig),
+		CHECK_AST_APPEND(type_node, ast_add_type(type_node, type, &user_type, is_orig),
 			"Failed to addpened data type into type unification\n");
 		GET_TOKEN(curr_token, type_node, false);
 	} while (curr_token->type == TOKEN_PIPE);
