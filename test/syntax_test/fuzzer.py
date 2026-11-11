@@ -45,7 +45,7 @@ class IFJCodeMutator:
 
     @staticmethod
     def _literal_spans(code: str) -> list[tuple[int, int]]:
-        """Vrati rozsahy (start, end) vsech retezcu a komentaru ve zdrojovem kodu."""
+        """Returns (start, end) ranges of all strings and comments in the source."""
         spans = []
         length = len(code)
         i = 0
@@ -64,7 +64,7 @@ class IFJCodeMutator:
                 end = code.find("\n", i)
                 i = length if end < 0 else end
             elif code.startswith("/*", i):
-                # Blokove komentare se mohou vnorovat
+                # Block comments can be nested
                 depth = 1
                 i += 2
                 while i < length and depth > 0:
@@ -84,9 +84,10 @@ class IFJCodeMutator:
 
     def _code_lines(self) -> list[tuple[int, int | None, int, int]]:
         """
-        Pro kazdy fyzicky radek vrati (index, odsazeni, hloubka zavorek na zacatku,
-        pozice za poslednim znakem kodu). Odsazeni je None, pokud radek nezacina kodem
-        (prazdny radek, komentar, retezec nebo pokracovani viceradkoveho retezce ci komentare).
+        Returns (index, indentation, paren depth at line start, position after the last
+        code character) for each physical line. Indentation is None if the line does not
+        start with code (blank line, comment, string or continuation of a multiline
+        string or comment).
         """
         clean_code = self._strip_comments_and_strings(self.code)
         result = []
@@ -115,7 +116,7 @@ class IFJCodeMutator:
 
         # Najdeme vsechny identifikatory, ktere nejsou soucasti ciselnych literalu (napr. 1e10)
         tokens = re.findall(r"(?<![0-9.])\b[a-zA-Z_][a-zA-Z0-9_]*\b", clean_code)
-        # Serazeno: poradi mnoziny retezcu se meni mezi behy a rozbilo by --seed
+        # Sorted: the order of a string set changes between runs and would break --seed
         candidates = sorted({
             t for t in tokens
             if t not in self.RESERVED and not t.startswith("@")
@@ -151,7 +152,7 @@ class IFJCodeMutator:
             offset += len(line)
             newline_pos = line_start + len(line.rstrip("\r\n"))
 
-            # Do viceradkoveho retezce ci komentare se nesmi nic vlozit
+            # Nothing may be inserted into a multiline string or comment
             if not inside_literal(line_start):
                 if random.random() < 0.15:
                     # Pouze ciste ASCII znaky! (Zadne hacky a carky)
@@ -166,7 +167,7 @@ class IFJCodeMutator:
         return "".join(res)
 
     def generate_valid(self) -> tuple[str, bool]:
-        """Vrati kod a priznak, zda mutace zachovala AST (prejmenovani ho meni)."""
+        """Returns the code and whether the mutation preserved the AST (renaming changes it)."""
         res = self.code
         same_ast = True
         for fn_name in ["mutate_identifiers", "mutate_formatting"]:
@@ -179,11 +180,11 @@ class IFJCodeMutator:
 
     def err_indentation(self) -> str:
         """
-        Narusi striktni odsazeni bloku mezerami.
+        Breaks the strict indentation of a block.
 
-        Vybira jen radky se stejnym odsazenim jako predchozi prikaz. Hlubsi odsazeni
-        prvniho prikazu bloku, pokracovani v zavorkach nebo obsahu viceradkoveho
-        retezce by program nerozbilo a vznikl by falesne chybny test.
+        Only picks lines indented the same as the previous statement. Indenting the first
+        statement of a block, a continuation inside parentheses or the content of a
+        multiline string would not break the program and would create a mislabelled test.
         """
         candidates = []
         previous_indent = None
@@ -195,7 +196,7 @@ class IFJCodeMutator:
             previous_indent = indent
 
         if not candidates:
-            # Hlubsi odsazeni nez posledni prikaz, po kterem nemuze zacit novy blok
+            # Deeper than the last statement, after which no new block can start
             last_indent = previous_indent if previous_indent is not None else 0
             return self.code + "\n" + " " * (last_indent + 1) + "val x_err = 1\n"
 
@@ -217,7 +218,7 @@ class IFJCodeMutator:
         for i, indent, _, code_end in self._code_lines():
             line = self.lines[i]
             if indent is not None and not line.strip().startswith("import"):
-                # Vlozit hned za kod, jinak by zavorka mohla skoncit v komentari na konci radku
+                # Insert right after the code, otherwise the paren could end up in a trailing comment
                 mutated = line[:code_end] + " )" + line[code_end:]
                 if not mutated.endswith("\n"):
                     mutated += "\n"
@@ -270,8 +271,8 @@ def main():
     parser.add_argument("--out-dir", type=str, default="generated_tests", help="Vystupni adresar")
     parser.add_argument("--valid-count", type=int, default=15, help="Pocet validnich testu")
     parser.add_argument("--invalid-count", type=int, default=30, help="Pocet syntaktickych chyb")
-    parser.add_argument("--seed", type=int, default=None, help="Seed generatoru pro reprodukovatelny beh")
-    parser.add_argument("--clean", action="store_true", help="Pred generovanim smazat drive vygenerovane test_valid_* a test_error_* ve vystupnim adresari")
+    parser.add_argument("--seed", type=int, default=None, help="Random generator seed for a reproducible run")
+    parser.add_argument("--clean", action="store_true", help="Delete previously generated test_valid_* and test_error_* in the output directory first")
     args = parser.parse_args()
 
     if args.seed is not None:
@@ -303,13 +304,13 @@ def main():
         base_name = f"test_valid_{i:03d}_{src.stem}"
         (out_dir / f"{base_name}.scala").write_text(code, encoding="utf-8")
 
-        # Mutace zachovavajici AST se daji porovnat s referencnim stromem seedu
+        # Mutations that preserve the AST can be compared with the seed's reference tree
         ast_file = src.with_suffix(".ast")
         ast_target = out_dir / f"{base_name}.ast"
         if same_ast and ast_file.exists():
             shutil.copy(ast_file, ast_target)
         else:
-            # Reference z predchozího behu by k novemu kodu nepatrila
+            # A reference from a previous run would not match the new code
             ast_target.unlink(missing_ok=True)
 
         # Zkopirovani prislusneho .in a .out souboru, pokud existuji

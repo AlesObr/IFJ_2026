@@ -1,13 +1,14 @@
 //> using scala 3.8.4
 //> using dep org.scala-lang::scala3-compiler:3.8.4
 
-// Referencni AST pro parser IFJ26: zdrojak rozparsuje parser prekladace Scala a strom
-// vypise ve formatu ast_dump_sexpr (src/parser/ast.c). Tvar stromu tak neurcuje testovany
-// parser, ale nezavisly prekladac. Podporuje jen zakladni zadani: na jine konstrukci
-// nebo chybe parsovani soubor .ast nevznikne a program skonci s kodem 1.
+// Reference AST for the IFJ26 parser: parses the source with the Scala compiler's parser
+// and prints the tree in the ast_dump_sexpr format (src/parser/ast.c). The tree shape is
+// therefore defined by an independent compiler, not by the parser under test. Supports the
+// base language only: on any other construct or a parse error no .ast file is written and
+// the program exits with code 1.
 //
-// Pouziti: scala run --server=false test/syntax_test/ScalaAstOracle.scala -- soubor.scala...
-// Vystup:  soubor.ast vedle kazdeho vstupu
+// Usage:  scala run --server=false test/syntax_test/ScalaAstOracle.scala -- file.scala...
+// Output: file.ast next to each input
 
 import dotty.tools.dotc.ast.untpd.*
 import dotty.tools.dotc.core.Constants.Constant
@@ -22,7 +23,7 @@ import java.nio.file.{Files, Path, Paths}
 class Unsupported(message: String) extends Exception(message)
 
 object ScalaAstOracle:
-  /** Odpovida formatu "%g" v C (6 platnych cislic, bez koncovych nul). */
+  /** Matches the C "%g" format (6 significant digits, no trailing zeros). */
   private def formatG(value: Double): String =
     if value == 0.0 then return "0"
     val rounded = new JBigDecimal(value).round(new MathContext(6, RoundingMode.HALF_EVEN))
@@ -41,7 +42,7 @@ object ScalaAstOracle:
       case NumberKind.Whole(10) => BigInt(magnitude).toString
       case NumberKind.Decimal | NumberKind.Floating => formatG(magnitude.toDouble)
       case other => throw Unsupported(s"ciselny literal $other")
-    // IFJ26 chape zaporny literal jako unarni minus a kladnou cast
+    // IFJ26 treats a negative literal as unary minus applied to the positive part
     if negative then s"(- $rendered)" else rendered
 
   private def typeName(tree: Tree): String = tree match
@@ -49,7 +50,7 @@ object ScalaAstOracle:
     case other if other.isEmpty => "Undef"
     case other => throw Unsupported(s"typ $other")
 
-  /** Telo vetve nebo funkce: vzdy jako (block ...), i pro jediny prikaz. */
+  /** Branch or function body: always (block ...), even for a single statement. */
   private def block(tree: Tree)(using Context): String = tree match
     case Block(stats, last) =>
       val items = if last.isEmpty then stats else stats :+ last
@@ -61,7 +62,7 @@ object ScalaAstOracle:
     case Tuple(Nil) => "null"
     case Literal(Constant(())) => "null"
     case Literal(Constant(text: String)) => "\"" + text + "\""
-    // Literal s priponou d/D uz parser Scaly vyhodnoti na konstantu
+    // The Scala parser already evaluates a literal with a d/D suffix to a constant
     case Literal(Constant(value: Double)) => formatG(value)
     case Number(digits, kind) => number(digits, kind)
     case Ident(name) => name.toString
@@ -121,7 +122,7 @@ object ScalaAstOracle:
         case error: Unsupported =>
           failed = true
           println(s"CHYBA $arg: ${error.getMessage}")
-        // Parser Scaly umi na poskozenem vstupu spadnout, napr. s NullPointerException
+        // The Scala parser can crash on malformed input, e.g. with a NullPointerException
         case error: RuntimeException =>
           failed = true
           println(s"CHYBA $arg: parser Scaly spadl: $error")

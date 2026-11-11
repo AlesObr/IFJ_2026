@@ -195,11 +195,13 @@ def _implicit_eol_lines(source: str) -> set[int]:
     in_multiline_string = False
     in_single_string = False
     escaped = False
+    paren_depth = 0
     index = 0
 
     while index < len(source):
         if source[index] == "\n":
-            if block_depth or not in_multiline_string:
+            # LF uvnitr zavorek je podle specifikace jen bily znak
+            if paren_depth == 0 and (block_depth or not in_multiline_string):
                 lines.add(line_number)
             line_number += 1
             in_single_string = False
@@ -236,7 +238,10 @@ def _implicit_eol_lines(source: str) -> set[int]:
             index += 1
             continue
 
-        if source.startswith("/*", index):
+        if source.startswith("//", index):
+            newline = source.find("\n", index)
+            index = len(source) if newline < 0 else newline
+        elif source.startswith("/*", index):
             block_depth = 1
             index += 2
         elif source.startswith('"""', index):
@@ -246,6 +251,10 @@ def _implicit_eol_lines(source: str) -> set[int]:
             in_single_string = True
             index += 1
         else:
+            if source[index] == "(":
+                paren_depth += 1
+            elif source[index] == ")":
+                paren_depth = max(0, paren_depth - 1)
             index += 1
 
     return lines
@@ -256,22 +265,16 @@ def _add_implicit_eols(expected: str, source: str) -> str:
         return expected
 
     eol_lines = _implicit_eol_lines(source)
-    if not eol_lines:
-        return expected
 
+    # Starsi fixtures mohou mit EOL v zavorkach nebo uprostred viceradkoveho retezce,
+    # proto se vsechny EOL odstrani a doplni znovu podle zdrojoveho kodu.
     lines = expected.splitlines()
-    tokens = lines[1:]
-    existing = {
-        int(match.group(1))
-        for token in tokens
-        if token.endswith(":EOL")
-        for match in [re.match(r"^(\d+):", token)]
-        if match
-    }
+    tokens = [token for token in lines[1:] if not re.match(r"^\d+:EOL$", token)]
+    existing: set[int] = set()
     result = [lines[0]]
-    for index, token in enumerate(tokens):
-        result.append(token)
-        match = re.match(r"^(\d+):", token)
+    index = 0
+    while index < len(tokens):
+        match = re.match(r"^(\d+):", tokens[index])
         next_numbered_index = next(
             (
                 next_index
@@ -280,9 +283,10 @@ def _add_implicit_eols(expected: str, source: str) -> str:
             ),
             len(tokens),
         )
+        # Radky bez cisla jsou pokracovanim retezcoveho tokenu s realnym LF
+        result.extend(tokens[index:next_numbered_index])
         if (
             match
-            and not token.endswith(":EOL")
             and int(match.group(1)) in eol_lines
             and (
                 next_numbered_index == len(tokens)
@@ -291,9 +295,9 @@ def _add_implicit_eols(expected: str, source: str) -> str:
             )
         ):
             line_number = int(match.group(1))
-            if line_number not in existing:
-                result.append(f"{line_number}:EOL")
-                existing.add(line_number)
+            result.append(f"{line_number}:EOL")
+            existing.add(line_number)
+        index = next_numbered_index
     for line_number in sorted(eol_lines):
         if line_number in existing:
             continue
@@ -327,7 +331,7 @@ def migrate_legacy_fixtures(fixtures_dir: Path) -> None:
         expected = expected_file.read_text(encoding="utf-8")
         expected = expected.replace(":AT\n", ":AT_MAIN\n")
         expected = re.sub(
-            r"(?m)^(\d+:LIT_(?:INT|FLOAT):)([-+0-9.eE_]+)d?\s*$",
+            r"(?m)^(\d+:LIT_(?:INT|FLOAT):)([-+0-9.eE_]+)[dD]?[ \t]*$",
             lambda match: match.group(1)
             + (
                 match.group(2).replace("_", "")
@@ -511,18 +515,15 @@ def gen_basic_suite(out_dir: Path):
     write_case(
         out_dir,
         "valid_parens_multiline",
-        "val sum = (\n    10 +\n    20\n)\n",
+        "val sum = (\n    10 +\n    20\n    )\n",
         [
             "1:KEYWORD:val",
             "1:IDENTIFIER:sum",
             "1:ASSIGN",
             "1:LPAREN",
-            "1:EOL",
             "2:LIT_INT:10",
             "2:PLUS",
-            "2:EOL",
             "3:LIT_INT:20",
-            "3:EOL",
             "4:RPAREN",
             "4:EOL",
             "5:EOF",
@@ -531,17 +532,14 @@ def gen_basic_suite(out_dir: Path):
     write_case(
         out_dir,
         "valid_trailing_comma",
-        "foo(\n    1,\n    2,\n)\n",
+        "foo(\n    1,\n    2,\n    )\n",
         [
             "1:IDENTIFIER:foo",
             "1:LPAREN",
-            "1:EOL",
             "2:LIT_INT:1",
             "2:COMMA",
-            "2:EOL",
             "3:LIT_INT:2",
             "3:COMMA",
-            "3:EOL",
             "4:RPAREN",
             "4:EOL",
             "5:EOF",

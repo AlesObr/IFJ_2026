@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
         return (int)status.error.type;
     }
 
-    // Úspěšný průchod: volitelný výpis stromu jako S-výrazu pro porovnání s .ast
+    // Success: optionally dump the tree as an S-expression for comparison with .ast
     if (dump_ast) {
         ast_dump_sexpr(status.new_node, stdout);
         fputc('\n', stdout);

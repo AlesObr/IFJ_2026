@@ -23,18 +23,18 @@ def format_stats(passed: int, failed: int) -> str:
 
 
 def last_dump_line(stderr: str) -> str:
-    """Vrátí poslední řádek dumpu; zprávy parseru končí \\n, takže za nimi zbývá samotná uvozovka."""
+    """Returns the last dump line; parser messages end with \\n, leaving a lone quote after them."""
     lines = [line.strip() for line in stderr.splitlines() if line.strip() not in ("", '"')]
     return lines[-1] if lines else "(prázdný výpis)"
 
 
 def print_failure_analysis(failures: dict[str, list[tuple[str, str]]], total_failed: int) -> None:
-    """Vypíše počty selhání podle druhu a pod nimi seskupené poslední řádky dumpu."""
+    """Prints failure counts by kind, with the grouped last dump lines under each."""
     print(f"\nAnalýza selhání ({total_failed} testů):")
     for kind, items in sorted(failures.items(), key=lambda item: -len(item[1])):
         print(f"  {len(items)}x ({100 * len(items) / total_failed:.1f} %) {kind}")
 
-        # Pozice se liší test od testu, seskupuje se proto bez ní
+        # The position differs between tests, so grouping ignores it
         groups: dict[str, list[tuple[str, str]]] = {}
         for test_name, dump in items:
             if dump:
@@ -50,7 +50,7 @@ def print_failure_analysis(failures: dict[str, list[tuple[str, str]]], total_fai
 
 
 def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind: bool) -> tuple[bool, str, str | None, str]:
-    """Vrátí (prošlo, zpráva, druh selhání, poslední řádek dumpu pro analýzu)."""
+    """Returns (passed, message, failure kind, last dump line for the analysis)."""
     cmd = []
     if use_valgrind:
         cmd.extend([
@@ -81,7 +81,7 @@ def run_test(compiler_bin: str, scala_file: Path, check_ast: bool, use_valgrind:
     except Exception as e:
         return False, f"Chyba při spuštění: {e}", "Chyba při spuštění", ""
 
-    # Kód 0 skončil bez chyby, jeho poslední řádek dumpu nic neříká
+    # Exit code 0 means no error, so its last dump line carries no information
     dump = last_dump_line(proc.stderr) if proc.returncode != 0 else ""
 
     if proc.returncode < 0:
@@ -153,13 +153,13 @@ def main():
     passed = 0
     failed = 0
     ast_matched = 0
-    # Kategorie -> [prošlo, selhalo]
+    # Category -> [passed, failed]
     stats = {"Nechybové": [0, 0], "Chybové": [0, 0]}
-    # Druh selhání -> [(název testu, poslední řádek dumpu)]
+    # Failure kind -> [(test name, last dump line)]
     failures: dict[str, list[tuple[str, str]]] = {}
 
     for test in tests:
-        # Absolutni cesta: Path("./bin") zahodi "./" a binarka by se hledala v PATH
+        # Absolute path: Path("./bin") drops "./" and the binary would be looked up in PATH
         ok, msg, kind, dump = run_test(str(bin_path.resolve()), test, check_ast=args.check_ast, use_valgrind=args.valgrind)
         category = "Chybové" if "test_error" in test.name else "Nechybové"
         stats[category][0 if ok else 1] += 1

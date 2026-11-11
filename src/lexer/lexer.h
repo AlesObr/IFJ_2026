@@ -25,6 +25,7 @@ typedef enum {
 	STATE_WANNA_BE_DOUBLE,
 	STATE_DOUBLE,
 	STATE_DIV_DEC,
+	STATE_EXP_UNDER_SCORE,
 	STATE_UNDER_SCORE,
 	STATE_WANNA_BE_EXP_1,
 	STATE_WANNA_BE_EXP_2,
@@ -38,7 +39,6 @@ typedef enum {
 	STATE_WANNABE_INT,
 	STATE_NUMBER,
 	STATE_LEADING_ZERO,
-	/** @dev < State for double */ // you already have state for double? look at your own dka???
 	STATE_FLOAT,
 	STATE_STRING,
 	STATE_COMMENT,
@@ -78,6 +78,12 @@ void lexer_init(FILE *input);
  * @return Error code indicating success or failure of the operation.
  */
 Error lexer_get_next_token(Token *out_token);
+
+/**
+ * @brief Tells whether a line break inside parentheses preceded the last token.
+ * @return True if the token lies on a later physical line.
+ */
+bool lexer_newline_before_token(void);
 
 /**
  * @brief Loads in a single character from the input stream.
