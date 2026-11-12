@@ -80,8 +80,8 @@ static void precedence_trace_token(const char *location, const Token *token) {
 		if ((status).flag == PAR_EOF){															   \
 			if ((status).new_node != NULL){													  	   \
 				CHECK_AST_APPEND(node, append_expr);									   		   \
+				return PARSE_OK(PAR_EOF, node);													   \
 			}																					   \
-			return PARSE_OK(PAR_EOF, node);														   \
 		}																						   \
 	} while (0)
 
