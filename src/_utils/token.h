@@ -92,6 +92,7 @@ typedef enum token_type {
 	TOKEN_RBRACKET,
 	TOKEN_SEMICOLON,
 	TOKEN_COMMA,
+	TOKEN_ARROW,
 } TokenType;
 
 /**
