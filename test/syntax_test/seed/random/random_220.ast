@@ -1,0 +1,5 @@
+(block (def f1X (params (param p2:String) (param p3:Double) (param p_4:String)):Int (block (call print (params (- (+ (/ 7 (* 2 1)) (- 2 0))))) (if (< p3 (/ 400 p3)) (block (call print (params "
+")) (const _v5:Undef (+ p2 p_4))) (else (block (call print (params 100))))) (call print (params (- (* (- p3) (* p3 1000.25)) (/ p3 p3)))) (/ (+ 3 100) 10))) (def f6 (params (param p7:Int)):Double (block (const v8:Undef "texttext ") (+ 100 (* (- 4.12) (- 2.4 0.9))))) (def main8 (params):Unit (block (call print (params "x ytextHello")) (if (<= 1 10) (block (call print (params 100)) (call print (params (+ (+ (+ "text0 Hello" "Hello x y") (+ "
+Hello	" ";texttext*/")) "
+x y")))) (else (block (var v9:Int (call f1X (params (+ "text" " x yx y ") (* 0.0598 (+ 1000.25 0.13)) (+ "0Hello" "
+00")))) (call print (params (+ (call toStr (params (- (+ 479.47 1000.25) 95.21))) (+ "\//Hello=" (call toStr (params v9)))))) (var v10:Undef (+ (call toStr (params 0.53)) (call toStr (params (call f6 (params v9))))))))) (return) (const v11:Undef 900) (const v12X:Int 82521))))

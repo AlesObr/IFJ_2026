@@ -1,0 +1,2 @@
+(block (def f1X (params (param p2:Int)):Int (block (const v3:Undef (* (* (+ 100 (/ p2 p2)) 1) (/ (+ p2 p2) (- p2)))) (const v4X_fuzz23:Int (- 0)) null (call print (params "
+")) (var v5:Double (- (- (+ (- 5.4) 88.92) (- 1000.25)))) (+ 3 (/ (+ 1 2) p2)))) (def f6 (params (param p7:Double)):Int (block (var v8:Undef (- 1000.25 0.42)) (- 100 42))) (def main8 (params):Unit (block null (call print (params 10)) (call print (params 1)) (call print (params (+ (+ ""HelloHello" "0") (+ (+ "" (call toStr (params 100))) (+ " " (call toStr (params 900))))))))))

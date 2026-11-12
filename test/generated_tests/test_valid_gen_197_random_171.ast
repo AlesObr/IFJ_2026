@@ -1,0 +1,13 @@
+(block (def f_1 (params (param p2:Double)):String (block (call print (params 0.0842)) (call print (params "
+")) (var v_3:Undef (- (+ (* p2 1000.25) 700))) (var i4:Undef 0) (while (< i4 2) (block (call print (params "
+")) (const v5:String "Hello") (= i4 (+ i4 1)))) (call print (params "
+")) "texta")) (def f6 (params):String (block (if (>= (+ 1 34072) (- 10 (+ (+ 100 41916) (* 3 3138)))) (block (call print (params "
+")) (var i7:Undef 0) (while (< i7 0) (block (const v8:Undef (+ 0.3 1)) (= i7 (+ i7 1)))) (if (<= 7 (/ i7 i7)) (block (var v9:String (+ (+ (+ (call f_1 (params 0.12)) (+ ";	
+" "Hello")) (+ ""a0a" "x y")) (+ (call toStr (params 7000)) (+ (+ "ax ya" " "
+") " ")))) (const v10:Undef (+ (+ (+ "" v9) v9) (+ v9 (+ "0 " "a ")))) (call print (params (- (- (- 3)) (/ i7 i7)))) (= v9 (+ "*//*" (+ "" v10)))) (else (block (var v11:Undef (* (/ 3 i7) (* i7 (* 0 i7)))) (= v11 i7) (var i_12:Undef 0) (while (< i_12 1) (block (var i13:Undef 0) (while (< i13 2) (block (var v14:Int (+ (- 1) 7)) (var v15:Int i7) (= i13 (+ i13 1)))) (var v16X_fuzz15:Undef 100) (= i_12 (+ i_12 1)))) (const v17:Int (- 0 (- (+ v11 i7) (- (- 19405 42) i7)))) null))) (if (>= (+ (* 6.99 900000) 0.97) (+ (- 10 900) 600)) (block (const v18:Undef (+ " 0 0" "
+"))) (else (block (call print (params (* 0.37 (- (* 1000.25 800000) 344.73)))) (call print (params (- (- (* 2 401.83))))) (var i19:Undef 0) (while (< i19 0) (block (var i20:Undef 0) (while (< i20 5) (block (const v21:String (+ "x yx y"" (call toStr (params 1)))) (call print (params 1)) (= i20 (+ i20 1)))) (var v22:Undef (/ i7 (/ (- (- i20) 1) (* 7 i7)))) (= i19 (+ i19 1))))))) (call print (params "
+"))) (else (block (if (>= (- (- (* 2.8 400) 6000)) (+ (- (/ 0.85 100)) 1000.25)) (block (return (+ (+ "texta	x y" ";a	") " "")) (var v23:Undef (* 100 2)) (call print (params 1)) (call print (params 100)) (var i24:Undef 0) (while (< i24 0) (block (const v25:Double (* 0.0206 418.78)) (call print (params 8)) (call print (params 7)) (= i24 (+ i24 1))))) (else (block (call print (params "
+")) (var v26:Int 100) (var _v27:Undef (+ (* (* 700000 (- 972.1 432.58)) 5) (- 500))))))))) (var v_28:Undef (- (* 105.27 1000.25) (/ (- 0.7) 0.567))) (+ (+ "0" "
+") (+ (+ "	/*Hello " (call toStr (params 100))) (+ (call f_1 (params 0.146)) (+ "	0then0" "
+
+")))))) (def main28 (params):Unit (block (const v29:String (call f_1 (params 0.0983))) (const v30:Undef (+ 50 (* 3000 200))) (return))))

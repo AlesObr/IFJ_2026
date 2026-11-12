@@ -1,0 +1,4 @@
+(block (def f1 (params (param p2_fuzz82:Int) (param p_3:Unit) (param p4:Double)):String (block (var v5:Undef 300) (+ "0ax y" ""text"))) (def main5 (params):Unit (block (var v6:Undef (* 4 (* 1000 (* 0.15 23.58)))) (call print (params "
+")) (call print (params (* (+ (+ v6 v6) v6) (/ v6 90)))) (const v7X:Int (+ (- 2) (- (- 3)))) (var i8:Undef 0) (while (< i8 0) (block (var i9:Undef 0) (while (< i9 3) (block (call print (params "
+")) (call print (params (+ (- 100 (* 80 v6)) v6))) (const v10:Int (/ v7X (/ 89523 (/ v7X v7X)))) (const v_11:Undef (- v6)) (call print (params "x y\")) (call print (params 82296)) (= i9 (+ i9 1)))) (var i12:Undef 0) (while (< i12 3) (block (var _i13:Undef 0) (while (< _i13 2) (block (= v6 v6) (= _i13 (+ _i13 1)))) (= i12 (+ i12 1)))) (call print (params "
+")) (call print (params v6)) (= i8 (+ i8 1)))))))

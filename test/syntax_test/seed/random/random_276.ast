@@ -1,0 +1,1 @@
+(block (def f1 (params (param p2:Double) (param p3:Int)):Double (block null p2)) (def main3 (params):Unit (block (call print (params "")) (call print (params (* (- (- 0.2) (/ 0.378 380.37)) (* 0.2 20)))) (const v_4:Undef (+ 761.53 3.1)))))

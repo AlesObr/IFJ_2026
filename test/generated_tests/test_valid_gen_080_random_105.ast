@@ -1,0 +1,2 @@
+(block (def f_1 (params (param p2:Unit) (param p3:Int)):Int (block (const v4:Undef (+ "" "x yx y\ ")) (* (+ 0 p3) 7))) (def main4_fuzz98 (params):Unit (block (var i5X:Undef 0) (while (< i5X 1) (block (var v6:Undef (call toStr (params (call f_1 (params null 100))))) (= v6 (+ "a
+x y" (+ "///*atext" v6))) (= i5X (+ i5X 1)))) (var v_7:Undef (+ (+ "x y0\a" (+ "Hello " ";a")) " a")) (var v8:Undef 600) (call print (params 6.3)) (call print (params 100)) (const v9:Undef (- 42)))))

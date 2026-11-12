@@ -1,0 +1,3 @@
+(block (def f1 (params (param p2X:Unit) (param p_3:Double) (param p4:Int) (param p5:Int)):String (block null (const v6:Int (/ (- p4) (+ 3 p4))) (var i7:Undef 0) (while (< i7 5) (block (call print (params (call toStr (params 47990)))) (call print (params (- (* 0.061 (* p_3 p_3)) p_3))) (= i7 (+ i7 1)))) (return (+ (+ "x ytext
+Hello" (+ "" "a0	"")) (call toStr (params 42)))) (call print (params "
+")) (+ "" (call toStr (params (- p4)))))) (def main7 (params):Unit (block (call print (params " 	0")) (call print (params 42)) (const v8:Int 7) (var v9:Undef (+ 0.39 0.716)))))

@@ -1,0 +1,4 @@
+(block (def f1X (params (param p2X:Double) (param p3X:Int) (param p4:Double)):String (block (call toStr (params 3)))) (def f5 (params (param p6:Int)):String (block (var v7:Int (- (- (- 10)) (- 10))) (= v7 v7) (call print (params (- (- (- 3))))) "a//")) (def main7 (params):Unit (block (if (> (* (- (- 100) 1) 0) 0) (block (var i_8:Undef 0) (while (< i_8 0) (block (call print (params "
+")) (var v9:String "") (= v9 (+ v9 "0text")) (= i_8 (+ i_8 1)))) (call print (params "
+")) (return)) (else (block (const v10:String (+ (+ (+ "" (call f5 (params 100))) (call f5 (params 1))) "text")) (var v11:Undef (/ (+ 7000 100) 932.69)) (var i12:Undef 0) (while (< i12 2) (block (call print (params (+ v10 (+ v10 v10)))) (= i12 (+ i12 1)))) (call print (params (+ v11 (* (- (* v11 v11) 0.53) v11)))) (call print (params (/ 7 i12)))))) (call print (params "
+")))))

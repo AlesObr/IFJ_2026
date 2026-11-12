@@ -7,8 +7,11 @@
 // base language only: on any other construct or a parse error no .ast file is written and
 // the program exits with code 1.
 //
-// Usage:  scala run --server=false test/syntax_test/ScalaAstOracle.scala -- file.scala...
-// Output: file.ast next to each input
+// Usage:  scala run --server=false test/syntax_test/ScalaAstOracle.scala -- [--check] file.scala...
+// Output: file.ast next to each input (not with --check) and one line per input:
+//   OK <file>            parsed and rendered
+//   SYNTAX <file>: ...   the Scala parser reports a syntax (or lexical) error
+//   CHYBA <file>: ...    valid Scala, but a construct outside the base language
 
 import dotty.tools.dotc.ast.untpd.*
 import dotty.tools.dotc.core.Constants.Constant
@@ -21,6 +24,7 @@ import java.math.{BigDecimal as JBigDecimal, MathContext, RoundingMode}
 import java.nio.file.{Files, Path, Paths}
 
 class Unsupported(message: String) extends Exception(message)
+class SyntaxError(message: String) extends Unsupported(message)
 
 object ScalaAstOracle:
   /** Matches the C "%g" format (6 significant digits, no trailing zeros). */
@@ -62,8 +66,10 @@ object ScalaAstOracle:
     case Tuple(Nil) => "null"
     case Literal(Constant(())) => "null"
     case Literal(Constant(text: String)) => "\"" + text + "\""
-    // The Scala parser already evaluates a literal with a d/D suffix to a constant
-    case Literal(Constant(value: Double)) => formatG(value)
+    // The Scala parser already evaluates a literal with a d/D suffix to a constant, including
+    // its sign; IFJ26 treats the minus as unary, as for the other numeric literals
+    case Literal(Constant(value: Double)) =>
+      if value < 0 || (value == 0 && 1 / value < 0) then s"(- ${formatG(-value)})" else formatG(value)
     case Number(digits, kind) => number(digits, kind)
     case Ident(name) => name.toString
     case InfixOp(left, Ident(op), right) => s"(${op.toString} ${expr(left)} ${expr(right)})"
@@ -97,7 +103,7 @@ object ScalaAstOracle:
     given Context = summon[Context].fresh.setReporter(reporter)
     val tree = new Parser(SourceFile.virtual(path.toString, Files.readString(path))).parse()
     if reporter.hasErrors then
-      throw Unsupported(reporter.removeBufferedMessages.map(_.message).mkString("; "))
+      throw SyntaxError(reporter.removeBufferedMessages.map(d => s"${d.pos.line + 1}:${d.pos.column + 1} ${d.message}").mkString("; ").replace("\n", " "))
     val definitions = tree match
       case PackageDef(_, stats) =>
         stats.flatMap {
@@ -112,18 +118,24 @@ object ScalaAstOracle:
     val base = new ContextBase
     given Context = base.initialCtx
     var failed = false
-    for arg <- args do
+    val checkOnly = args.contains("--check")
+    for arg <- args if arg != "--check" do
       val path = Paths.get(arg)
       try
-        val target = path.resolveSibling(path.getFileName.toString.stripSuffix(".scala") + ".ast")
-        Files.writeString(target, render(path) + "\n")
+        val rendered = render(path)
+        if !checkOnly then
+          val target = path.resolveSibling(path.getFileName.toString.stripSuffix(".scala") + ".ast")
+          Files.writeString(target, rendered + "\n")
         println(s"OK    $arg")
       catch
+        case error: SyntaxError =>
+          failed = true
+          println(s"SYNTAX $arg: ${error.getMessage}")
         case error: Unsupported =>
           failed = true
           println(s"CHYBA $arg: ${error.getMessage}")
         // The Scala parser can crash on malformed input, e.g. with a NullPointerException
         case error: RuntimeException =>
           failed = true
-          println(s"CHYBA $arg: parser Scaly spadl: $error")
+          println(s"SYNTAX $arg: parser Scaly spadl: $error")
     if failed then sys.exit(1)

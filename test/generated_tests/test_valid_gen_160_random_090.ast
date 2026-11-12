@@ -1,0 +1,3 @@
+(block (def f1 (params (param p2:Unit) (param p3:String)):Unit (block (call print (params p3)) (if (> 0.46 (+ (/ 100 (- 223.5 590.93)) 9)) (block (const v_4:String p3) (call print (params "")) (const _v5:Undef (+ 7 (+ (/ 2 0) (* 42 (- 3 0)))))) (else (block (var i6:Undef 0) (while (< i6 2) (block (call print (params 30)) (= i6 (+ i6 1)))) (const v7:Undef 5) (call print (params "
+")) (var _v8:Undef ";")))) (call print (params "
+")) (call print (params (* (- 2.8) 1000.25))))) (def f9 (params):Int (block (return (- (- (/ 1 3)) (* (/ 10 (- 100 1)) 42))) (/ 100 (+ 2 1)))) (def main9_fuzz36 (params):Unit (block (return))))

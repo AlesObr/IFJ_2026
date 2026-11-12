@@ -1,0 +1,13 @@
+(block (def f1 (params (param p2X:Int) (param p3:Double)):Double (block (call print (params (+ "a	" "x y
+"))) (if (!= (- 0.97) (+ (/ (- p3 p3) (/ 900 9.6)) p3)) (block (call print (params (+ (+ "texttext
+a" (+ (+ ";" "") (+ "//a 0" " 
+Hellox y"))) "\texta
+"))) (var v4:Undef (+ 2 0)) (call print (params "
+")) (var i5:Undef 0) (while (< i5 5) (block (call print (params "
+")) (const v6X:Undef "textHello") (call print (params (+ (- (- p2X)) (/ 42 p2X)))) (if (== (+ (* 2 (/ 0 p2X)) 7) (* (* (+ 7 v4) v4) 2)) (block (var v_7:Double (- (- (/ (- p3) (- 8.66)) (* p3 p3)))) (const v_8:Undef 4.2)) (else (block (if (< (- v4 (/ 7 0)) (- v4 3)) (block (call print (params "
+")) (return (+ 600000 (- (/ p3 (- 10 p3)) 0.74)))) (else (block (return (- 8.38 (- p3 p3)))))) (call print (params "
+"))))) (= i5 (+ i5 1)))) (= v4 i5)) (else (block (call print (params "")) (call print (params 100)) (if (> 0.0489 (/ (* p3 9000) 5.49)) (block (call print (params "
+")) (call print (params "
+")) (call print (params "
+"))) (else (block (call print (params "
+")) (const v9:Int (+ (- 0) (- 55436)))))) (return (- (* (- 0.27 p3) 0.34) (/ p3 p3)))))) (call print (params (/ (/ (+ p3 p3) 0.0405) (- 5.2)))) (call print (params (* (* (+ 0 p2X) 42) p2X))) 600)) (def main9 (params):Unit (block (var v_10_fuzz56:Undef (- (/ 5 122.48) (/ (* 6000 800) 4.41))))))

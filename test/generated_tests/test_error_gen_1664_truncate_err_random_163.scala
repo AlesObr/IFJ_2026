@@ -1,0 +1,58 @@
+/* komentar
+ pred prologem */
+import ifj26.*
+
+def f1(p2X: Int, p_3: Int): Double = 463.56
+
+@main
+def main3(): Unit =
+  val v4 =  f1(2, 7)
+  var v5 = "" + "" /* a /* nested */ b */ + ""
+  val v6 = 100 - 38862
+     
+  if (f1(v6, v6/v6) - v4 <= v4 / /* c */ 4e0) then
+      var v_7: String  = toStr(
+            .53 / /**/ 834.88
+        )
+      var i8 = 0
+      while i8 < 3 do
+        var i9 = 0
+        while i9 < 3 /* * / */ do
+          val v_10 = 100 * /* a /* nested */ b */ 100 + (
+               42 - 10
+                 )
+          i9 = i9 + 1
+        v_7 = /**/ v5
+        ()
+        if -v6 * v6 <= /* * / */ - (10 + v6) then
+           ()
+        else
+            ()
+        if f1(1, 1 / 0) <= v4 then
+           val v11: String = v5
+     // komentar
+           var i12 = 0
+           while i12 < 2 do
+                   print(toStr(i9 * v6 - v6) + /* c */ ("\ntext\\ " + ("Hellox y0\"" + (v11))))
+                   i12 = i12 + 1
+        else
+            var v13 = (9E+3-946.36) / 5e3 * (
+                    v4
+                 )
+            if 0 <= (i9) then
+              val  v14 = toStr(135.43) + "\tx y"
+            else
+              val v15 = toStr(15373)
+              return
+        i8 = i8 + 1
+      print(v6 - 7  - 0 - -(i8-42))
+      val v16X: Double = (0.6D * (2E+1 - v4    * (8e4)))
+      ()
+  else
+      var i17 = 0
+      while i17 < 4 do
+          v5 =   "a" + (v5 + "x y 0text" + v5)
+          print(v4)
+          print(v4 +
+             v4 / v4 - v4)
+          if 3 + v6 +   v6 != - 1 *   v6 +

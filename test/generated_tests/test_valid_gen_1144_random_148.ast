@@ -1,0 +1,7 @@
+(block (def f_1 (params (param p_2:Int)):Int (block (call print (params "
+")) (call print (params (- (- (/ 480.11 872.51)) 0.33))) (call print (params "
+")) (call print (params 530.41)) (var v_3:Undef "text	") (+ p_2 (- (+ 1 56514) p_2)))) (def f4 (params (param p5X:Double) (param p6X:String) (param p7:Unit)):Int (block (call print (params "
+")) (call print (params "
+")) (call f_1 (params (+ 7 (+ 2 100)))))) (def f8 (params (param p9:String) (param p10:Double)):Unit (block (if (> (- (* 10 42) (- 10)) (/ 100 7)) (block (call print (params "HelloHello")) (call print (params 10)) (const v11:Int (+ 77949 10))) (else (block (var v12:Undef (- (/ (- (- 2 2)) 77813) (- 2))) (if (>= (* (- 10 v12) v12) v12) (block (if (== p10 80000) (block (var v13X:Undef "") (call print (params 7)) (call print (params 7))) (else (block (const v14:Undef (+ (call toStr (params (+ v12 (+ 1 100)))) (call toStr (params (- (- p10 p10) (- p10))))))))) (const v15:String (+ "Hellox y
+" (call toStr (params (- p10))))) (const v16:String (+ (+ "" v15) (+ (call toStr (params v12)) v15)))) (else (block (var _v17_fuzz47:Undef p9) (var i18:Undef 0) (while (< i18 4) (block (call print (params "")) (= i18 (+ i18 1))))))) (var v19:Int (* (/ 100 (/ 7 v12)) (* v12 (- (* 3 v12))))) (call print (params "
+")) (var v20:Int (/ v19 v19))))) (var v21:Double (- (/ p10 p10))))) (def main21 (params):Unit (block (var v22:Int (call f4 (params (- (- (- 400 400) 700) 9.9) "a" null))) null (var v23:Undef 2.94) (const v24:Undef "a0"))))

@@ -1,0 +1,4 @@
+(block (def f1 (params):Double (block (var v2:Undef (- (/ (- (- 0.15 3000) 9.3) 1.5) 1000.25)) (const v3:Undef "//") (var v4:Int (- (* 93827 (- 1)))) (call print (params "
+")) (- 627.45))) (def f5 (params (param _p6:Double) (param p7:Int) (param p8:Unit) (param p9:Double)):String (block (+ "text)	," (+ "",0text" "")))) (def _f10 (params):Int (block (/ (/ 7 10) (- (+ 7 3))))) (def main10 (params):Unit (block (call print (params "")) (call print (params 45006)) (call print (params (+ (call f5 (params 900 1 null 507.21)) (+ "" (+ (+ "
+" "=0x y") "Hello0x y"))))) (var v11:Undef (- (- 0.7 8.75))) (const v_12:String (+ "a0a" (+ "x y" "Hello
+ text"))))))
