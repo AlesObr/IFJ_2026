@@ -196,10 +196,13 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 			if (curr_token->type == TOKEN_RPAREN) {
 				break;
 			} else if (curr_token->type == TOKEN_COMMA) {
+				fprintf(stderr, "Last_iter\n");
 				GET_TOKEN(curr_token, node, false);
 				status = parse_climb(curr_token, 0);
 				CHECK_STATUS_OWNED(status, node);
-				CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
+				if (status.new_node != NULL){
+					CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
+				}
 			} else {
 				ast_destroy(node);
 				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -277,6 +280,8 @@ ParserStatus parse_prefix(Token *curr_token) {
 				node = status.new_node;
 			}
 			break;
+		case TOKEN_RPAREN:
+			return PARSE_OK(PAR_SUCC, NULL);
 		default:
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid token in expression prefix parsing\n"),
