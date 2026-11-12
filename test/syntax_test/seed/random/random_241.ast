@@ -1,0 +1,3 @@
+(block (def f1X (params (param p2X:String) (param p3:Unit)):Double (block (var v4:String (call toStr (params 900))) (call print (params "
+")) (* (- (- 0.79)) (+ (+ 20 (+ 6000 0.95)) 4000)))) (def main4 (params):Unit (block (const v5:Int 3) (call print (params "
+")))))

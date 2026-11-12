@@ -1,0 +1,104 @@
+// prolog nasleduje   
+import ifj26 . *  
+    
+
+
+// Fuzz vlozeny komentar
+
+def _f1(p2: Unit): Double = /* c */ (61.9e-3 - 3e2d /**/ + 1_000.2_5) /* c */ * 663.51
+
+// Fuzz vlozeny komentar
+        
+
+def f3(p4X: String, p5: String, p6: Double, p7X: Double): Double =
+ if (p5) == "atext\r" + toStr(8e2d) + toStr((p7X)) then
+   if (72.51) != 1_000.2_5 / (1_000.2_5) then /* inline */
+       print(3 * 1 * /* ) ( , = */ 7 * (10 + /* inline */
+           (10)))
+   else
+     var i8X = 0
+     while i8X < (4) do
+        var v9 = p5
+ // komentar
+// Fuzz vlozeny komentar
+        i8X = i8X + (1)
+ else
+     var v10 = (p4X + p5) ;  val v11: Double = p6
+     var v12X = /* " */ (("x yHellox y") + p4X+"0")  
+     val v13 = /* a /* b */ c */ (18.26) + (p7X +
+          1_000.2_5 - 9e1 * .21) /* inline */
+ print("" + /* a /* b */ c */ toStr((10))) 
+// */ /* inline */
+ _f1(()) 
+// Fuzz vlozeny komentar
+
+
+def /* a /* b */ c */ f14(p15:    Double, p16: String): Double =
+// Fuzz vlozeny komentar 
+        print(toStr(2 + (1 - ((10)))) + (
+               ("aHellox y\\") /* ) ( , = */ +   "\"x y\\"
+// Fuzz vlozeny komentar
+         )) /* inline */
+
+        print(1_000.2_5 * (1_000.2_5 -
+              p15 +
+         p15)) /* inline */   
+        (p15 * f3(p16, p16 +
+            p16, p15, (1e2d))) /**/ + (48.3e-3 /* " */ + .39) * /* c */ 6e2d    
+
+            
+def f17X(p18: Double, p19: Unit): Unit /* a /* nested */ b */ /**/ =
+// Fuzz vlozeny komentar
+  print((0)); print(( 
+     56785))
+  if "00" + (("") + ("0a")) + " 0" != "/*Hellox y0" + ("0;text0" + (("")))+("") then
+      print(
+         7)
+      val v20 = -7 /* inline */
+// Fuzz vlozeny komentar
+      print(2 - -v20) /* inline */
+      print(1)
+  else    
+   print(p18)
+// Fuzz vlozeny komentar
+  var /* ) ( , = */ _v21: /**/ Double /* * / */ = _f1(
+    ())
+  print(42); print(2) /* inline */
+  return  
+// Fuzz vlozeny komentar
+           
+
+
+def f22X(p23 /* a /* nested */ b */:    Double, /* a /* b */ c */ p24: String): /* " */ Double  =
+  f17X((64.4e-2)*p23, ())
+
+ 
+ 
+  print(("\rHello"))
+  (1_000.2_5 + 6.1D) * (p23 - 7e2d) / ( 
+         p23 /* c */ -   (p23))    * (262.19 / 1E+0)
+
+
+@main def main24(): Unit =
+   
+// Fuzz vlozeny komentar
+         
+        print(",atext"); print((42))
+
+   // komentar
+
+        var    v25X = /* ) ( , = */ f14(3.0D / (1_000.2_5), /* " */ ("") /* ) ( , = */ + "0 ")
+   // komentar
+        f17X(
+               239.93 /* a /* b */ c */ + (328.99),
+               ()
+              )
+        f17X(
+// Fuzz vlozeny komentar
+
+         (1_000.2_5), /* inline */
+                ()
+          )
+// Fuzz vlozeny komentar
+           
+  

@@ -1,0 +1,2 @@
+(block (def f_1 (params (param p2:Double) (param p3:Int) (param _p4:Int)):Unit (block (call print (params (+ (call toStr (params (- 0))) ""))) (call print (params (+ (+ ""Hello" "
+x y\ ") (+ (call toStr (params 7)) "")))) (call print (params (call toStr (params (- (- 0.0553 (- p2))))))) (call print (params (+ _p4 97198))))) (def f5 (params):String (block "texta")) (def main5 (params):Unit (block (var v6:Int 37143))))

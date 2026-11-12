@@ -1,0 +1,2 @@
+(block (def f1X (params (param _p2:Int) (param p3:Unit)):Int (block (call print (params 7.69)) (var v4:Double (* (- 200) (+ (- 369.61 100) (* 200 0.61)))) (call print (params (+ (call toStr (params v4)) (+ "
+" "x ytext")))) (call print (params 2)) (call print (params 0)) (var v5:Undef (call toStr (params _p2))) (/ 42 (+ 2 (- _p2))))) (def main5 (params):Unit (block (call print (params (/ 679.64 600))))))

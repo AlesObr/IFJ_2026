@@ -1,0 +1,2 @@
+(block (def f1 (params (param _p2:String) (param p3:Int) (param p_4:String)):String (block (call print (params 9)) (const v5:Undef (- p3)) (call print (params "
+")) ";text0")) (def main5 (params):Unit (block (if (>= 210.5 (+ 300 (- (+ 1000.25 9.8) 738.84))) (block (var i6:Undef 0) (while (< i6 2) (block (var v7:Int 42) (const v8:Double (- (/ 4 244.71))) (= v7 (* 1 v7)) (= i6 (+ i6 1))))) (else (block (call print (params "x y0")) (call print (params 12134))))) (const v_9:Undef (+ (- (+ (+ 0 3) 10) 100) (* 42 3))))))

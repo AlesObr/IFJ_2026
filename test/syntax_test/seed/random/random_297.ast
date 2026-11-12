@@ -1,0 +1,1 @@
+(block (def f1 (params (param p2:String) (param p3:String) (param p4:Double) (param p5:Unit)):Int (block (call print (params (* (/ 3 (- 2)) 3))) (+ (+ (- 72971) 7) (/ 2 (/ 7 0))))) (def main5 (params):Unit (block (call print (params (- 900 (+ 0.772 1000.25)))) (call print (params -700)) (call print (params 3)) (call print (params 42)) (var _v6:Double (* (- -800 300) 0.99)))))

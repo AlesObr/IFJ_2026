@@ -1,0 +1,1 @@
+(block (def f1 (params):Int (block 10)) (def main1 (params):Unit (block (call print (params (/ (+ (* 500 967.44) (+ 600 (- 0.277))) 0.24))))))

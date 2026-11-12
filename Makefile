@@ -5,6 +5,12 @@ INCLUDES = -Iinclude -Isrc
 REPEAT ?= 1
 # Limit (s) na test dostupnosti Dockeru před spuštěním is_it_ok.sh
 DOCKER_PROBE_TIMEOUT ?= 10
+# Generování parser testů (make gen-tests): počty, seed náhody a štítek v názvu testů
+GEN_RANDOM  ?= 300
+GEN_VALID   ?= 1200
+GEN_INVALID ?= 3000
+GEN_SEED    ?= 2026
+GEN_TAG     ?= gen
 
 # ----------------------------------------------------------------------
 # Konfigurace odevzdání (parsování loginu z team.json nebo fallback)
@@ -64,7 +70,7 @@ TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
         ast-asan ast-valgrind ast-check test_ast \
         symtable-asan symtable-valgrind symtable-check test_symtable \
         scanner-build test-scanner test-scanner-valgrind \
-        parser-build test-parser test-parser-valgrind \
+        parser-build test-parser test-parser-valgrind gen-tests \
         linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep is-it-ok
 
@@ -191,6 +197,17 @@ test-parser: parser-build
 test-parser-valgrind: parser-build
 	@echo "=== Spuštění parser testů pod Valgrindem ==="
 	@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_PARSER_TEST) --dir test/generated_tests --check-ast --valgrind --repeat $(REPEAT)
+
+# Náhodné programy do seed/random, z nich a ze základních seedů mutace do test/generated_tests.
+# Oracle (parser Scaly) smaže rozbité validní i nepotvrzené chybové testy a vytvoří .ast.
+# Testy se stejným GEN_TAG se nejdřív smažou, ostatní v adresáři zůstanou.
+gen-tests:
+	@find test/generated_tests -name 'test_*_$(GEN_TAG)_*' -delete
+	@cd test/syntax_test && \
+	python3 program_generator.py --out-dir seed/random --count $(GEN_RANDOM) --seed $(GEN_SEED) --stress && \
+	python3 fuzzer.py --seeds-dir seed/basic seed/random --out-dir ../generated_tests \
+		--valid-count $(GEN_VALID) --invalid-count $(GEN_INVALID) --seed $(GEN_SEED) \
+		--tag $(GEN_TAG) --copy-seeds --oracle
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery

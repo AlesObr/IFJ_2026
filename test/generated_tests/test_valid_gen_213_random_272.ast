@@ -1,0 +1,5 @@
+(block (def f1 (params):Unit (block (const v2:Undef (+ (+ " 	" "text0
+") "")) (const v3_fuzz11:String v2) (const v4:String (+ (+ (+ (+ v3_fuzz11 "Hello
+ text") v2) v3_fuzz11) v2)) (const v5:Undef (+ (- 100) (- 3.5))) (var v6X:Int (* 7 7)))) (def f7X (params (param p8:Int)):Unit (block (call print (params (* (* (* 2.3 312.59) 6) (* 400 (/ 600 (* 7000 188.73)))))) (call print (params (+ (+ (+ "0a\" "// text") (+ ""0text" "0Hello")) (+ (+ " "" (call toStr (params 0.2))) (+ "text
+x y" (+ "x y" "	0"")))))))) (def f9 (params (param p_10:Double)):Int (block (var v11:Double (+ (- (- (* 88.48 1000.25))) (/ 300 p_10))) (+ (* (+ 7 10) 7) 3))) (def f12 (params (param p13:String) (param p14:Unit)):Int (block (call print (params 7)) (return (- 100 7)) (call f7X (params (- (- 42 0) 42))) (const v15:Undef (call toStr (params (* 42 100)))) (call print (params (/ 1000.25 (+ 334.2 (+ 0.88 200))))) (- (- (/ (/ 7 10) 100) (/ (* 7 0) (* 42 42))) 69134))) (def main15 (params):Unit (block (call print (params (+ ")
+	x y" (+ "  " "	x y")))) (call print (params (* (* (+ 50.85 809.14) (- 60)) 20))) (var v16X:Undef 0.98))))

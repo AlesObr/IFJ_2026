@@ -1,0 +1,4 @@
+(block (def f1X (params (param p_2:Double) (param p3:Double) (param p4:Unit) (param _p5:Double)):String (block (+ " 
+" (+ "
+
+=" (call toStr (params 7)))))) (def f6 (params (param p7:Double) (param p8:Int)):Double (block (- (- p7 (/ (- p7 894.5) p7)) (- (/ p7 9) (/ p7 -0.5))))) (def f9 (params (param p10:String) (param p_11:Unit) (param _p12:Int) (param p13:String)):String (block p10)) (def f14 (params (param p15:Int) (param p16:String) (param p17:Unit) (param p18:Unit)):Double (block (return (/ 1000.25 (+ (+ 800 (call f6 (params 570.75 2))) 6))) (call print (params 1)) (const v19:Undef (+ p16 (+ (call toStr (params 0.54)) p16))) (+ (/ 0.07 0.28) 6.42))) (def main19 (params):Unit (block (call print (params (* (+ 1 84838) 3))) (return) (var v20:Undef (/ (- (- 9 155.88) (- (call f14 (params 7 " " Hello" null null)) 0.37)) 1000.25)))))

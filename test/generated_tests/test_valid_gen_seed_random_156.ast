@@ -1,0 +1,6 @@
+(block (def f1 (params (param p2X:Int) (param p3:Int) (param p4:Int) (param p5:Int)):Double (block (if (== 3000 (- 400)) (block (call print (params (/ (- 600) (* 0.613 7.1))))) (else (block (var v6:Undef (- 300 8.8)) (= v6 (- (+ 0.0716 (/ v6 v6)) 0.0841))))) null (/ 1000.25 (+ (- 114.35 0.82) (* 700 100))))) (def f7 (params):Double (block (call print (params "
+")) (const v8:Undef 5.9) (+ v8 v8))) (def f9 (params (param p10:Unit) (param p11:Unit) (param p12X:Int)):Int (block (call print (params (/ p12X (* 42 0)))) (call print (params "
+")) (if (!= (- 1000.25 2.4) (- (+ 5.5 1000.25) 0.69)) (block (call print (params "
+")) (call print (params (- 800 8.35)))) (else (block (var i13:Undef 0) (while (< i13 5) (block (call print (params "text")) (call print (params 100)) (const v14:Undef (* (- 4000) (- (+ 60 800)))) (= i13 (+ i13 1))))))) (call print (params 7)) (call print (params 1)) (call print (params (- (* 100 1) (* p12X (/ 42 42))))) p12X)) (def main14 (params):Unit (block (call print (params "
+")) (call print (params "
+")) (call print (params 42)) (call print (params 3)) (const v15:Double (/ (* (/ 1000.25 4000) (- (- 1000.25 6.1))) (/ (/ (* 1000.25 400) 0.0917) 300))) (var v16:Undef (/ (- 42 (- 0 7)) 27053)))))

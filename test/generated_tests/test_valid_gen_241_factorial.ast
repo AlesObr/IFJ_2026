@@ -1,0 +1,5 @@
+(block (def factorialIterative_fuzz44 (params (param n:Int)):Int (block (var result:Undef 1) (var i:Int 2) (while (<= i n) (block (= result (* result i)) (= i (+ i 1)))) result)) (def factorialRecursive (params (param n:Int)):Int (block (if (<= n 1) (block (return 1)) (else (block (const previous:Undef (- n 1)) (const smaller:Undef (call factorialRecursive (params previous))) (return (* n smaller))))))) (def factorialExample (params):Unit (block (const n:Undef (call readInt (params))) (if (< n 0) (block (call print (params "Use an integer from 0 to 12.
+"))) (else (block (if (> n 12) (block (call print (params "Use an integer from 0 to 12.
+"))) (else (block (const iterative:Undef (call factorialIterative_fuzz44 (params n))) (const recursive:Undef (call factorialRecursive (params n))) (call print (params "iterative: ")) (call print (params iterative)) (call print (params "
+recursive: ")) (call print (params recursive)) (call print (params "
+")))))))))))

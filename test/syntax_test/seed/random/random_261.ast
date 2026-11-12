@@ -1,0 +1,3 @@
+(block (def f1 (params (param p2:Double) (param p3X:String)):Int (block (call print (params 10)) (call print (params 7)) (/ 7 42))) (def main3 (params):Unit (block (if (> (/ (- (/ 1 7) (call f1 (params 0.958 "	 0*/"))) (+ (+ 3 1) 3)) (* (- 100 21751) (- 2))) (block (var v4X:Int (* 1 3)) (call print (params "
+"))) (else (block (const v_5:Undef (* 600 (* (- (+ 900 30000) 976.69) 21.4))) (call print (params "
+")) (call print (params (* (* (call f1 (params 138.99 " 0	Hello")) 100) 49645)))))))))

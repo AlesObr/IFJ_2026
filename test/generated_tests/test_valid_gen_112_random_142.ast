@@ -1,0 +1,1 @@
+(block (def f1 (params (param p2:Double)):Double (block p2)) (def main2_fuzz38 (params):Unit (block (call print (params 500)) (call print (params 7)) (const v3X:Undef (+ (+ (call f1 (params 5)) 600) (call f1 (params 0.8)))))))

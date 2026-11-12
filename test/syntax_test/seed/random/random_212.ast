@@ -1,0 +1,2 @@
+(block (def f1 (params):Int (block (return (/ 1 100)) (call print (params "
+")) (const v2X:Undef "	0text") (call print (params "text*/aHello")) (call print (params 42)) (- 0))) (def f3 (params (param p4:Int) (param p5:Int)):String (block (call print (params (/ (- 500 (/ 414.1 0.0881)) (+ (* 0.999 (+ 90000 0.0757)) 0.17)))) (call print (params (- (call f1 (params)) p5))) (const v6:Undef 96.38) (+ (call toStr (params 42)) "0"))) (def main6 (params):Unit (block (call print (params (* (* 1000.25 (* (- 76.2) (- 0.62 800))) (/ (- (/ 0.72 100)) 5000)))))))

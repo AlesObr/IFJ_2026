@@ -1,0 +1,1 @@
+(block (def f1 (params (param p2:String) (param p3_fuzz19:Int) (param p4:Unit)):String (block (const v5:String p2) (+ (call toStr (params (- (+ p3_fuzz19 42)))) (+ (+ "Hello\" p2) (call toStr (params 0.9)))))) (def main5 (params):Unit (block (call print (params (+ (call f1 (params "\" (+ (- 7 7) 20067) null)) "0""))))))

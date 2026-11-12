@@ -1,0 +1,2 @@
+(block (def f_1 (params):Double (block (var v_2:String (+ ",x y" "x ytextHello0")) (= v_2 (+ (+ (+ (+ " x y" "") v_2) v_2) (+ (+ "
+\0" ""\\\") "a0x y"))) (= v_2 (+ v_2 (+ v_2 v_2))) (= v_2 (call toStr (params (+ (- 42) 0)))) (/ (- (/ 40 300)) 70000))) (def main2 (params):Unit (block (const v3:Undef 42) (return))))

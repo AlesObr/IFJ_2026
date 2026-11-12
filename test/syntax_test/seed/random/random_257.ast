@@ -1,0 +1,4 @@
+(block (def f1 (params):Int (block (call print (params "
+")) (call print (params (- 0.67))) (const v2:Undef 42) (call print (params " ;text")) (call print (params 80632)) 66910)) (def f3X (params (param p4:Unit) (param p5:Unit)):String (block (call print (params "
+")) "
+textx y")) (def f6 (params (param p7:String) (param p8:Unit) (param p9:Double)):Unit (block (var v10:Undef (+ 3 (- 0))) (call print (params "")) (call print (params 100)))) (def main10 (params):Unit (block (call f6 (params "x y" null (- (* 0.0581 4.8) (/ 664.36 (+ 0.3 436.28))))) (var v_11:Int (call f1 (params))) (call print (params 10)) (call print (params 7)))))

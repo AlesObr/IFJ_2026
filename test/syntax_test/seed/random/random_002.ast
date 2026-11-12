@@ -1,0 +1,2 @@
+(block (def _f1 (params (param p2:Int) (param _p3:Int) (param p4:String) (param p_5:String)):Double (block (- 0.91 40))) (def main5 (params):Unit (block (var i6X:Undef 0) (while (< i6X 4) (block (var i7:Undef 0) (while (< i7 5) (block (if (> (* (- 32513) 61850) 100) (block (if (> (call _f1 (params 42 3 "ax y0" "text text")) (+ (* 0.57 54.52) 605.9)) (block (call print (params (- (- 100) 3)))) (else (block (var v8:Undef (+ 1000.25 (+ 0.76 868.7))) (= v8 (* v8 300)))))) (else (block (var v9:Undef 100)))) (= i7 (+ i7 1)))) (call print (params "
+")) (= i6X (+ i6X 1)))))))

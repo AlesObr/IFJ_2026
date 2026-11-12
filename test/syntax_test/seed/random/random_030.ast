@@ -1,0 +1,1 @@
+(block (def f_1 (params (param p2:Double) (param p3:Int) (param p4:Unit) (param p_5:String)):Double (block (- 505.66))) (def main5 (params):Unit (block (return) (const v6:Undef (+ "x y" (+ (call toStr (params 300)) "\0HelloHello"))) (const v7:Undef (+ "a(0" (+ v6 v6))))))

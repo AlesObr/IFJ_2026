@@ -1,0 +1,6 @@
+(block (def f1 (params (param p2:Int) (param p3:Int)):Int (block (const v4_fuzz38:Undef (+ (+ """ (+ " " "	0x y")) "	x y")) (* (- (- 3 3) (- p2)) p2))) (def f_5 (params (param p6:String) (param p_7:Unit)):Int (block (call print (params 10)) (call print (params 0)) (call print (params "
+")) (const v8:Undef (- (/ (/ 42 42) 0) 3)) 3)) (def main8 (params):Unit (block (var v9:Undef 10) (if (== (call toStr (params 10)) "Hello"a") (block (var i10:Undef 0) (while (< i10 1) (block (var i11:Undef 0) (while (< i11 2) (block (var v12:Int (/ (- (/ 2 (- v9 3)) 1) (* (call f_5 (params "0 text" null)) v9))) (call print (params "x y")) (call print (params 2)) (= i11 (+ i11 1)))) (= i10 (+ i10 1)))) (= v9 (/ (call f1 (params (- v9) (- 57350))) (- 10 (/ 1 (* 0 i10))))) (call print (params "
+"))) (else (block (call print (params "//Hello
+")) (const v13:String (+ (+ (call toStr (params 1)) "x yHello") "
+
+,")) (var v14:Double 0.79)))))))

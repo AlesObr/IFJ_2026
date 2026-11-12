@@ -1,0 +1,1 @@
+(block (def f1 (params (param p2:String)):String (block (var v3:Undef (+ (call toStr (params (- (/ 42 10) 7))) (call toStr (params 1000.25)))) (const v4:Undef (- (- 65900 (/ (- 0 17531) 7)))) (+ (+ v3 ""0x y/*") (+ v3 (+ (+ v3 p2) (call toStr (params 373.41))))))) (def main4 (params):Unit (block (call print (params (- (- (* 7 3)) (* (* 7 100) 3)))) (call print (params 0)))))

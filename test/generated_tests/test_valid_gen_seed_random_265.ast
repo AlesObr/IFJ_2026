@@ -1,0 +1,6 @@
+(block (def f1 (params):String (block (const v2:Undef 7) (var i3:Undef 0) (while (< i3 2) (block (if (<= (+ (- 2 100) v2) (* 42 v2)) (block (call print (params (- 0.0571 669.56))) (call print (params "
+")) (call print (params "
+"))) (else (block (var v_4:Undef (- (- (- 200 1000.25) (- (+ 777.4 0.55)))))))) (call print (params (+ (+ "a)=0" (+ "then
+(text" "Hello\")) (+ "x y" (+ (call toStr (params 3.4)) ""))))) (call print (params "
+")) (= i3 (+ i3 1)))) "" a")) (def _f5 (params (param p6:Int) (param p7:Int) (param p8:Double)):Double (block (* 0.4 600))) (def main8 (params):Unit (block (call print (params "
+")))))

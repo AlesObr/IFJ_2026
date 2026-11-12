@@ -1,0 +1,22 @@
+(block (def f1X (params (param p2:Double) (param p3:String) (param p4:Double)):Double (block (if (== (+ (+ p3 "a0text") (call toStr (params 42))) (+ p3 "a
+")) (block (return p2) (call print (params "
+")) (call print (params "
+")) (call print (params ""))) (else (block (const v5X:Undef (call toStr (params p4)))))) (const v6:Undef (+ (call toStr (params p4)) (call toStr (params 10)))) (if (== (- 1000.25) p4) (block (call print (params (call toStr (params (* (- 3) (/ 10 0)))))) null) (else (block (call print (params (call toStr (params 6.5)))) (const v7:Undef p4) (call print (params "
+")) (call print (params (+ 0.338 (- v7))))))) (call print (params "")) (call print (params 7)) (call print (params 7)) 20000)) (def f_8 (params (param p9:Double) (param p10:String) (param p11:Double)):String (block (var i_12:Undef 0) (while (< i_12 4) (block (var v13:Undef (+ p10 "")) (= v13 " text"") (= i_12 (+ i_12 1)))) (var i14:Undef 0) (while (< i14 3) (block (var v15X:String (call toStr (params (* 2.26 457)))) (= i14 (+ i14 1)))) (const v16:Undef i_12) (if (< i_12 10) (block (const v17:Int (/ 7 (+ (- 3 (- 10 v16)) i14))) (call print (params (/ i_12 (- i14 (- v16 v17)))))) (else (block (call print (params (+ p10 "\a 0"))) (call print (params "
+")) (call print (params "
+"))))) (var i18X:Undef 0) (while (< i18X 2) (block (const v19:Undef i_12) null (if (<= 1000.25 p9) (block (var i20:Undef 0) (while (< i20 3) (block (return p10) (= i20 (+ i20 1)))) (const v21:Undef (+ i_12 i20)) (var v22:String (+ (call toStr (params 0)) p10)) (const v23:String (+ v22 (+ (+ p10 "ax y") p10)))) (else (block (const v24:Undef (+ p10 (+ (+ (+ "Hello	 " "text") (call toStr (params v16))) "\"))) (var v25:Undef (/ 10 (/ v16 (- (* 7 i14) (+ v19 v19))))) (const v26:Undef v24)))) (var v27:Undef (- 100 (+ (+ i14 0) 3))) (= i18X (+ i18X 1)))) (call toStr (params p9)))) (def main27 (params):Unit (block (var v28:Double (* (+ 0.506 0.61) (+ 0.1 (/ 492.4 (- 0.0891))))) (call print (params "
+")) (var i_29:Undef 0) (while (< i_29 1) (block (if (<= 200 (+ (/ 6.1 (* 40 92.42)) (+ v28 6000))) (block (if (< 3 (- 2 (/ 84680 (* 7 56750)))) (block (var i30:Undef 0) (while (< i30 0) (block (var v31X:Undef (* (call f1X (params v28 (+ "x ya"" " texta0") (* (/ 0.63 v28) v28))) (- v28))) (= v31X (/ (* v28 100) (/ (* 1000.25 (* v28 100)) (- 400 v31X)))) (= i30 (+ i30 1)))) (call print (params "
+"))) (else (block (return)))) (if (< v28 (* 1000.25 (+ 312.54 v28))) (block (var v32:Int (- 7 (- (+ (+ 1 2) 7)))) (const v33:Undef (- (+ (/ (+ 1000.25 v28) v28) v28)))) (else (block (const v34:Undef (- (/ (- (/ 2 10)) 10) (- 2 (* 0 (+ 39308 87534))))) (var v_35:Undef (* v28 300))))) (var i36:Undef 0) (while (< i36 0) (block (call print (params "
+")) (const v37:Undef (* 0 (+ 1 3))) (= i36 (+ i36 1)))) null) (else (block (if (!= (+ "x ytexttext" (call f_8 (params v28 (+ "\Hello" "") v28))) "	then a") (block (call print (params "text ")) (const v38:Undef (call f1X (params 1000.25 (+ "00
+" (call f_8 (params (* v28 1000.25) "Hello \ " (/ 4000 1000.25)))) 900)))) (else (block (const v39:String (call toStr (params 0.2)))))) (= v28 (- v28 (- (- v28) v28))) (if (<= (- (+ 0.182 v28) v28) 900000) (block (call print (params "
+"))) (else (block (call print (params "
+")) (if (>= (* (/ (* v28 0.11) 100) 1000.25) (/ (/ v28 (+ v28 v28)) 700)) (block (const v40:Undef 1)) (else (block (var v41:String (+ ""(" "Hellox y*/;")) (const v42X:Undef (+ 42 (* (+ 0 3) 7))))))))) null))) (call print (params "
+")) (if (< 4.6 (* v28 v28)) (block (call print (params "
+")) (call print (params (+ (+ (call toStr (params 3)) (+ ""0
+" "\
+text(")) ";"))) (var i43:Undef 0) (while (< i43 2) (block (return) (call print (params v28)) (= i43 (+ i43 1)))) (call print (params (call f_8 (params (call f1X (params (call f1X (params v28 "" v28)) """ (+ v28 (+ v28 v28)))) (+ "
+text" " Helloa	") v28))))) (else (block (call print (params "
+")) (call print (params "
+")) (call print (params (* (- (- 1 3) (/ 100 0)) 7))) (const v44:Double (+ 0.431 (- v28 (* 300 v28)))) (call print (params (/ v28 500)))))) (call print (params "
+")) (= i_29 (+ i_29 1)))) (var i45:Undef 0) (while (< i45 5) (block (call print (params (/ i_29 (* (- i_29) (* i_29 i_29))))) (= v28 (+ (call f1X (params (/ v28 9.06) "text
+" v28)) (/ v28 951.52))) null (= i45 (+ i45 1)))) (var i46X:Undef 0) (while (< i46X 4) (block (var _v47:Double (- (+ v28 5.1))) (call print (params 0)) (call print (params 3)) null (= i46X (+ i46X 1)))))))
