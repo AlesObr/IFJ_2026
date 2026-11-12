@@ -30,6 +30,11 @@ typedef enum {
 	NODE_VAR_DECL,
 	NODE_ASSIGNMENT,
 
+	/* Data types*/
+	NODE_TYPE_ORIG,
+	NODE_TYPE_USER,
+	NODE_UNIF,
+
 	/* Expressions and Operations */
 	NODE_BINARY_OP,
 	NODE_UNARY_OP,
@@ -42,11 +47,14 @@ typedef enum {
 	NODE_FUNC_WINDOW,
 	NODE_FUNC_DECL,
 	NODE_EXT_DECL,
+	NODE_CLASS_DECL,
 	NODE_BLOCK,
 	NODE_IF,
 	NODE_ELSE,
 	NODE_WHILE,
 	NODE_FOR,
+	NODE_MATCH,
+	NODE_CASE,
 	NODE_RETURN
 } ASTNodeType;
 
@@ -102,17 +110,50 @@ typedef struct ASTNodeList {
  */
 struct ASTNode {
 	ASTNodeType type;
-	size_t line; 		/**< Source code line where the construct starts. */
-	size_t col;	 		/**< Source code column where the construct starts. */
+	size_t line; /**< Source code line where the construct starts. */
+	size_t col;	 /**< Source code column where the construct starts. */
 
-	ValType expr_type;	/**< Determines which type of operation to use (DIV / IDIV) for example*/
-	bool to_double;		/**< Determines if conversion to int / double needed*/
-	size_t sym_id;		/**< Identifier of the variable in symtable if needed */
+	ASTNodeList
+		expr_types; /**< Determines which type of operation to use (DIV / IDIV) for example*/
+	bool to_double; /**< Determines if conversion to int / double needed*/
+	size_t sym_id;	/**< Identifier of the variable in symtable if needed */
 
 	union {
 		long int_val;	   /**< Literal integer value. */
 		double float_val;  /**< Literal float value. */
 		dstring_t str_val; /**< Dynamic string for literal strings and identifiers. */
+
+		/** @brief Structure for data types */
+		struct {
+			dstring_t defined_type; /**< Type unification defined by user */
+			ValType orig_type;		/**< Languages predefined type */
+		} data_type;
+
+		/** @brief Structure for type unification */
+		struct {
+			dstring_t unif_name; /**< Name of type unification*/
+			ASTNodeList types;	 /**< List of types in type unification */
+		} type_unif;
+
+		/** @brief Structure for data class */
+		struct {
+			dstring_t class_name; /**< Name of the data_class */
+			ASTNode *param_list;  /**< List of data_class parameters */
+		} data_class;
+
+		/** @brief Structure for matching cases */
+		struct {
+			ASTNode *switch_expr; /**< Expression by which match is switching */
+			ASTNodeList cases;	  /**< Cases of the match */
+		} match;
+
+		/** @brief Structure for switching cases of match */
+		struct {
+			ASTNode *case_member; /**< Expression based on which is match switching */
+			ASTNode *guard;		  /**< Unmandatory condition after switching expression */
+			ASTNode *type;		  /**< Supposed type of case member */
+			ASTNode *body_expr;	  /**< Expression to be executed in case pattern is matched */
+		} case_node;
 
 		/** @brief Structure for binary and unary operations. */
 		struct {
@@ -123,10 +164,10 @@ struct ASTNode {
 
 		/** @brief Structure for variable declaration nodes. */
 		struct {
-			dstring_t var_name; /**< Dynamic string holding declared variable name. */
-			ValType type_name;	/**< Type of the variable */
-			bool is_const;		/**< True if declared as const, false for var. */
-			ASTNode *init_expr; /**< Initializer expression or NULL. */
+			dstring_t var_name;	   /**< Dynamic string holding declared variable name. */
+			ASTNodeList type_name; /**< Types of the variable */
+			bool is_const;		   /**< True if declared as const, false for var. */
+			ASTNode *init_expr;	   /**< Initializer expression or NULL. */
 		} var_decl;
 
 		/** @brief Structure for function call nodes. */
@@ -138,20 +179,19 @@ struct ASTNode {
 
 		/** @brief Structure for function parameters */
 		struct {
-			dstring_t param_name; /**< Name of the function parameter. */
-			ValType param_type;	  /**< Type of the function parameter. */
+			dstring_t param_name;	/**< Name of the function parameter. */
+			ASTNodeList param_type; /**< Type of the function parameter. */
 		} func_param;
 
 		/** @brief Structure for function param window */
 		struct {
 			ASTNodeList params; /**< List of parameters for said function parameter window */
-			int size;			/**< Amount of function parameter lists in said window */
 		} param_window;
 
 		/** @brief Structure for function declaration */
 		struct {
 			dstring_t func_name;	   /**< Identifier of declared function */
-			ValType return_type;	   /**< Type that function should return */
+			ASTNodeList return_type;   /**< Types that function should return */
 			bool is_main;			   /**< Flag tracking whether function is the main one */
 			ASTNodeList param_windows; /**< List of parameter windows */
 			ASTNode *body;			   /**< Expressions inside function body */
@@ -159,9 +199,9 @@ struct ASTNode {
 
 		/** @brief Structure for extension declaration */
 		struct {
-			dstring_t param_name; /**< Dynamic string holding extension parameter  */
-			ValType type_name;	  /**< Type that extension extension */
-			ASTNodeList funcs;	  /**< List of functions inside said extension */
+			dstring_t param_name;  /**< Dynamic string holding extension parameter  */
+			ASTNodeList type_name; /**< Type that extension extension */
+			ASTNodeList funcs;	   /**< List of functions inside said extension */
 		} ext_decl;
 
 		/** @brief Structure for composite statement blocks. */
@@ -201,6 +241,74 @@ struct ASTNode {
 };
 
 /*===================================================*/
+
+/**
+ * @brief Creates a new AST node for match
+ * @param match_expr Expression to match with cases
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_match_node(ASTNode *match_expr, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for match case
+ * @param case_expr Expression that can be matched
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_case_node(ASTNode *case_expr, size_t line, size_t col);
+
+/**
+ * @brief Appends case node into match node
+ * @param match_node Match node to append case into
+ * @param case_node Case node to be appended
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_match_add_case(ASTNode *match_node, ASTNode *case_node);
+
+/**
+ * @brief Appends nonmandatory guard to case ASTNode created by ast_create_case_node
+ * @param case_node Node of case the guard belongs to
+ * @param guard Condition under wich the expreession in case can be matched
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_case_add_guard(ASTNode *case_node, ASTNode *guard);
+
+/**
+ * @brief Appends expression to case ASTNode created by ast_create_case_node
+ * @param case_node Node of case the expression belongs to
+ * @param body Expression that executes if the case is matched
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_case_add_body(ASTNode *case_node, ASTNode *body);
+
+/**
+ * @brief Creates a new AST node for for data type unification
+ * @param unif_name Name of the newly created unification
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_type_unif(const dstring_t *unif_name, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for for data class
+ * @param unif_name Name of the newly created data class
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_data_class(const dstring_t *class_name, size_t line, size_t col);
+
+/**
+ * @brief Inserts parameter list into data class ASTNode
+ * @param data_class Data class node
+ * @param param_window Node containing windows of parameters
+ * @return True if success, false if problem occurs or wrong parameters passed
+ */
+bool ast_class_add_param(ASTNode *data_class, ASTNode *param_window);
 
 /**
  * @brief Creates a new AST node for for loop statement
@@ -406,10 +514,10 @@ ASTNode *ast_create_else(ASTNode *cond, size_t line, size_t col);
 /**
  * @brief Appends code block to if / else AST node
  * @param if_else_node If-else statement to node to append code block into
- * @param code_block Code block to be appended
+ * @param expr_block Code block or expression (viz Control) to be appended
  * @return True if success, false if problem occurs or wrong parameters passed
  */
-bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *code_block);
+bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *expr_block);
 
 /**
  * @brief Appends code block to while AST node
@@ -508,9 +616,13 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col);
 /**
  * @brief Addes a type AST node if node is valid (compatible only with some nodes)
  * @param node ASTNode to add type into
- * @param type_name Name of type to be added
+ * @param type_name_orig Name of original type to be added
+ * @param type_name_def Name of defined type to be added
+ * @param is_orig Determines if data type is original or user defined
+ * @return True if success, false if problem occurs or wrong parameters passed
  */
-void ast_add_type(ASTNode *node, ValType type_name);
+bool ast_add_type(
+	ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig);
 
 /**
  * @brief Appends a function to extension AST_NODE

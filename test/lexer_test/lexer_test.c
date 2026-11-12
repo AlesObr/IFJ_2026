@@ -32,7 +32,6 @@ static const char *token_type_to_string(TokenType type) {
         case TOKEN_KEYWORD_THEN:    return "KEYWORD:then";
         case TOKEN_KEYWORD_IMPORT:  return "KEYWORD:import";
         case TOKEN_KEYWORD_RETURN:  return "KEYWORD:return";
-        case TOKEN_KEYWORD_NULL:    return "KEYWORD:null";
         case TOKEN_KEYWORD_TRUE:    return "KEYWORD:true";
         case TOKEN_KEYWORD_FALSE:   return "KEYWORD:false";
         case TOKEN_LIT_INT:         return "LIT_INT";
@@ -82,6 +81,7 @@ int main(void) {
         err = lexer_get_next_token(&token);
         if (err.type != ERR_OK) {
             token_destroy(&token);
+            lexer_free();
             return err.type;
         }
 
@@ -120,5 +120,6 @@ int main(void) {
 
     } while (1);
 
+    lexer_free();
     return 0;
 }

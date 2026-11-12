@@ -25,6 +25,7 @@ typedef enum {
 	STATE_WANNA_BE_DOUBLE,
 	STATE_DOUBLE,
 	STATE_DIV_DEC,
+	STATE_EXP_UNDER_SCORE,
 	STATE_UNDER_SCORE,
 	STATE_WANNA_BE_EXP_1,
 	STATE_WANNA_BE_EXP_2,
@@ -38,7 +39,6 @@ typedef enum {
 	STATE_WANNABE_INT,
 	STATE_NUMBER,
 	STATE_LEADING_ZERO,
-	/** @dev < State for double */ // you already have state for double? look at your own dka???
 	STATE_FLOAT,
 	STATE_STRING,
 	STATE_COMMENT,
@@ -68,6 +68,12 @@ typedef struct {
 void lexer_init(FILE *input);
 
 /**
+ * @brief Releases memory held by the lexer (indentation stack).
+ * @note Call after the last lexer_get_next_token(); lexer_init() may be called again later.
+ */
+void lexer_free(void);
+
+/**
  * @brief Reads characters from the input stream and returns the next token.
  *
  * Functions on a pull principle. Advances input until a full token is recognized.
@@ -78,6 +84,12 @@ void lexer_init(FILE *input);
  * @return Error code indicating success or failure of the operation.
  */
 Error lexer_get_next_token(Token *out_token);
+
+/**
+ * @brief Tells whether a line break inside parentheses preceded the last token.
+ * @return True if the token lies on a later physical line.
+ */
+bool lexer_newline_before_token(void);
 
 /**
  * @brief Loads in a single character from the input stream.

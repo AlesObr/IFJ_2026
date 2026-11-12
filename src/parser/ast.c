@@ -99,7 +99,7 @@ static ASTNode *ast_alloc(ASTNodeType type, size_t line, size_t col) {
 	node->type = type;
 	node->line = line;
 	node->col = col;
-	node->expr_type = UNDEF;
+	ast_nodelist_init(&node->expr_types);
 	node->to_double = false;
 	node->sym_id = 0;
 	return node;
@@ -216,7 +216,7 @@ ASTNode *ast_create_var_decl(const dstring_t *name, bool is_const, size_t line, 
 		free(node);
 		return NULL;
 	}
-	node->var_decl.type_name = UNDEF;
+	ast_nodelist_init(&node->var_decl.type_name);
 	node->var_decl.is_const = is_const;
 	node->var_decl.init_expr = NULL;
 	return node;
@@ -294,7 +294,7 @@ ASTNode *ast_create_func_param(const dstring_t *param_name, size_t line, size_t 
 		free(node);
 		return NULL;
 	}
-	node->func_param.param_type = UNDEF;
+	ast_nodelist_init(&node->func_param.param_type);
 	return node;
 }
 
@@ -311,9 +311,9 @@ ASTNode *ast_create_func(const dstring_t *func_name, bool is_main, size_t line, 
 		return NULL;
 	}
 	node->func_decl.is_main = is_main;
-	node->func_decl.return_type = UNDEF;
 	node->func_decl.body = NULL;
 	ast_nodelist_init(&node->func_decl.param_windows);
+	ast_nodelist_init(&node->func_decl.return_type);
 	return node;
 }
 
@@ -322,7 +322,6 @@ ASTNode *ast_create_param_window(size_t line, size_t col) {
 	if (node == NULL) {
 		return NULL;
 	}
-	node->param_window.size = 0;
 	ast_nodelist_init(&node->param_window.params);
 	return node;
 }
@@ -349,13 +348,11 @@ bool ast_window_add_param(ASTNode *param_window, ASTNode *param) {
 		ast_destroy(param);
 		return false;
 	}
-	param_window->param_window.size += 1;
 	return true;
 }
 
 bool ast_func_add_block(ASTNode *func_node, ASTNode *code_block) {
-	if (func_node == NULL || func_node->type != NODE_FUNC_DECL || code_block == NULL ||
-		code_block->type != NODE_BLOCK) {
+	if (func_node == NULL || func_node->type != NODE_FUNC_DECL || code_block == NULL) {
 		ast_destroy(code_block);
 		return false;
 	}
@@ -372,22 +369,63 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col) {
 		free(node);
 		return NULL;
 	}
-	node->ext_decl.type_name = UNDEF;
 	ast_nodelist_init(&node->ext_decl.funcs);
+	ast_nodelist_init(&node->ext_decl.type_name);
 	return node;
 }
 
-void ast_add_type(ASTNode *node, ValType type_name) {
+bool ast_add_type(
+	ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig) {
 	if (node != NULL) {
-		if (node->type == NODE_EXT_DECL) {
-			node->ext_decl.type_name = type_name;
-		} else if (node->type == NODE_FUNC_PARAM) {
-			node->func_param.param_type = type_name;
-		} else if (node->type == NODE_FUNC_DECL) {
-			node->func_decl.return_type = type_name;
-		} else if (node->type == NODE_VAR_DECL) {
-			node->var_decl.type_name = type_name;
+		ASTNode *new_node = NULL;
+		bool res;
+		if (is_orig) {
+			new_node = ast_alloc(NODE_TYPE_ORIG, node->line, node->col);
+			if (new_node == NULL) {
+				return false;
+			}
+			new_node->data_type.orig_type = type_name_orig;
+		} else {
+			new_node = ast_alloc(NODE_TYPE_USER, node->line, node->col);
+			if (new_node == NULL) {
+				return false;
+			}
+			if (!ast_dstring_clone(&new_node->data_type.defined_type, type_name_def)) {
+				ast_destroy(new_node);
+				return NULL;
+			}
 		}
+		switch (node->type) {
+			case NODE_EXT_DECL:
+				res = ast_nodelist_append(&node->ext_decl.type_name, new_node);
+				break;
+			case NODE_FUNC_PARAM:
+				res = ast_nodelist_append(&node->func_param.param_type, new_node);
+				break;
+			case NODE_FUNC_DECL:
+				res = ast_nodelist_append(&node->func_decl.return_type, new_node);
+				break;
+			case NODE_VAR_DECL:
+				res = ast_nodelist_append(&node->var_decl.type_name, new_node);
+				break;
+			case NODE_UNIF:
+				res = ast_nodelist_append(&node->type_unif.types, new_node);
+				break;
+			case NODE_CASE:
+				res = true;
+				node->case_node.type = new_node;
+				break;
+			default:
+				res = false;
+				break;
+		}
+		if (!res) {
+			ast_destroy(new_node);
+			return false;
+		}
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -449,14 +487,13 @@ ASTNode *ast_create_else(ASTNode *cond, size_t line, size_t col) {
 	return node;
 }
 
-bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *code_block) {
+bool ast_if_else_add_body(ASTNode *if_else_node, ASTNode *expr_block) {
 	if (if_else_node == NULL ||
-		!(if_else_node->type == NODE_IF || if_else_node->type == NODE_ELSE) || code_block == NULL ||
-		code_block->type != NODE_BLOCK) {
-		ast_destroy(code_block);
+		!(if_else_node->type == NODE_IF || if_else_node->type == NODE_ELSE) || expr_block == NULL) {
+		ast_destroy(expr_block);
 		return false;
 	}
-	if_else_node->if_else_stmt.body = code_block;
+	if_else_node->if_else_stmt.body = expr_block;
 	return true;
 }
 
@@ -503,6 +540,16 @@ ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col) {
 	}
 	node->return_stmt.expr = expr;
 	return node;
+}
+
+bool ast_class_add_param(ASTNode *data_class, ASTNode *param_window) {
+	if (data_class == NULL || data_class->type != NODE_CLASS_DECL || param_window == NULL ||
+		param_window->type != NODE_FUNC_WINDOW) {
+		ast_destroy(param_window);
+		return false;
+	}
+	data_class->data_class.param_list = param_window;
+	return true;
 }
 
 ASTNode *ast_create_for(const dstring_t *gen_id, size_t line, size_t col) {
@@ -573,6 +620,97 @@ bool ast_for_append_guard(ASTNode *for_node, ASTNode *guard) {
 	return true;
 }
 
+ASTNode *ast_create_match_node(ASTNode *match_expr, size_t line, size_t col) {
+	if (match_expr == NULL) {
+		return NULL;
+	}
+	ASTNode *new_node = ast_alloc(NODE_MATCH, line, col);
+	if (new_node == NULL) {
+		ast_destroy(match_expr);
+		return NULL;
+	}
+	new_node->match.switch_expr = match_expr;
+	ast_nodelist_init(&new_node->match.cases);
+	return new_node;
+}
+
+ASTNode *ast_create_case_node(ASTNode *case_expr, size_t line, size_t col) {
+	if (case_expr == NULL) {
+		return NULL;
+	}
+	ASTNode *new_node = ast_alloc(NODE_CASE, line, col);
+	if (new_node == NULL) {
+		ast_destroy(case_expr);
+		return NULL;
+	}
+	new_node->case_node.case_member = case_expr;
+	new_node->case_node.guard = NULL;
+	new_node->case_node.body_expr = NULL;
+	return new_node;
+}
+
+bool ast_match_add_case(ASTNode *match_node, ASTNode *case_node) {
+	if (match_node == NULL || match_node->type != NODE_MATCH || case_node == NULL ||
+		case_node->type != NODE_CASE) {
+		ast_destroy(case_node);
+		return false;
+	}
+	if (!ast_nodelist_append(&match_node->match.cases, case_node)) {
+		ast_destroy(case_node);
+		return false;
+	}
+	return true;
+}
+
+bool ast_case_add_guard(ASTNode *case_node, ASTNode *guard) {
+	if (case_node == NULL || case_node->type != NODE_CASE || guard == NULL) {
+		ast_destroy(guard);
+		return false;
+	}
+	case_node->case_node.guard = guard;
+	return true;
+}
+
+bool ast_case_add_body(ASTNode *case_node, ASTNode *body) {
+	if (case_node == NULL || case_node->type != NODE_CASE || body == NULL) {
+		ast_destroy(body);
+		return false;
+	}
+	case_node->case_node.body_expr = body;
+	return true;
+}
+
+ASTNode *ast_create_type_unif(const dstring_t *unif_name, size_t line, size_t col) {
+	if (unif_name == NULL) {
+		return false;
+	}
+	ASTNode *node = ast_alloc(NODE_UNIF, line, col);
+	if (node == NULL) {
+		return NULL;
+	}
+	if (!ast_dstring_clone(&node->type_unif.unif_name, unif_name)) {
+		free(node);
+		return NULL;
+	}
+	ast_nodelist_init(&node->type_unif.types);
+	return node;
+}
+
+ASTNode *ast_create_data_class(const dstring_t *class_name, size_t line, size_t col) {
+	if (class_name == NULL) {
+		return false;
+	}
+	ASTNode *node = ast_alloc(NODE_CLASS_DECL, line, col);
+	if (node == NULL) {
+		return NULL;
+	}
+	if (!ast_dstring_clone(&node->data_class.class_name, class_name)) {
+		free(node);
+		return NULL;
+	}
+	return node;
+}
+
 /* --- Serialization to S-expression --- */
 /*
  * These functions were implemented primarily for debugging and testing purposes --
@@ -611,6 +749,31 @@ static const char *op_to_str(OpType op) {
 			return "-";
 		default:
 			return "?";
+	}
+}
+
+/**
+ * @brief Dumps a type annotation as ":T" or ":T1|T2" for a union; no annotation is ":Undef".
+ * @param types List of NODE_TYPE_ORIG / NODE_TYPE_USER nodes.
+ * @param out Output stream.
+ */
+static void ast_dump_type_list(const ASTNodeList *types, FILE *out) {
+	fputc(':', out);
+	if (types->count == 0) {
+		fputs(val_type_to_str(UNDEF), out);
+		return;
+	}
+	for (size_t i = 0; i < types->count; ++i) {
+		const ASTNode *type = types->items[i];
+		if (i > 0) {
+			fputc('|', out);
+		}
+		if (type->type == NODE_TYPE_USER) {
+			const char *name = dstring_get(&type->data_type.defined_type);
+			fputs(name ? name : "<null>", out);
+		} else {
+			fputs(val_type_to_str(type->data_type.orig_type), out);
+		}
 	}
 }
 
@@ -664,14 +827,22 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 
 		case NODE_VAR_DECL: {
 			const char *name = dstring_get(&node->var_decl.var_name);
-			const char *type = val_type_to_str(node->var_decl.type_name);
-			bool has_type = type[0] != '\0';
-			fprintf(out, "(%s %s%s%s ", node->var_decl.is_const ? "const" : "var",
-				name ? name : "<null>", has_type ? ":" : "", has_type ? type : "");
+			fprintf(
+				out, "(%s %s", node->var_decl.is_const ? "const" : "var", name ? name : "<null>");
+			ast_dump_type_list(&node->var_decl.type_name, out);
+			fputc(' ', out);
 			ast_dump_sexpr(node->var_decl.init_expr, out);
 			fputc(')', out);
 			break;
 		}
+
+		case NODE_MATCH:
+		case NODE_CASE:
+		case NODE_TYPE_ORIG:
+		case NODE_TYPE_USER:
+		case NODE_CLASS_DECL:
+		case NODE_UNIF:
+			break;
 
 		case NODE_CALL: {
 			const char *fn = dstring_get(&node->call.func_name);
@@ -730,9 +901,9 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 
 		case NODE_FUNC_PARAM: {
 			const char *name = dstring_get(&node->func_param.param_name);
-			const char *type = val_type_to_str(node->func_param.param_type);
-			fprintf(
-				out, "(param %s%s%s)", name ? name : "<null>", type[0] != '\0' ? ":" : "", type);
+			fprintf(out, "(param %s", name ? name : "<null>");
+			ast_dump_type_list(&node->func_param.param_type, out);
+			fputc(')', out);
 			break;
 		}
 
@@ -744,12 +915,9 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 
 		case NODE_FUNC_DECL: {
 			const char *name = dstring_get(&node->func_decl.func_name);
-			const char *type = val_type_to_str(node->func_decl.return_type);
 			fprintf(out, "(def %s", name ? name : "<null>");
 			ast_dump_nodelist(&node->func_decl.param_windows, out);
-			if (type[0] != '\0') {
-				fprintf(out, ":%s", type);
-			}
+			ast_dump_type_list(&node->func_decl.return_type, out);
 			fputc(' ', out);
 			ast_dump_sexpr(node->func_decl.body, out);
 			fputc(')', out);
@@ -758,11 +926,8 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 
 		case NODE_EXT_DECL: {
 			const char *name = dstring_get(&node->ext_decl.param_name);
-			const char *type = val_type_to_str(node->ext_decl.type_name);
 			fprintf(out, "(extension %s", name ? name : "<null>");
-			if (type[0] != '\0') {
-				fprintf(out, ":%s", type);
-			}
+			ast_dump_type_list(&node->ext_decl.type_name, out);
 			ast_dump_nodelist(&node->ext_decl.funcs, out);
 			fputc(')', out);
 			break;
@@ -793,6 +958,9 @@ void ast_destroy(ASTNode *node) {
 	if (node == NULL) {
 		return;
 	}
+	if (node->expr_types.count != 0) {
+		ast_nodelist_destroy(&node->expr_types);
+	}
 
 	switch (node->type) {
 		case NODE_INT_LITERAL:
@@ -816,6 +984,7 @@ void ast_destroy(ASTNode *node) {
 
 		case NODE_VAR_DECL:
 			dstring_free(&node->var_decl.var_name);
+			ast_nodelist_destroy(&node->var_decl.type_name);
 			ast_destroy(node->var_decl.init_expr);
 			break;
 
@@ -837,18 +1006,26 @@ void ast_destroy(ASTNode *node) {
 			break;
 
 		case NODE_FUNC_PARAM:
+			ast_nodelist_destroy(&node->func_param.param_type);
 			dstring_free(&node->func_param.param_name);
 			break;
 
 		case NODE_FUNC_DECL:
 			dstring_free(&node->func_decl.func_name);
 			ast_destroy(node->func_decl.body);
+			ast_nodelist_destroy(&node->func_decl.return_type);
 			ast_nodelist_destroy(&node->func_decl.param_windows);
 			break;
 
 		case NODE_EXT_DECL:
 			dstring_free(&node->ext_decl.param_name);
+			ast_nodelist_destroy(&node->ext_decl.type_name);
 			ast_nodelist_destroy(&node->ext_decl.funcs);
+			break;
+
+		case NODE_CLASS_DECL:
+			dstring_free(&node->data_class.class_name);
+			ast_destroy(node->data_class.param_list);
 			break;
 
 		case NODE_FOR:
@@ -858,6 +1035,29 @@ void ast_destroy(ASTNode *node) {
 			ast_destroy(node->for_stmt.gen_step);
 			ast_destroy(node->for_stmt.body);
 			ast_nodelist_destroy(&node->for_stmt.guards);
+			break;
+
+		case NODE_TYPE_ORIG:
+			break;
+		case NODE_TYPE_USER:
+			dstring_free(&node->data_type.defined_type);
+			break;
+
+		case NODE_MATCH:
+			ast_destroy(node->match.switch_expr);
+			ast_nodelist_destroy(&node->match.cases);
+			break;
+
+		case NODE_CASE:
+			ast_destroy(node->case_node.case_member);
+			ast_destroy(node->case_node.guard);
+			ast_destroy(node->case_node.body_expr);
+			ast_destroy(node->case_node.type);
+			break;
+
+		case NODE_UNIF:
+			dstring_free(&node->type_unif.unif_name);
+			ast_nodelist_destroy(&node->type_unif.types);
 			break;
 
 		case NODE_IF:

@@ -4,6 +4,7 @@
  * @brief Token module implementation for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
  * @author Admiral (xkolekj00)
+ * @author Štěpán Hořenek (xhorens00)
  * @note Standard: ISO C11
  */
 
@@ -61,8 +62,6 @@ const char *token_type_name(TokenType type) {
 			return "TOKEN_KEYWORD_IMPORT";
 		case TOKEN_KEYWORD_RETURN:
 			return "TOKEN_KEYWORD_RETURN";
-		case TOKEN_KEYWORD_NULL:
-			return "TOKEN_KEYWORD_NULL";
 		case TOKEN_KEYWORD_TRUE:
 			return "TOKEN_KEYWORD_TRUE";
 		case TOKEN_KEYWORD_FALSE:

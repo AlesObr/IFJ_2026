@@ -11,10 +11,14 @@
 #include "../../src/_utils/error.h"
 
 int main(int argc, char *argv[]) {
+    bool dump_ast = false;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
-            fprintf(stderr, "Použití: %s < vstup.scala\n", argv[0]);
+            fprintf(stderr, "Použití: %s [--ast] < vstup.scala\n", argv[0]);
             return 0;
+        }
+        if (strcmp(argv[i], "--ast") == 0) {
+            dump_ast = true;
         }
     }
 
@@ -25,17 +29,20 @@ int main(int argc, char *argv[]) {
     // RC = 1: lexikální chyba
     // RC = 2: syntaktická chyba
     // RC = 0: úspěch
+    int rc = 0;
     if (status.flag == LEX_FAIL || status.error.type == ERR_LEXICAL) {
-        return 1;
+        rc = 1;
+    } else if (status.flag == PAR_FAIL || status.error.type == ERR_SYNTAX) {
+        rc = 2;
+    } else if (ERROR_IS_ERR(status.error)) {
+        rc = (int)status.error.type;
+    } else if (dump_ast) {
+        // Úspěch: volitelný výpis stromu jako S-výrazu pro porovnání s .ast
+        ast_dump_sexpr(status.new_node, stdout);
+        fputc('\n', stdout);
     }
 
-    if (status.flag == PAR_FAIL || status.error.type == ERR_SYNTAX) {
-        return 2;
-    }
-
-    if (ERROR_IS_ERR(status.error)) {
-        return (int)status.error.type;
-    }
-
-    return 0;
+    // Strom se uvolní na všech cestách; případný částečný strom z chybové cesty také
+    ast_destroy(status.new_node);
+    return rc;
 }
