@@ -75,6 +75,16 @@ static void precedence_trace_token(const char *location, const Token *token) {
 		}                                                                                          \
 	} while (0)
 
+#define APPEND_BEFORE_EOF_RETURN(status, node, append_expr)							   			   \
+	do {																						   \
+		if ((status).flag == PAR_EOF){															   \
+			if ((status).new_node != NULL){													  	   \
+				CHECK_AST_APPEND(node, append_expr);									   		   \
+			}																					   \
+			return PARSE_OK(PAR_EOF, node);														   \
+		}																						   \
+	} while (0)
+
 #define CHECK_STATUS(status)                                                                       \
 	do {                                                                                           \
 		if ((status).flag != PAR_SUCC) {                                                           \
@@ -190,6 +200,7 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 			continue;
 		}
 		ParserStatus status = parse_climb(curr_token, 0);
+		APPEND_BEFORE_EOF_RETURN(status, window, ast_window_add_param(window, status.new_node));
 		CHECK_STATUS_OWNED(status, node);
 		CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
 		while (true) {
@@ -199,6 +210,7 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 				fprintf(stderr, "Last_iter\n");
 				GET_TOKEN(curr_token, node, false);
 				status = parse_climb(curr_token, 0);
+				APPEND_BEFORE_EOF_RETURN(status, window, ast_window_add_param(window, status.new_node));
 				CHECK_STATUS_OWNED(status, node);
 				if (status.new_node != NULL){
 					CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));

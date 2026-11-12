@@ -352,8 +352,7 @@ bool ast_window_add_param(ASTNode *param_window, ASTNode *param) {
 }
 
 bool ast_func_add_block(ASTNode *func_node, ASTNode *code_block) {
-	if (func_node == NULL || func_node->type != NODE_FUNC_DECL || code_block == NULL ||
-		code_block->type != NODE_BLOCK) {
+	if (func_node == NULL || func_node->type != NODE_FUNC_DECL || code_block == NULL) {
 		ast_destroy(code_block);
 		return false;
 	}

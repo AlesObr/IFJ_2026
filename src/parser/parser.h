@@ -46,7 +46,7 @@ typedef struct {
  * @param e Error structure
  * @param f Inner parser flag
  */
-#define PARSE_ERROR(e, f) ((ParserStatus){.error = (e), .flag = (f)})
+#define PARSE_ERROR(e, f) ((ParserStatus){.error = (e), .flag = (f), .new_node = NULL})
 
 /**
  * @brief Parsing of if decision statement (exported for precedence, viz Control expansion)
