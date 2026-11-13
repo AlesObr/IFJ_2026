@@ -32,51 +32,55 @@ bool register_builtin_function(FunctionTable *t) {
 		entry.decl = NULL;
 		entry.state = FUNC_DONE;
 
-		if (!ftable_insert(t, &entry)) {
+		if (!ftable_insert(t, &entry))
 			return false; // allocation failure or duplicate
-		}
 	}
 	return true;
 }
 
 Error register_user_function(FunctionTable *t, ASTNode *func_node) {
-	if (func_node->type != NODE_FUNC_DECL) {
-		return ERROR_EMIT(ERR_INTERNAL, func_node->line, func_node->col,
-			"Function is not a definition node"); // Not a function definition node
-	}
+	if (func_node->type != NODE_FUNC_DECL)
+		return ERROR_EMIT(
+			ERR_INTERNAL, func_node->line, func_node->col, "Function is not a definition node");
 
+	// Make a new entry
 	FunctionEntry entry;
 	entry.name = (char *)dstring_get(&func_node->func_decl.func_name);
-	entry.return_type = func_node->func_decl.return_type;
 	entry.param_types = NULL; // Will be allocated below
 	Error type_error = type_from_nodes(
 		&func_node->func_decl.return_type, func_node->line, func_node->col, &entry.return_type);
 	if (ERROR_IS_ERR(type_error))
 		return type_error;
 
-	/* Build the parameter types by iterating through the parameter windows */
+	// Build the parameter types by iterating through the parameter windows
 	entry.param_count = 0;
 	if (func_node->func_decl.param_windows.count > 0) { // Check if there are parameter windows
 		ASTNode *first_window = func_node->func_decl.param_windows.items[0];
 		entry.param_count = first_window->param_window.params.count;
-		if (entry.param_count > 0) { // Check if there are parameters to allocate
+
+		// Check if there are parameters to allocate
+		if (entry.param_count > 0) {
 			entry.param_types = malloc(entry.param_count * sizeof(ValType));
-			if (!entry.param_types) { // Check for allocation failure
+
+			// Check for allocation failure
+			if (!entry.param_types)
 				return ERROR_EMIT(ERR_INTERNAL, func_node->line, func_node->col,
-					"Failed to allocate memory for function parameters"); // Memory allocation
-																		  // failure
-			}
+					"Failed to allocate memory for function parameters");
+
 			// Go through each parameter in the first window
 			for (size_t i = 0; i < entry.param_count; i++) {
 				ASTNode *param_node = first_window->param_window.params.items[i];
-				if (param_node->type !=
-					NODE_FUNC_PARAM) { // Check if the node is a function parameter
+
+				// Check if the node is a function parameter
+				if (param_node->type != NODE_FUNC_PARAM) {
 					free(entry.param_types);
 					return ERROR_EMIT(ERR_INTERNAL, func_node->line, func_node->col,
-						"Invalid parameter node type"); // Not a function parameter node
+						"Invalid parameter node type");
 				}
+
 				type_error = type_from_nodes(&param_node->func_param.param_type, param_node->line,
 					param_node->col, &entry.param_types[i]);
+
 				if (ERROR_IS_ERR(type_error) || entry.param_types[i] == UNDEF) {
 					free(entry.param_types);
 					if (!ERROR_IS_ERR(type_error))
@@ -93,58 +97,71 @@ Error register_user_function(FunctionTable *t, ASTNode *func_node) {
 	entry.decl = func_node;
 	entry.state = FUNC_NEW;
 
-	if (ftable_lookup(t, entry.name) != NULL) { // Check for duplicate function name
+	// Check for duplicate function name
+	if (ftable_lookup(t, entry.name) != NULL) {
 		free(entry.param_types);
-		return ERROR_EMIT(ERR_SEM_REDEF, func_node->line, func_node->col,
-			"Duplicate function name"); // Duplicate function name
+		return ERROR_EMIT(
+			ERR_SEM_REDEF, func_node->line, func_node->col, "Duplicate function name");
 	}
 
-	if (!ftable_insert(t, &entry)) { // Insert and check for insertion failure
+	// Insert and check for insertion failure
+	if (!ftable_insert(t, &entry)) {
 		free(entry.param_types);
-		return ERROR_EMIT(ERR_INTERNAL, func_node->line, func_node->col,
-			"Failed to register function"); // Internal error
+		return ERROR_EMIT(
+			ERR_INTERNAL, func_node->line, func_node->col, "Failed to register function");
 	}
+
 	free(entry.param_types);
+
 	return ERROR_OK(); // Function registered successfully
 }
 
 Error register_functions(FunctionTable *t, const ASTNodeList *top_level_nodes) {
 	size_t main_count = 0;
-	for (size_t i = 0; i < top_level_nodes->count; i++) { // Iterate through top-level AST nodes
+
+	// Iterate through top-level AST nodes
+	for (size_t i = 0; i < top_level_nodes->count; i++) {
 		ASTNode *node = top_level_nodes->items[i];
-		if (node->type == NODE_FUNC_DECL) { // Check if the node is a function declaration
+
+		// Check if the node is a function declaration
+		if (node->type == NODE_FUNC_DECL) {
 			Error err = register_user_function(t, node);
-			if (ERROR_IS_ERR(err)) {
+
+			if (ERROR_IS_ERR(err))
 				return err; // Return the first error encountered
-			}
-			if (node->func_decl.is_main) { // Check if the function is marked as @main
+
+			// Check if the function is marked as @main
+			if (node->func_decl.is_main) {
 				main_count++;
+
 				// Validate @main function constraints
 				if (node->func_decl.param_windows.count > 0 &&
 					node->func_decl.param_windows.items[0]->param_window.params.count > 0) {
 					return ERROR_EMIT(ERR_SEM_CALL, node->line, node->col,
-						"@main function should not have parameters"); // @main should not have
-																	  // parameters
+						"@main function should not have parameters");
 				}
+
 				// Check if multiple @main functions are defined
 				if (main_count > 1) {
-					return ERROR_EMIT(ERR_SEM_REDEF, node->line, node->col,
-						"Multiple @main functions defined"); // Multiple @main functions
+					return ERROR_EMIT(
+						ERR_SEM_REDEF, node->line, node->col, "Multiple @main functions defined");
 				}
+
 				// Check if @main function has the correct return type
 				FunctionEntry *en = ftable_lookup(t, dstring_get(&node->func_decl.func_name));
+
 				// UNDEF will be handled in the second pass
-				if (em && !(en->return_type == UNIT || en->return_type == UNDEF))
+				if (en && !(en->return_type == UNIT || en->return_type == UNDEF))
 					return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col,
-						"@main function must have return type Unit"); // @main must return Unit
+						"@main function must have return type Unit");
 			}
 		}
 	}
 
 	// Check if no @main function is defined
 	if (main_count == 0) {
-		return ERROR_EMIT(ERR_SEM_UNDEF, 0, 0, "No @main function defined"); // No @main function
+		return ERROR_EMIT(ERR_SEM_UNDEF, 0, 0, "No @main function defined");
 	}
 
-	return ERROR_OK(); // All functions registered successfully
+	return ERROR_OK();
 }

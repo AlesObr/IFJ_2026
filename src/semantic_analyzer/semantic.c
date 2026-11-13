@@ -17,8 +17,8 @@ static void mark_convert(ASTNode *n) {
 	(void)n; // Fields are in ast.h, just have to implement it
 }
 
-static bool booleans_enabled() {
-	return false; // *censored word*: BOOLTHEN
+static bool booleans_enabled(void) {
+	return false; // : BOOLTHEN
 }
 
 Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
@@ -132,8 +132,7 @@ Error analyze_var_decl(SemanticContext *ctx, ASTNode *node) {
 	}
 
 	Symbol *sym = NULL;
-	ScopeResult sr = scope_insert(&ctx->scope_stack, dstring_get(&node->var_decl.var_name),
-		final_type, node->var_decl.is_const, &sym);
+	ScopeResult sr = scope_insert(&ctx->scope_stack, node, final_type, &sym);
 	// make it write sym_id onto the node sym->id
 	if (sr == SCOPE_DUP) {
 		return ERROR_EMIT(ERR_SEM_REDEF, node->line, node->col,
@@ -253,15 +252,15 @@ Error analyze_block(
 	if (new_scope && !scope_push(&ctx->scope_stack))
 		return ERROR_EMIT(ERR_INTERNAL, block->line, block->col, "Failed to push scope");
 
+	// Go through each statement and check it
 	ValType last_type = UNIT;
 	bool node_returns = false;
 	for (size_t i = 0; i < block->block.stmts.count; i++) {
 		ASTNode *stmt = block->block.stmts.items[i];
 		Error err = analyze_stmt(ctx, stmt, &last_type, &node_returns);
 		if (ERROR_IS_ERR(err)) {
-			if (new_scope) {
+			if (new_scope)
 				scope_pop(&ctx->scope_stack);
-			}
 			return err;
 		}
 	}
@@ -285,18 +284,18 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 	switch (stmt->type) {
 		case NODE_VAR_DECL: {
 			Error err = analyze_var_decl(ctx, stmt);
-			if (ERROR_IS_ERR(err))
+			if (!ERROR_IS_ERR(err))
 				*out = UNIT;
 			return err;
 		}
 		case NODE_BINARY_OP:
 			if (stmt->op.op == OP_ASSIGN) {
 				Error err = analyze_assignment(ctx, stmt);
-				if (ERROR_IS_ERR(err))
+				if (!ERROR_IS_ERR(err))
 					*out = UNIT;
 				return err;
 			}
-			return analyze_assignment(ctx, stmt);
+			return analyze_expression(ctx, stmt);
 		case NODE_CALL:
 		case NODE_UNARY_OP:
 		case NODE_INT_LITERAL:
@@ -324,15 +323,20 @@ static Error analyze_function_body(SemanticContext *ctx, FunctionEntry *entry) {
 		return ERROR_EMIT(ERR_INTERNAL, func->line, func->col,
 			"Out of memory while creating new scope for function parameters");
 	}
+
+	// Go through each parameter and push them on stack
 	if (func->func_decl.param_windows.count > 0) {
 		ASTNode *window = func->func_decl.param_windows.items[0];
 		for (size_t i = 0; i < window->param_window.params.count; i++) {
 			ASTNode *param = window->param_window.params.items[i];
 			ValType param_type;
-			Error type_err = type_from_nodes(&param->func_param.param_type, p->line, p->col,
-				&param_type) if (ERROR_IS_ERR(type_err)) return type_err;
-			ScopeResult sr = scope_insert(&ctx->scope_stack,
-				dstring_get(&param->func_param.param_name), param_type, true, NULL);
+
+			Error type_err = type_from_nodes(
+				&param->func_param.param_type, param->line, param->col, &param_type);
+			if (ERROR_IS_ERR(type_err))
+				return type_err;
+
+			ScopeResult sr = scope_insert(&ctx->scope_stack, param, param_type, NULL);
 			if (sr == SCOPE_DUP) {
 				return ERROR_EMIT(ERR_SEM_REDEF, param->line, param->col,
 					"Parameter name already defined in the current scope");
@@ -350,6 +354,8 @@ static Error analyze_function_body(SemanticContext *ctx, FunctionEntry *entry) {
 	ValType body_type = UNIT;
 	ASTNode *body_node = body;
 	bool returns = false;
+
+	// Check what the body returns
 	if (body_node->type != NODE_BLOCK) {
 		Error err = analyze_stmt(ctx, body_node, &body_type, &returns);
 		if (ERROR_IS_ERR(err))
@@ -362,10 +368,15 @@ static Error analyze_function_body(SemanticContext *ctx, FunctionEntry *entry) {
 			return err;
 	}
 
-	ValType return_type = func->func_decl.return_type;
+	ValType return_type;
+	Error type_error = type_from_nodes(
+		&entry->decl->func_decl.return_type, entry->decl->line, entry->decl->col, &return_type);
+	if (ERROR_IS_ERR(type_error))
+		return type_error;
 	if (return_type == UNIT)
 		return ERROR_OK();
 
+	// Set the function return type if undef
 	if (return_type == UNDEF) {
 		// Omitted type
 		if (body_type == UNDEF)
@@ -380,6 +391,7 @@ static Error analyze_function_body(SemanticContext *ctx, FunctionEntry *entry) {
 		return ERROR_OK();
 	}
 
+	// If there's no return in body, check last experssion's type against function's return type
 	if (!returns) {
 		if (body_type == UNDEF)
 			return ERROR_EMIT(
@@ -395,9 +407,10 @@ static Error analyze_function_body(SemanticContext *ctx, FunctionEntry *entry) {
 }
 
 Error analyze_function(SemanticContext *ctx, FunctionEntry *entry) {
-	if (!ctx || !entry || !entry->decl || entry->type != NODE_FUNC_DECL) {
+	if (!ctx || !entry || !entry->decl || entry->decl->type != NODE_FUNC_DECL) {
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_function");
 	}
+
 	ValType return_type;
 	Error type_error = type_from_nodes(
 		&entry->decl->func_decl.return_type, entry->decl->line, entry->decl->col, &return_type);
@@ -412,7 +425,7 @@ Error analyze_function(SemanticContext *ctx, FunctionEntry *entry) {
 	ValType saved_return_type = ctx->current_return_type;
 	scope_init(&ctx->scope_stack);
 	ctx->current_function = entry->decl;
-	ctx->current_return_type = entry->decl->func_decl.return_type;
+	ctx->current_return_type = return_type;
 
 	Error err = analyze_function_body(ctx, entry);
 
