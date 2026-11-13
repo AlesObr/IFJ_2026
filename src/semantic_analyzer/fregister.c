@@ -6,6 +6,7 @@
  * @note Standard: ISO C11
  */
 #include "fregister.h"
+#include "type_rules.h"
 #include <stdlib.h>
 
 bool register_builtin_function(FunctionTable *t) {
@@ -29,6 +30,7 @@ bool register_builtin_function(FunctionTable *t) {
 		entry.is_main = false;
 		entry.is_builtin = true;
 		entry.decl = NULL;
+		entry.state = FUNC_DONE;
 
 		if (!ftable_insert(t, &entry)) {
 			return false; // allocation failure or duplicate
@@ -47,6 +49,10 @@ Error register_user_function(FunctionTable *t, ASTNode *func_node) {
 	entry.name = (char *)dstring_get(&func_node->func_decl.func_name);
 	entry.return_type = func_node->func_decl.return_type;
 	entry.param_types = NULL; // Will be allocated below
+	Error type_error = type_from_nodes(
+		&func_node->func_decl.return_type, func_node->line, func_node->col, &entry.return_type);
+	if (ERROR_IS_ERR(type_error))
+		return type_error;
 
 	/* Build the parameter types by iterating through the parameter windows */
 	entry.param_count = 0;
@@ -60,8 +66,8 @@ Error register_user_function(FunctionTable *t, ASTNode *func_node) {
 					"Failed to allocate memory for function parameters"); // Memory allocation
 																		  // failure
 			}
-			for (size_t i = 0; i < entry.param_count;
-				i++) { // Go through each parameter in the first window
+			// Go through each parameter in the first window
+			for (size_t i = 0; i < entry.param_count; i++) {
 				ASTNode *param_node = first_window->param_window.params.items[i];
 				if (param_node->type !=
 					NODE_FUNC_PARAM) { // Check if the node is a function parameter
@@ -69,7 +75,15 @@ Error register_user_function(FunctionTable *t, ASTNode *func_node) {
 					return ERROR_EMIT(ERR_INTERNAL, func_node->line, func_node->col,
 						"Invalid parameter node type"); // Not a function parameter node
 				}
-				entry.param_types[i] = param_node->func_param.param_type;
+				type_error = type_from_nodes(&param_node->func_param.param_type, param_node->line,
+					param_node->col, &entry.param_types[i]);
+				if (ERROR_IS_ERR(type_error) || entry.param_types[i] == UNDEF) {
+					free(entry.param_types);
+					if (!ERROR_IS_ERR(type_error))
+						type_error = ERROR_EMIT(ERR_SEM_TYPE, param_node->line, param_node->col,
+							"Parameter without a type");
+					return type_error;
+				}
 			}
 		}
 	}
@@ -77,6 +91,7 @@ Error register_user_function(FunctionTable *t, ASTNode *func_node) {
 	entry.is_main = func_node->func_decl.is_main;
 	entry.is_builtin = false;
 	entry.decl = func_node;
+	entry.state = FUNC_NEW;
 
 	if (ftable_lookup(t, entry.name) != NULL) { // Check for duplicate function name
 		free(entry.param_types);
@@ -117,12 +132,11 @@ Error register_functions(FunctionTable *t, const ASTNodeList *top_level_nodes) {
 						"Multiple @main functions defined"); // Multiple @main functions
 				}
 				// Check if @main function has the correct return type
-				if (!((node->func_decl.return_type == UNIT) ||
-						(node->func_decl.return_type ==
-							UNDEF))) { // UNDEF will be handled in the second pass
+				FunctionEntry *en = ftable_lookup(t, dstring_get(&node->func_decl.func_name));
+				// UNDEF will be handled in the second pass
+				if (em && !(en->return_type == UNIT || en->return_type == UNDEF))
 					return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col,
 						"@main function must have return type Unit"); // @main must return Unit
-				}
 			}
 		}
 	}

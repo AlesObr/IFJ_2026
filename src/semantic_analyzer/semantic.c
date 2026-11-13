@@ -114,7 +114,12 @@ Error analyze_var_decl(SemanticContext *ctx, ASTNode *node) {
 			ERR_SEM_TYPE, node->line, node->col, "Cannot assign BOOLEAN type to variable");
 	}
 
-	ValType final_type = node->var_decl.type_name;
+	ValType final_type;
+
+	err = type_from_nodes(&node->var_decl.type_name, node->line, node->col, &final_type);
+	if (ERROR_IS_ERR(err))
+		return err;
+
 	if (final_type != UNDEF) {
 		bool conv_needed;
 		if (!type_compatible(final_type, init_type, &conv_needed))
@@ -323,9 +328,11 @@ static Error analyze_function_body(SemanticContext *ctx, FunctionEntry *entry) {
 		ASTNode *window = func->func_decl.param_windows.items[0];
 		for (size_t i = 0; i < window->param_window.params.count; i++) {
 			ASTNode *param = window->param_window.params.items[i];
-			ScopeResult sr =
-				scope_insert(&ctx->scope_stack, dstring_get(&param->func_param.param_name),
-					param->func_param.param_type, true, NULL);
+			ValType param_type;
+			Error type_err = type_from_nodes(&param->func_param.param_type, p->line, p->col,
+				&param_type) if (ERROR_IS_ERR(type_err)) return type_err;
+			ScopeResult sr = scope_insert(&ctx->scope_stack,
+				dstring_get(&param->func_param.param_name), param_type, true, NULL);
 			if (sr == SCOPE_DUP) {
 				return ERROR_EMIT(ERR_SEM_REDEF, param->line, param->col,
 					"Parameter name already defined in the current scope");
@@ -388,9 +395,15 @@ static Error analyze_function_body(SemanticContext *ctx, FunctionEntry *entry) {
 }
 
 Error analyze_function(SemanticContext *ctx, FunctionEntry *entry) {
-	if (!ctx || !func || !func->decl || func->type != NODE_FUNC_DECL) {
+	if (!ctx || !entry || !entry->decl || entry->type != NODE_FUNC_DECL) {
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_function");
 	}
+	ValType return_type;
+	Error type_error = type_from_nodes(
+		&entry->decl->func_decl.return_type, entry->decl->line, entry->decl->col, &return_type);
+	if (ERROR_IS_ERR(type_error))
+		return type_error;
+
 	entry->state = FUNC_RUNNING;
 
 	// Create new scope for the function, then restore

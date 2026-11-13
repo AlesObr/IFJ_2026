@@ -9,6 +9,7 @@
 #ifndef IFJ26_TYPE_RULES_H
 #define IFJ26_TYPE_RULES_H
 
+#include "../_utils/error.h"
 #include "../parser/ast.h"
 #include <stdbool.h>
 #include <stddef.h>
@@ -40,5 +41,18 @@ ValType binop_result(OpType op, ValType l, ValType r, bool *conv_l, bool *conv_r
  * @return Result type of the unary operation, or UNDEF if illegal
  */
 ValType unop_result(OpType op, ValType operand);
+
+/**
+ * @brief Converts a type written in the source (a list in AST) to a ValType.
+ * Empty list is UNDEF
+ * Single type gives that type.
+ * ALGEBDT is not supported yet.
+ * @param types The type list
+ * @param line Position for error
+ * @param col Position for error
+ * @param out Recieves the type
+ * @return Returns error
+ */
+Error type_from_nodes(const ASTNodeList *types, size_t line, size_t col, ValType *out);
 
 #endif /* IFJ26_TYPE_RULES_H */
