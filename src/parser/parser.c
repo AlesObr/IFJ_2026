@@ -101,20 +101,21 @@ static void parser_trace_token(const char *location, const Token *token) {
 	} while (0)
 
 /**
- * @brief Handling of cases when last function returns PAR_EOF, but the valid node is not yet appended
+ * @brief Handling of cases when last function returns PAR_EOF, but the valid node is not yet
+ * appended
  * @param status Return value of previous function containing the unconnected node
  * @param node Node to appended the last node into
  * @param apennd_expr Appending expression
  * @param err_msg Error messgae to be displayed if the append fails
-*/
-#define APPEND_BEFORE_EOF_RETURN(status, node, append_expr, err_msg)							   \
-	do {																						   \
-		if ((status).flag == PAR_EOF){															   \
-			if ((status).new_node != NULL){													  	   \
-				CHECK_AST_APPEND(node, append_expr, err_msg);									   \
-				return PARSE_OK(PAR_EOF, node);													   \
-			}																					   \
-		}																						   \
+ */
+#define APPEND_BEFORE_EOF_RETURN(status, node, append_expr, err_msg)                               \
+	do {                                                                                           \
+		if ((status).flag == PAR_EOF) {                                                            \
+			if ((status).new_node != NULL) {                                                       \
+				CHECK_AST_APPEND(node, append_expr, err_msg);                                      \
+				return PARSE_OK(PAR_EOF, node);                                                    \
+			}                                                                                      \
+		}                                                                                          \
 	} while (0)
 
 /**
@@ -250,7 +251,7 @@ ParserStatus parse_code_block(Token *curr_token, bool indent) {
 		}
 		status = parse_statement(curr_token);
 		APPEND_BEFORE_EOF_RETURN(status, new_block, ast_block_add_stmt(new_block, status.new_node),
-					"Failed to append statement into code block after returning from EOF\n");
+			"Failed to append statement into code block after returning from EOF\n");
 		CHECK_STATUS_OWNED(status, new_block);
 		if (status.new_node != NULL) {
 			CHECK_AST_APPEND(new_block, ast_block_add_stmt(new_block, status.new_node),
@@ -877,7 +878,8 @@ ParserStatus parse_func_body(Token *curr_token, bool indent) {
 		ALLOC_NODE(new_block, ast_create_block(curr_token->line, curr_token->col));
 		status = parse_statement(curr_token);
 		APPEND_BEFORE_EOF_RETURN(status, new_block, ast_block_add_stmt(new_block, status.new_node),
-					"Failed to append statement into function body code block (one line) after returning from EOF\n");
+			"Failed to append statement into function body code block (one line) after returning "
+			"from EOF\n");
 		CHECK_STATUS_OWNED(status, new_block);
 		CHECK_AST_APPEND(new_block, ast_block_add_stmt(new_block, status.new_node),
 			"Failed to append statement into block in one line function body\n");
@@ -1083,9 +1085,10 @@ ParserStatus parse_func_def(Token *curr_token, bool main_flag) {
 	if (curr_token->type == TOKEN_ASSIGN) {
 		status = parse_func_body(curr_token, found_indent);
 		APPEND_BEFORE_EOF_RETURN(status, new_func, ast_func_add_block(new_func, status.new_node),
-					"Failed to append function body into AST after returning from EOF\n");
+			"Failed to append function body into AST after returning from EOF\n");
 		CHECK_STATUS_OWNED(status, new_func);
-		CHECK_AST_APPEND(new_func, ast_func_add_block(new_func, status.new_node), "Failed to append function body into AST\n");
+		CHECK_AST_APPEND(new_func, ast_func_add_block(new_func, status.new_node),
+			"Failed to append function body into AST\n");
 	} else {
 		ast_destroy(new_func);
 		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
@@ -1358,7 +1361,8 @@ ParserStatus parse_program(Token *curr_token) {
 		switch (curr_token->type) {
 			case TOKEN_KEYWORD_EXTENSION:
 				status = parse_extension(curr_token); // Parse extension
-				APPEND_BEFORE_EOF_RETURN(status, program, ast_block_add_stmt(program, status.new_node),
+				APPEND_BEFORE_EOF_RETURN(status, program,
+					ast_block_add_stmt(program, status.new_node),
 					"Failed to append node into AST after returning from EOF\n");
 				CHECK_STATUS_OWNED(status, program);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
@@ -1366,7 +1370,8 @@ ParserStatus parse_program(Token *curr_token) {
 				break;
 			case TOKEN_KEYWORD_TYPE:
 				status = parse_type_unif(curr_token);
-				APPEND_BEFORE_EOF_RETURN(status, program, ast_block_add_stmt(program, status.new_node),
+				APPEND_BEFORE_EOF_RETURN(status, program,
+					ast_block_add_stmt(program, status.new_node),
 					"Failed to append node into AST after returning from EOF\n");
 				CHECK_STATUS_OWNED(status, program);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
@@ -1374,7 +1379,8 @@ ParserStatus parse_program(Token *curr_token) {
 				break;
 			case TOKEN_KEYWORD_CASE:
 				status = parse_data_class(curr_token);
-				APPEND_BEFORE_EOF_RETURN(status, program, ast_block_add_stmt(program, status.new_node),
+				APPEND_BEFORE_EOF_RETURN(status, program,
+					ast_block_add_stmt(program, status.new_node),
 					"Failed to append node into AST after returning from EOF\n");
 				CHECK_STATUS_OWNED(status, program);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
@@ -1382,7 +1388,8 @@ ParserStatus parse_program(Token *curr_token) {
 				break;
 			case TOKEN_AT_MAIN:
 				status = parse_at_main(curr_token); // Parse function with @main flag
-				APPEND_BEFORE_EOF_RETURN(status, program, ast_block_add_stmt(program, status.new_node),
+				APPEND_BEFORE_EOF_RETURN(status, program,
+					ast_block_add_stmt(program, status.new_node),
 					"Failed to append node into AST after returning from EOF\n");
 				CHECK_STATUS_OWNED(status, program);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
@@ -1390,7 +1397,8 @@ ParserStatus parse_program(Token *curr_token) {
 				break;
 			case TOKEN_KEYWORD_DEF:
 				status = parse_func_def(curr_token, false); // Parse function without @main flag
-				APPEND_BEFORE_EOF_RETURN(status, program, ast_block_add_stmt(program, status.new_node),
+				APPEND_BEFORE_EOF_RETURN(status, program,
+					ast_block_add_stmt(program, status.new_node),
 					"Failed to append node into AST after returning from EOF\n");
 				CHECK_STATUS_OWNED(status, program);
 				CHECK_AST_APPEND(program, ast_block_add_stmt(program, status.new_node),
