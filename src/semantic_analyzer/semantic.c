@@ -45,6 +45,7 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 				return ERROR_EMIT(ERR_SEM_UNDEF, expr->line, expr->col, "Undefined variable");
 			}
 			*out = sym->type;
+			expr->sym_id = sym->id;
 			break;
 		}
 		case NODE_BINARY_OP: {
@@ -168,7 +169,7 @@ Error analyze_assignment(SemanticContext *ctx, ASTNode *node) {
 	bool conv_needed;
 	ValType var_type = sym->type;
 	ValType expr_type;
-	// make it write sym_id onto the node sym->id, also we can throw away the pointer
+	target->sym_id = sym->id;
 
 	if (is_const)
 		return ERROR_EMIT(
