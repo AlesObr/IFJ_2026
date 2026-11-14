@@ -238,11 +238,11 @@ Error lexer_get_next_token(Token *out_token) {
 					}
 					block_comment_previous = lexeme.current_lexeme;
 					if (lexeme.current_lexeme == '\n') {
+						reset_line_state();
 						if (paren_depth > 0) {
 							newline_before_token = true;
 							continue;
 						}
-						reset_line_state();
 						token_make_simple(
 							out_token, TOKEN_EOL, lexeme.previous_line, lexeme.previous_col + 1);
 						dstring_free(&token_buffer);
@@ -299,6 +299,16 @@ Error lexer_get_next_token(Token *out_token) {
 						at_line_start = false;
 					}
 				}
+
+				if (at_line_start && paren_depth > 0 && lexeme.current_lexeme != '\n' &&
+					lexeme.current_lexeme != '/') {
+					if (indent_stack.size >1 && line_indent < indent_top()){
+						dstring_free(&token_buffer);
+						return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid indentation inside parenthesis expr\n");
+					}
+					at_line_start = false;
+				}
+
 				if (at_line_start && paren_depth == 0 && lexeme.current_lexeme != '\n' &&
 					lexeme.current_lexeme != '/') {
 					if (line_indent > indent_top()) {
@@ -330,13 +340,13 @@ Error lexer_get_next_token(Token *out_token) {
 					}
 				}
 				if (lexeme.current_lexeme == '\n') {
+					reset_line_state();
 					if (paren_depth > 0) {
 						newline_before_token = true;
 						continue;
 					}
 					token_make_simple(
 						out_token, TOKEN_EOL, lexeme.previous_line, lexeme.previous_col + 1);
-					reset_line_state();
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				} // @dev maybe return this only when it makes sense?
@@ -351,13 +361,13 @@ Error lexer_get_next_token(Token *out_token) {
 							continue; // EOF and pending OUTDENTs are handled at the start of the
 									  // state
 						}
+						reset_line_state();
 						if (paren_depth > 0) {
 							newline_before_token = true;
 							continue;
 						}
 						token_make_simple(out_token, TOKEN_EOL, lookahead.previous_line,
 							lookahead.previous_col + 1);
-						reset_line_state();
 						dstring_free(&token_buffer);
 						return ERROR_OK();
 					}
