@@ -113,10 +113,9 @@ struct ASTNode {
 	size_t line; /**< Source code line where the construct starts. */
 	size_t col;	 /**< Source code column where the construct starts. */
 
-	ASTNodeList
-		expr_types; /**< Determines which type of operation to use (DIV / IDIV) for example*/
-	bool to_double; /**< Determines if conversion to int / double needed*/
-	size_t sym_id;	/**< Identifier of the variable in symtable if needed */
+	ValType expr_types; /**< Determines which type of operation to use (DIV / IDIV) for example*/
+	bool to_double; 	/**< Determines if conversion to int / double needed*/
+	size_t sym_id;		/**< Identifier of the variable in symtable if needed */
 
 	union {
 		long int_val;	   /**< Literal integer value. */
@@ -631,6 +630,13 @@ bool ast_add_type(
  * @return True if success, false if problem occurs or wrong parameters passed
  */
 bool ast_ext_add_func(ASTNode *ext_node, ASTNode *func_node);
+
+/**
+ * @brief Changer expression type of given ASTNode
+ * @param node ASTNode whose type is to be set
+ * @param type Type of expression to be set
+ */
+void ast_set_type(ASTNode *node, ValType type);
 
 /**
  * @brief Dumps the AST in S-expression format to the specified output stream.

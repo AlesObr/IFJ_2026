@@ -642,22 +642,22 @@ ParserStatus parse_match_case(Token *curr_token) {
 	ParserStatus status = {0};
 	ASTNode *case_node = NULL;
 	ASTNode *expr_node = NULL;
-	GET_TOKEN(curr_token, case_node, false);
+	GET_TOKEN(curr_token, NULL, false);
 	switch (curr_token->type) {
 		case TOKEN_LIT_FLOAT:
 			ALLOC_NODE(expr_node,
 				ast_create_float(curr_token->data.float_val, curr_token->line, curr_token->col));
-			GET_TOKEN(curr_token, case_node, false);
+			GET_TOKEN(curr_token, expr_node, false);
 			break;
 		case TOKEN_LIT_INT:
 			ALLOC_NODE(expr_node,
 				ast_create_int(curr_token->data.int_val, curr_token->line, curr_token->col));
-			GET_TOKEN(curr_token, case_node, false);
+			GET_TOKEN(curr_token, expr_node, false);
 			break;
 		case TOKEN_LIT_STRING:
 			ALLOC_NODE(expr_node,
 				ast_create_string(curr_token->data.str_val, curr_token->line, curr_token->col));
-			GET_TOKEN(curr_token, case_node, false);
+			GET_TOKEN(curr_token, expr_node, false);
 			break;
 		case TOKEN_IDENTIFIER:
 			status = parse_expression(curr_token);
@@ -666,10 +666,9 @@ ParserStatus parse_match_case(Token *curr_token) {
 			break;
 		case TOKEN_UNDERSCORE:
 			ALLOC_NODE(expr_node, ast_create_null(curr_token->line, curr_token->col));
-			GET_TOKEN(curr_token, case_node, false);
+			GET_TOKEN(curr_token, expr_node, false);
 			break;
 		default:
-			ast_destroy(case_node);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid token type after case keyword\n"),
 				PAR_FAIL);
