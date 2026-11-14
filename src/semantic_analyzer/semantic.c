@@ -7,6 +7,7 @@
  */
 
 #include "semantic.h"
+#include "fregister.h"
 #include "type_rules.h"
 
 static void set_type(ASTNode *n, ValType t) {
@@ -19,6 +20,57 @@ static void mark_convert(ASTNode *n) {
 
 static bool booleans_enabled(void) {
 	return false; // : BOOLTHEN
+}
+
+Error sem_run(ASTNode *outermost_node) {
+	if (!outermost_node || outermost_node->type != NODE_BLOCK)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "The top most node must be a block");
+
+	SemanticContext ctx;
+	sem_ctx_init(&ctx);
+	Error err = sem_analyze(&ctx, &outermost_node->block.stmts);
+	sem_ctx_free(&ctx);
+	return err;
+}
+
+void sem_ctx_init(SemanticContext *ctx) {
+	scope_init(&ctx->scope_stack);
+	ftable_init(&ctx->func_table);
+	ctx->current_function = NULL;
+	ctx->current_return_type = UNDEF;
+}
+
+void sem_ctx_free(SemanticContext *ctx) {
+	scope_free(&ctx->scope_stack);
+	ftable_free(&ctx->func_table);
+}
+
+Error sem_analyze(SemanticContext *ctx, const ASTNodeList *top_nodes) {
+	if (!register_builtin_function(&ctx->func_table))
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Failed to register built-in functions");
+
+	// Pass 1
+	Error err = register_functions(&ctx->func_table, top_nodes);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	// Pass 2
+	for (size_t i = 0; i < top_nodes->count; i++) {
+		ASTNode *node = top_nodes->items[i];
+
+		if (node->type != NODE_FUNC_DECL)
+			continue; // EXTKW
+
+		FunctionEntry *en =
+			ftable_lookup(&ctx->func_table, dstring_get(&node->func_decl.func_name));
+
+		if (en && en->state == FUNC_NEW) {
+			err = analyze_function(ctx, en);
+			if (ERROR_IS_ERR(err))
+				return err;
+		}
+	}
+	return ERROR_OK();
 }
 
 Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
@@ -253,7 +305,7 @@ Error analyze_call(SemanticContext *ctx, ASTNode *call, ValType *out) {
 		}
 	}
 
-	*out = return_type;
+	*out = entry->return_type;
 	set_type(call, *out); // Record the type of the function call node
 	return ERROR_OK();
 }
@@ -310,7 +362,7 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 					*out = UNIT;
 				return err;
 			}
-			return analyze_expression(ctx, stmt);
+			return analyze_expression(ctx, stmt, out);
 		case NODE_CALL:
 		case NODE_UNARY_OP:
 		case NODE_INT_LITERAL:

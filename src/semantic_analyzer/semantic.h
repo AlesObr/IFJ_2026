@@ -24,6 +24,33 @@ typedef struct {
 } SemanticContext;
 
 /**
+ * @brief Main entry point for semantic analysis, initializes semantic context and starts analysis
+ * @param outermost_node The top most node of the AST
+ * @return Returns error, ERROR_OK if everything went well, smth else otherwise
+ */
+Error sem_run(ASTNode *outermost_node);
+
+/**
+ * @brief Initializes semantic context
+ * @param ctx Pointer to the semantic context
+ */
+void sem_ctx_init(SemanticContext *ctx);
+
+/**
+ * @brief Releases semantic context
+ * @param ctx Pointer to the semantic context
+ */
+void sem_ctx_free(SemanticContext *ctx);
+
+/**
+ * @brief Runs pass 1 and 2, calls analyze functions and analyzes the AST
+ * @param ctx Semantic context
+ * @param top_nodes The list of the top most nodes
+ * @return Returns error depending on the state at which it ends in
+ */
+Error sem_analyze(SemanticContext *ctx, const ASTNodeList *top_nodes);
+
+/**
  * @brief Analyze an expression and determine its type
  * @param ctx The semantic analysis context
  * @param expr The AST node representing the expression to analyze
