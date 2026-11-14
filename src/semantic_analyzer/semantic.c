@@ -9,6 +9,8 @@
 #include "semantic.h"
 #include "fregister.h"
 #include "type_rules.h"
+#include <stdio.h>
+#include <string.h>
 
 static void set_type(ASTNode *n, ValType t) {
 	ast_set_type(n, t);
@@ -143,9 +145,11 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 				return err;
 			break;
 		}
-		default: // Temporary default case for unsupported expression types
-			return ERROR_EMIT(
-				ERR_INTERNAL, expr->line, expr->col, "Unsupported expression type for analysis");
+		default: { // Temporary default case for unsupported expression types
+			static char msg[64];
+			snprintf(msg, sizeof(msg), "Unsupported expression node type %d", expr->type);
+			return ERROR_EMIT(ERR_INTERNAL, expr->line, expr->col, msg);
+		}
 	}
 
 	set_type(expr, *out); // Record the type of the expression node
@@ -264,26 +268,36 @@ Error analyze_call(SemanticContext *ctx, ASTNode *call, ValType *out) {
 	size_t param_count = entry->param_count;
 	ValType return_type = entry->return_type;
 	ValType *param_types = entry->param_types;
+	ASTNodeList *args = NULL;
+	size_t arg_count = 0;
 
-	if (param_count != call->call.args.count) {
+	if (call->call.args.count > 0) {
+		ASTNode *window = call->call.args.items[0];
+		if (window->type != NODE_FUNC_WINDOW)
+			return ERROR_EMIT(ERR_INTERNAL, call->line, call->col,
+				"Parameters window is not of type NODE_FUNC_WINDOW");
+		args = &window->param_window.params;
+		arg_count = args->count;
+	}
+
+	if (param_count != arg_count) {
 		return ERROR_EMIT(ERR_SEM_CALL, call->line, call->col,
 			"Argument count does not match function parameter count");
 	}
 
 	for (size_t i = 0; i < param_count; i++) {
 		ValType arg_type;
-		Error err = analyze_expression(ctx, call->call.args.items[i], &arg_type);
+		Error err = analyze_expression(ctx, args->items[i], &arg_type);
 		if (ERROR_IS_ERR(err))
 			return err;
 
 		bool conv_needed;
 		if (!type_compatible(param_types[i], arg_type, &conv_needed)) {
-			return ERROR_EMIT(ERR_SEM_CALL, call->call.args.items[i]->line,
-				call->call.args.items[i]->col,
+			return ERROR_EMIT(ERR_SEM_CALL, args->items[i]->line, args->items[i]->col,
 				"Argument type does not match function parameter type");
 		}
 		if (conv_needed) {
-			mark_convert(call->call.args.items[i]);
+			mark_convert(args->items[i]);
 		}
 	}
 
