@@ -11,11 +11,11 @@
 #include "type_rules.h"
 
 static void set_type(ASTNode *n, ValType t) {
-	(void)n;
-	(void)t; // Fields are in ast.h, just have to implement it
+	ast_set_type(n, t);
 }
+
 static void mark_convert(ASTNode *n) {
-	(void)n; // Fields are in ast.h, just have to implement it
+	n->to_double = true;
 }
 
 static bool booleans_enabled(void) {
