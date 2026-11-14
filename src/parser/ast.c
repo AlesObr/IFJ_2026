@@ -852,6 +852,7 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 			break;
 		}
 
+		case NODE_BOOL_LITERAL:
 		case NODE_MATCH:
 		case NODE_CASE:
 		case NODE_TYPE_ORIG:

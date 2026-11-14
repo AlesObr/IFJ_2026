@@ -400,6 +400,7 @@ ParserStatus parse_else_statement(Token *curr_token) {
 			CHECK_STATUS_OWNED(status, new_else);
 			CHECK_AST_APPEND(new_else, ast_if_else_add_body(new_else, status.new_node),
 				"Failed to append function body of else block (if)\n");
+			GET_TOKEN(curr_token, new_else, false);
 			return PARSE_OK(PAR_SUCC, new_else);
 		} else {
 			status = parse_expression(curr_token);
@@ -646,13 +647,15 @@ ParserStatus parse_match_case(Token *curr_token) {
 	GET_TOKEN(curr_token, NULL, false);
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_TRUE:
-			ALLOC_NODE(node,
+			ALLOC_NODE(expr_node,
 				ast_create_bool(true, curr_token->line, curr_token->col));
+			GET_TOKEN(curr_token, expr_node, false);
 			break;
 
 		case TOKEN_KEYWORD_FALSE:
-			ALLOC_NODE(node,
+			ALLOC_NODE(expr_node,
 				ast_create_bool(false, curr_token->line, curr_token->col));
+			GET_TOKEN(curr_token, expr_node, false);
 			break;
 
 		case TOKEN_LIT_FLOAT:
