@@ -99,7 +99,7 @@ static ASTNode *ast_alloc(ASTNodeType type, size_t line, size_t col) {
 	node->type = type;
 	node->line = line;
 	node->col = col;
-	ast_nodelist_init(&node->expr_types);
+	node->expr_types = UNDEF;
 	node->to_double = false;
 	node->sym_id = 0;
 	return node;
@@ -952,14 +952,17 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 	}
 }
 
+void ast_set_type(ASTNode *node, ValType type){
+	if (node != NULL){
+		node->expr_types = type;
+	}
+}
+
 /* --- Recursive destructor --- */
 
 void ast_destroy(ASTNode *node) {
 	if (node == NULL) {
 		return;
-	}
-	if (node->expr_types.count != 0) {
-		ast_nodelist_destroy(&node->expr_types);
 	}
 
 	switch (node->type) {
