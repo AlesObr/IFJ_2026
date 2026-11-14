@@ -235,9 +235,23 @@ Error analyze_call(SemanticContext *ctx, ASTNode *call, ValType *out) {
 		}
 	}
 
-	if (return_type == UNDEF)
-		return ERROR_EMIT(
-			ERR_INTERNAL, call->line, call->col, "Function has undefined return type");
+	if (return_type == UNDEF) {
+		// Check if call function is declared
+		if (!entry->decl)
+			return ERROR_EMIT(
+				ERR_INTERNAL, call->line, call->col, "Function has undefined return type");
+
+		// Check if it's calling it self
+		if (entry->state == FUNC_RUNNING)
+			return ERROR_EMIT(ERR_SEM_TYPE, call->line, call->col,
+				"Funcrion that is recursive must have its return type declared");
+
+		if (entry->state == FUNC_NEW) {
+			Error err = analyze_function(ctx, entry);
+			if (ERROR_IS_ERR(err))
+				return err;
+		}
+	}
 
 	*out = return_type;
 	set_type(call, *out); // Record the type of the function call node
