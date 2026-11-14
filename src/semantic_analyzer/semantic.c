@@ -484,6 +484,29 @@ static Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool 
 	return ERROR_OK();
 }
 
+static Error analyze_while(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+	if (!ctx || !node || !out || !returns || node->type != NODE_WHILE)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_while");
+
+	Error err = analyze_condition(ctx, node->while_stmt.cond);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	ValType type;
+	bool ret;
+
+	err = analyze_body(ctx, node->while_stmt.body, &type, &ret);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	*out = UNIT;
+	// The condition could be false all along,
+	// which results in program not reaching the return
+	*returns = false;
+
+	return ERROR_OK();
+}
+
 Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *returns) {
 	if (!ctx || !stmt || !out || !returns) {
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_stmt");
@@ -519,7 +542,9 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 			return analyze_return(ctx, stmt, out, returns);
 		case NODE_IF:
 			return analyze_if(ctx, stmt, out, returns);
-		default: // NODE_WHILE, NODE_FOR
+		case NODE_WHILE:
+			return analyze_while(ctx, stmt, out, returns);
+		default: // NODE_FOR
 			return ERROR_EMIT(
 				ERR_INTERNAL, stmt->line, stmt->col, "Unsupported statement type for analysis");
 	}
