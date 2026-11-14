@@ -545,12 +545,19 @@ ASTNode *ast_create_while(ASTNode *cond, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for a return statement.
- * @param expr Expression to return from current function or NULL for void return.
  * @param line Source line index.
  * @param col Source column index.
  * @return Allocated ASTNode pointer or NULL on failure.
  */
-ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col);
+ASTNode *ast_create_return(size_t line, size_t col);
+
+/**
+ * @brief Adds expresion into return node
+ * @param return_node ASTNode representing return
+ * @param return_expr Expression to return from current function or NULL for void return.
+ * @return True if success, false if return node is not passed correctly
+ */
+bool ast_return_add_expr(ASTNode *return_node, ASTNode *return_expr);
 
 /**
  * @brief Creates a new AST node for a function parameter.
@@ -620,8 +627,7 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col);
  * @param is_orig Determines if data type is original or user defined
  * @return True if success, false if problem occurs or wrong parameters passed
  */
-bool ast_add_type(
-	ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig);
+bool ast_add_type(ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig);
 
 /**
  * @brief Appends a function to extension AST_NODE

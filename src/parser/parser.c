@@ -821,12 +821,12 @@ ParserStatus parse_statement(Token *curr_token) {
 			status = parse_for_statement(curr_token);
 			break;
 		case TOKEN_KEYWORD_RETURN:
-			GET_TOKEN(curr_token, NULL, true);
-			if (curr_token->type != TOKEN_EOL) {
+			ALLOC_NODE(node, ast_create_return(curr_token->line, curr_token->col));
+			GET_TOKEN(curr_token, node, true);
+			if (curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_SEMICOLON) {
 				status = parse_expression(curr_token);
-				CHECK_STATUS(status);
-				ALLOC_NODE(
-					node, ast_create_return(status.new_node, curr_token->line, curr_token->col));
+				CHECK_AST_APPEND(node, ast_return_add_expr(node, status.new_node), "Failed to add return expression to node\n");
+				CHECK_STATUS_OWNED(status, node);
 				if (curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_SEMICOLON) {
 					ast_destroy(status.new_node);
 					return PARSE_ERROR(
@@ -834,8 +834,6 @@ ParserStatus parse_statement(Token *curr_token) {
 							"Invalid token after return (expected semicolon or EOL\n"),
 						PAR_FAIL);
 				}
-			} else {
-				ALLOC_NODE(node, ast_create_return(NULL, curr_token->line, curr_token->col));
 			}
 			break;
 		case TOKEN_IDENTIFIER:

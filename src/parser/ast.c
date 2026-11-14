@@ -532,14 +532,21 @@ ASTNode *ast_create_while(ASTNode *cond, size_t line, size_t col) {
 	return node;
 }
 
-ASTNode *ast_create_return(ASTNode *expr, size_t line, size_t col) {
+ASTNode *ast_create_return(size_t line, size_t col) {
 	ASTNode *node = ast_alloc(NODE_RETURN, line, col);
 	if (node == NULL) {
-		ast_destroy(expr);
 		return NULL;
 	}
-	node->return_stmt.expr = expr;
+	node->return_stmt.expr = NULL;
 	return node;
+}
+
+bool ast_return_add_expr(ASTNode *return_node, ASTNode *return_expr){
+	if (return_node == NULL || return_node->type != NODE_RETURN){
+		return false;
+	}
+	return_node->return_stmt.expr = return_expr;
+	return true;
 }
 
 bool ast_class_add_param(ASTNode *data_class, ASTNode *param_window) {
@@ -951,6 +958,8 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 		}
 	}
 }
+
+/** --- Setting type of ASTNode for semantics */
 
 void ast_set_type(ASTNode *node, ValType type){
 	if (node != NULL){
