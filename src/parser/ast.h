@@ -24,6 +24,7 @@ typedef enum {
 	NODE_FLOAT_LITERAL,
 	NODE_STRING_LITERAL,
 	NODE_NULL_LITERAL,
+	NODE_BOOL_LITERAL,
 
 	/* Identifiers and Variables */
 	NODE_IDENTIFIER,
@@ -121,6 +122,7 @@ struct ASTNode {
 		long int_val;	   /**< Literal integer value. */
 		double float_val;  /**< Literal float value. */
 		dstring_t str_val; /**< Dynamic string for literal strings and identifiers. */
+		bool bool_val;	   /**< Literal boolean value */
 
 		/** @brief Structure for data types */
 		struct {
@@ -386,6 +388,15 @@ ASTNode *ast_create_float(double val, size_t line, size_t col);
  * @return Allocated ASTNode pointer or NULL on failure.
  */
 ASTNode *ast_create_string(const dstring_t *val, size_t line, size_t col);
+
+/**
+ * @brief Creates a new AST node for a boolean literal.
+ * @param bool_val Boolean value of the node
+ * @param line Source line index.
+ * @param col Source column index.
+ * @return Allocated ASTNode pointer or NULL on failure.
+ */
+ASTNode *ast_create_bool(bool bool_val, size_t line, size_t col);
 
 /**
  * @brief Creates a new AST node for a null literal.

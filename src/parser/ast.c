@@ -159,6 +159,15 @@ ASTNode *ast_create_string(const dstring_t *val, size_t line, size_t col) {
 	return node;
 }
 
+ASTNode *ast_create_bool(bool bool_val, size_t line, size_t col){
+	ASTNode *node = ast_alloc(NODE_BOOL_LITERAL, line, col);
+	if (node == NULL) {
+		return NULL;
+	}
+	node->bool_val = bool_val;
+	return node;
+}
+
 ASTNode *ast_create_null(size_t line, size_t col) {
 	return ast_alloc(NODE_NULL_LITERAL, line, col);
 }
@@ -978,6 +987,7 @@ void ast_destroy(ASTNode *node) {
 		case NODE_INT_LITERAL:
 		case NODE_FLOAT_LITERAL:
 		case NODE_NULL_LITERAL:
+		case NODE_BOOL_LITERAL:
 			break;
 
 		case NODE_STRING_LITERAL:

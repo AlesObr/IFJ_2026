@@ -645,6 +645,16 @@ ParserStatus parse_match_case(Token *curr_token) {
 	ASTNode *expr_node = NULL;
 	GET_TOKEN(curr_token, NULL, false);
 	switch (curr_token->type) {
+		case TOKEN_KEYWORD_TRUE:
+			ALLOC_NODE(node,
+				ast_create_bool(true, curr_token->line, curr_token->col));
+			break;
+
+		case TOKEN_KEYWORD_FALSE:
+			ALLOC_NODE(node,
+				ast_create_bool(false, curr_token->line, curr_token->col));
+			break;
+
 		case TOKEN_LIT_FLOAT:
 			ALLOC_NODE(expr_node,
 				ast_create_float(curr_token->data.float_val, curr_token->line, curr_token->col));
@@ -836,6 +846,8 @@ ParserStatus parse_statement(Token *curr_token) {
 				}
 			}
 			break;
+		case TOKEN_KEYWORD_TRUE:
+		case TOKEN_KEYWORD_FALSE:
 		case TOKEN_IDENTIFIER:
 		case TOKEN_LIT_INT:
 		case TOKEN_LIT_FLOAT:

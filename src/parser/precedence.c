@@ -256,6 +256,16 @@ ParserStatus parse_prefix(Token *curr_token) {
 			ALLOC_NODE(
 				node, ast_create_int(curr_token->data.int_val, curr_token->line, curr_token->col));
 			break;
+		case TOKEN_KEYWORD_TRUE:
+			ALLOC_NODE(node,
+				ast_create_bool(true, curr_token->line, curr_token->col));
+			break;
+
+		case TOKEN_KEYWORD_FALSE:
+			ALLOC_NODE(node,
+				ast_create_bool(false, curr_token->line, curr_token->col));
+			break;
+
 		case TOKEN_KEYWORD_IF:
 			skip_fetch = true;
 			status = parse_if_statement(curr_token);
