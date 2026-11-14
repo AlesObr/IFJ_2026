@@ -841,6 +841,7 @@ ParserStatus parse_statement(Token *curr_token) {
 		case TOKEN_LIT_FLOAT:
 		case TOKEN_LIT_STRING:
 		case TOKEN_LPAREN:
+		case TOKEN_MINUS:
 		case TOKEN_NOT:
 			status = parse_expression(curr_token);
 			CHECK_STATUS(status);
@@ -991,6 +992,13 @@ ParserStatus parse_param_section(Token *curr_token) {
 									   "Invalid token after , in function declaration params\n"),
 					PAR_FAIL);
 			}
+		} else if (curr_token->type == TOKEN_RPAREN){
+			return PARSE_OK(PAR_SUCC, param_window);
+		} else {
+			ast_destroy(param_window);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									"Invalid token after , in function declaration params\n"),
+				PAR_FAIL);
 		}
 	}
 }

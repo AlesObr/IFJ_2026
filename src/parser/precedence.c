@@ -207,7 +207,6 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 			if (curr_token->type == TOKEN_RPAREN) {
 				break;
 			} else if (curr_token->type == TOKEN_COMMA) {
-				fprintf(stderr, "Last_iter\n");
 				GET_TOKEN(curr_token, node, false);
 				status = parse_climb(curr_token, 0);
 				APPEND_BEFORE_EOF_RETURN(status, window, ast_window_add_param(window, status.new_node));
@@ -378,6 +377,13 @@ static ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec) {
 		OpType op_type = token_to_op(curr_token);
 		fprintf(stderr, "[precedence] parse_climb: operator=%s precedence=%d\n",
 			token_type_name(curr_token->type), prec);
+		if (op_type == OP_ASSIGN && (node->type != NODE_IDENTIFIER)){
+			ast_destroy(node);
+			return PARSE_ERROR(
+				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+					"Tried assigning into literal or expression\n"),
+				PAR_FAIL);
+		}
 		GET_TOKEN(curr_token, node, false);
 		PrecLevel new_min_prec = (op_type == OP_ASSIGN) ? prec : (prec + 1);
 		status = parse_climb(curr_token, new_min_prec);
