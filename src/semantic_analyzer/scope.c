@@ -3,7 +3,7 @@
  * @file scope.c
  * @brief Scope management for semantic analysis (issue #21).
  * @author Karel Kříž (xkrizka00)
- * @note Standard: ISO C11, Temporary linear-scan storage until symtable is finished.
+ * @note Standard: ISO C11
  */
 
 #include "scope.h"
