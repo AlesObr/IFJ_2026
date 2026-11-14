@@ -389,6 +389,101 @@ static Error analyze_return(SemanticContext *ctx, ASTNode *node, ValType *out, b
 	return ERROR_OK();
 }
 
+static Error analyze_body(SemanticContext *ctx, ASTNode *body, ValType *out, bool *returns) {
+	if (!ctx || !body || !out || !returns)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_body");
+
+	if (body->type == NODE_BLOCK)
+		return analyze_block(ctx, body, true, out, returns);
+
+	if (!scope_push(&ctx->scope_stack))
+		return ERROR_EMIT(ERR_INTERNAL, body->line, body->col, "Out of memory when opening a scop");
+
+	Error err = analyze_stmt(ctx, body, out, returns);
+	scope_pop(&ctx->scope_stack);
+
+	return err;
+}
+
+static Error analyze_condition(SemanticContext *ctx, ASTNode *cond) {
+	if (!ctx || !cond)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_condition");
+
+	ValType type;
+
+	Error err = analyze_expression(ctx, cond, &type);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	if (type != BOOLEAN)
+		return ERROR_EMIT(
+			ERR_SEM_TYPE, cond->line, cond->col, "Condition is not of a BOOLEAN expression");
+
+	return ERROR_OK();
+}
+
+static Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+	if (!ctx || !node || !out || !returns || node->type != NODE_IF)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_if");
+
+	bool all_return = true; // Every branch returns
+	bool all_unit = true;	// Every branch has a type UNIT
+	bool has_else = false;	// If the 'if' has else, if not it will be like a branch with ()
+	ValType common_type = UNDEF;
+
+	bool first_non_return = true;
+	size_t if_count = node->if_else_stmt.next_conds.count;
+	for (size_t i = 0; i <= if_count; i++) {
+		ASTNode *branch;
+		if (i == 0) {
+			branch = node;
+		} // The 'if' itself
+		else {
+			branch = node->if_else_stmt.next_conds.items[i - 1];
+		}
+
+		if (!branch || (i > 0 && branch->type != NODE_ELSE))
+			return ERROR_EMIT(ERR_INTERNAL, node->line, node->col, "Invalid branch");
+
+		if (branch->if_else_stmt.cond != NULL) {
+			Error err = analyze_condition(ctx, branch->if_else_stmt.cond);
+			if (ERROR_IS_ERR(err))
+				return err;
+		} else {
+			has_else = true;
+		}
+
+		ValType type;
+		bool ret;
+
+		Error err = analyze_body(ctx, branch->if_else_stmt.body, &type, &ret);
+		if (ERROR_IS_ERR(err))
+			return err;
+
+		if (!ret) {
+			if (first_non_return) {
+				common_type = type;
+				first_non_return = false;
+			}
+
+			if (common_type != type)
+				common_type = UNDEF;
+		}
+
+		all_return = all_return && ret;
+		all_unit = all_unit && (type == UNIT);
+	}
+
+	*returns = has_else && all_return;
+	if (*returns || all_unit) {
+		*out = UNIT;
+	} else {
+		*out = common_type;
+	}
+
+	return ERROR_OK();
+}
+
 Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *returns) {
 	if (!ctx || !stmt || !out || !returns) {
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_stmt");
@@ -416,16 +511,15 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 		case NODE_FLOAT_LITERAL:
 		case NODE_STRING_LITERAL:
 		case NODE_NULL_LITERAL:
-		case NODE_IDENTIFIER: {
+		case NODE_IDENTIFIER:
 			return analyze_expression(ctx, stmt, out);
-		}
-		case NODE_BLOCK: {
+		case NODE_BLOCK:
 			return analyze_block(ctx, stmt, true, out, returns);
-		}
-		case NODE_RETURN: {
+		case NODE_RETURN:
 			return analyze_return(ctx, stmt, out, returns);
-		}
-		default: // NODE_IF, NODE_WHILE, NODE_FOR, NODE_RETURN
+		case NODE_IF:
+			return analyze_if(ctx, stmt, out, returns);
+		default: // NODE_WHILE, NODE_FOR
 			return ERROR_EMIT(
 				ERR_INTERNAL, stmt->line, stmt->col, "Unsupported statement type for analysis");
 	}
