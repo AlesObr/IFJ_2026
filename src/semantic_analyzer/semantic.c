@@ -342,6 +342,53 @@ Error analyze_block(
 	return ERROR_OK();
 }
 
+static Error analyze_return(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+	if (!ctx || !node || !out || !returns || node->type != NODE_RETURN)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_return");
+	if (!ctx->current_function)
+		return ERROR_EMIT(ERR_SEM_MAIN, node->line, node->col, "Return is outside of a function");
+
+	ValType return_type = ctx->current_return_type;
+	ASTNode *value = node->return_stmt.expr;
+
+	// Check if the function has a return type
+	if (return_type == UNDEF)
+		return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col,
+			"Function that has a return also needs declared return type");
+
+	// Check if the return returns smth
+	if (!value) {
+		if (return_type != UNIT)
+			return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col,
+				"Empty return a function which return type is not UNIT");
+	} else {
+		ValType type;
+
+		Error err = analyze_expression(ctx, value, &type);
+		if (ERROR_IS_ERR(err))
+			return err;
+
+		if (type == BOOLEAN && !booleans_enabled())
+			return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col, "Cannot return a BOOLEAN value");
+
+		if (return_type != UNIT) {
+			bool conv;
+
+			if (!type_compatible(return_type, type, &conv))
+				return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col,
+					"Returned value does not match with functions return type");
+
+			if (conv)
+				mark_convert(value);
+		}
+	}
+
+	*out = UNIT;
+	*returns = true;
+
+	return ERROR_OK();
+}
+
 Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *returns) {
 	if (!ctx || !stmt || !out || !returns) {
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_stmt");
@@ -374,6 +421,9 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 		}
 		case NODE_BLOCK: {
 			return analyze_block(ctx, stmt, true, out, returns);
+		}
+		case NODE_RETURN: {
+			return analyze_return(ctx, stmt, out, returns);
 		}
 		default: // NODE_IF, NODE_WHILE, NODE_FOR, NODE_RETURN
 			return ERROR_EMIT(
