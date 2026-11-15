@@ -1,7 +1,7 @@
 /**
  * @project IFJ26 Compiler
- * @file code_gen_buidlins.c
- * @brief Code gen buidlins module implementation for IFJ26 compiler.
+ * @file code_gen_buildins.c
+ * @brief Code gen buildins module implementation for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11
  */

@@ -10,8 +10,23 @@
 #ifndef IFJ26_CODE_GEN_H
 #define IFJ26_CODE_GEN_H
 
+#include "../_utils/error.h"
 #include "../parser/ast.h"
 #include <stdbool.h>
+
+/**
+ * @brief The main function to be called to run gencode
+ * @param outermost_node the topmost node
+ * @return Returns ERROR_OK if no error occured, other errors otherwise
+ */
+Error gen_run(const ASTNode *outermost_node);
+
+/**
+ * @brief Takes a function node and prints it using instructions onto std output
+ * @param fuc The func node
+ * @return True on successful generation, false otherwise
+ */
+bool gen_function(ASTNode *func);
 
 /**
  * @brief Gets operand type and it's result type and prints the corresponding instruction to std

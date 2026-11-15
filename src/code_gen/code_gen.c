@@ -8,7 +8,129 @@
  */
 
 #include "code_gen.h"
+#include "code_gen_buildins.h"
 #include <stdio.h>
+
+static void print_escaped(const char *str) {
+	for (const char *c = (const char *)str; *c; c++) {
+		if (*c <= 32 || *c == 35 || *c == 92)
+			printf("\\%03d", *c);
+		else
+			putchar(*c);
+	}
+}
+
+static size_t bigger_size(const size_t x, const size_t y) {
+	return x > y ? x : y;
+}
+
+static size_t max_sym_id(const ASTNode *node) {
+	if (!node)
+		return 0;
+
+	size_t biggest = 0;
+	switch (node->type) {
+		case NODE_BLOCK:
+			for (size_t i = 0; i < node->block.stmts.count; i++) {
+				const ASTNode *stmt = node->block.stmts.items[i];
+				biggest = bigger_size(max_sym_id(stmt), biggest);
+			}
+			return biggest;
+		case NODE_VAR_DECL:
+			return node->sym_id;
+		case NODE_IF:
+		case NODE_ELSE:
+			biggest = bigger_size(max_sym_id(node->if_else_stmt.body), biggest);
+			for (size_t i = 0; i < node->if_else_stmt.next_conds.count; i++) {
+				const ASTNode *branch = node->if_else_stmt.next_conds.items[i];
+				biggest = bigger_size(max_sym_id(branch), biggest);
+			}
+			return biggest;
+		case NODE_WHILE:
+			biggest = bigger_size(max_sym_id(node->while_stmt.body), biggest);
+			return biggest;
+		default:
+			return 0;
+	}
+}
+
+Error gen_run(const ASTNode *outermost_node) {
+	if (!outermost_node || outermost_node->type != NODE_BLOCK)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "The top most node must be a block");
+
+	printf(".IFJcode26\n");
+	printf("DEFVAR GF@throwaway\n");
+	printf("JUMP $main\n");
+
+	read_line();
+	read_int();
+	read_double();
+	print();
+	to_str();
+	to_int();
+	str_length();
+	sub_str();
+	ord();
+	chr();
+
+	const ASTNodeList *stmts = &outermost_node->block.stmts;
+	ASTNode *main_func = NULL;
+	for (size_t i = 0; i < stmts->count; i++) {
+		ASTNode *node = stmts->items[i];
+
+		if (node->type != NODE_FUNC_DECL)
+			continue; // EXTKW
+
+		if (node->func_decl.is_main) {
+			if (!main_func) // Semantic can't return AST with more than one main,
+							// I'm just making sure ':D
+				main_func = node;
+			else
+				return ERROR_EMIT(
+					ERR_INTERNAL, node->line, node->col, "Multiple main functions defined");
+		}
+
+		if (!gen_function(node))
+			return ERROR_EMIT(ERR_INTERNAL, node->line, node->col, "Function gen_function failed");
+	}
+
+	// Again, I'm just making sure that semantic didn't mess up somewhere
+	if (!main_func)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "No main function");
+
+	printf("LABEL $main\n");
+	printf("CREATEFRAME\n");
+	printf("CALL $func_%s\n", dstring_get(&main_func->func_decl.func_name));
+	printf("EXIT int@0\n");
+	return ERROR_OK();
+}
+
+bool gen_function(ASTNode *func) {
+	printf("LABEL $func_%s\n", dstring_get(&func->func_decl.func_name));
+	printf("PUSHFRAME\n");
+	printf("DEFVAR LF@%%retval\n");
+	printf("MOVE LF@%%retval nil@nil\n");
+
+	size_t window_count = func->func_decl.param_windows.count;
+	ASTNode *window = (window_count > 0) ? func->func_decl.param_windows.items[0] : NULL;
+	size_t param_count = window ? window->param_window.params.count : 0;
+	size_t var_count = bigger_size(param_count, max_sym_id(func->func_decl.body));
+
+	for (size_t i = 1; i <= var_count; i++)
+		printf("DEFVAR LF@v%zu\n", i);
+
+	for (size_t i = 0; i < param_count; i++) {
+		ASTNode *param = window->param_window.params.items[i];
+		printf("MOVE LF@v%zu LF@%%arg%zu\n", param->sym_id, i + 1);
+	}
+
+	if (!gen_stmt(func->func_decl.body))
+		return false;
+
+	printf("POPFRAME\n");
+	printf("RETURN\n");
+	return true;
+}
 
 bool gen_binary_op_stack(OpType op, ValType result_type) {
 	switch (op) {
@@ -74,8 +196,9 @@ bool gen_expr(const ASTNode *exp) {
 			printf("PUSHS float@%a\n", exp->float_val);
 			break;
 		case NODE_STRING_LITERAL:
-			printf("PUSHS string@ ---NOT SUPPORTED YET---\n"); // Get the proper string
-			passed = false;
+			printf("PUSHS string@");
+			print_escaped(dstring_get(&exp->str_val));
+			printf("\n");
 			break;
 		case NODE_NULL_LITERAL:
 			printf("PUSHS nil@nil\n");
