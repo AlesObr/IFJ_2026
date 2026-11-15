@@ -54,6 +54,25 @@ static size_t max_sym_id(const ASTNode *node) {
 	}
 }
 
+static bool is_expression(const ASTNode *node) {
+	switch (node->type) {
+		case NODE_BINARY_OP:
+			if (node->op.op == OP_ASSIGN)
+				return false;
+		case NODE_INT_LITERAL:
+		case NODE_FLOAT_LITERAL:
+		case NODE_STRING_LITERAL:
+		case NODE_NULL_LITERAL:
+		case NODE_CALL:
+		case NODE_UNARY_OP:
+		case NODE_IDENTIFIER:
+			return true;
+		default:
+			return false;
+	}
+	return false;
+}
+
 Error gen_run(const ASTNode *outermost_node) {
 	if (!outermost_node || outermost_node->type != NODE_BLOCK)
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "The top most node must be a block");
@@ -124,9 +143,29 @@ bool gen_function(ASTNode *func) {
 		printf("MOVE LF@v%zu LF@%%arg%zu\n", param->sym_id, i + 1);
 	}
 
-	if (!gen_stmt(func->func_decl.body))
-		return false;
+	ASTNode *last_stmt = NULL;
+	if (func->func_decl.body->type == NODE_BLOCK) {
+		ASTNodeList *stmts = &func->func_decl.body->block.stmts;
+		if (stmts->count > 0) {
+			// Skip the last stmt and then save it
+			for (size_t i = 0; i + 1 < stmts->count; i++) {
+				ASTNode *stmt = stmts->items[i];
+				if (!gen_stmt(stmt))
+					return false;
+			}
+			last_stmt = stmts->items[stmts->count - 1];
+		}
+	} else
+		last_stmt = func->func_decl.body;
 
+	if (last_stmt) {
+		if (is_expression(last_stmt) && func->expr_types != UNIT) {
+			if (!gen_expr(last_stmt))
+				return false;
+			printf("POPS LF@%%retval\n");
+		} else if (!gen_stmt(last_stmt))
+			return false;
+	}
 	printf("POPFRAME\n");
 	printf("RETURN\n");
 	return true;
@@ -257,6 +296,15 @@ bool gen_stmt(const ASTNode *stmt) {
 					return false;
 			}
 			break;
+		case NODE_RETURN:
+			if (stmt->return_stmt.expr) {
+				if (!gen_expr(stmt->return_stmt.expr))
+					return false;
+				printf("POPS LF@%%retval\n");
+			}
+			printf("POPFRAME\n");
+			printf("RETURN\n");
+			return true;
 		default:
 			return false; // if, while, return, for
 	}
