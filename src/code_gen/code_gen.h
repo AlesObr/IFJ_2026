@@ -30,4 +30,11 @@ bool gen_binary_op_stack(OpType op, ValType result_type);
  */
 bool gen_expr(const ASTNode *exp);
 
+/**
+ * @brief Analyze a statement
+ * @param stmt The node
+ * @return Returns false if it failed or the stmt is of type that's not supported, true otherwise
+ */
+bool gen_stmt(const ASTNode *stmt);
+
 #endif /* IFJ26_CODE_GEN_H */

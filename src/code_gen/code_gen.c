@@ -93,3 +93,49 @@ bool gen_expr(const ASTNode *exp) {
 
 	return passed;
 }
+
+bool gen_stmt(const ASTNode *stmt) {
+	if (!stmt)
+		return false;
+
+	switch (stmt->type) {
+		case NODE_VAR_DECL:
+			if (!gen_expr(stmt->var_decl.init_expr))
+				return false;
+			printf("POPS LF@v%zu\n", stmt->sym_id);
+			return true;
+		case NODE_BINARY_OP:
+			if (stmt->op.op == OP_ASSIGN) {
+				if (!gen_expr(stmt->op.right))
+					return false;
+				printf("POPS LF@v%zu\n", stmt->op.left->sym_id);
+				return true;
+			}
+			// expressions like 1 + 5 without assignment
+			if (!gen_expr(stmt))
+				return false;
+			printf("POPS GF@throwaway\n");
+			return true;
+		case NODE_INT_LITERAL:
+		case NODE_FLOAT_LITERAL:
+		case NODE_STRING_LITERAL:
+		case NODE_NULL_LITERAL:
+		case NODE_CALL:
+		case NODE_UNARY_OP:
+		case NODE_IDENTIFIER:
+			if (!gen_expr(stmt))
+				return false;
+			printf("POPS GF@throwaway\n");
+			break;
+		case NODE_BLOCK:
+			for (size_t i = 0; i < stmt->block.stmts.count; i++) {
+				ASTNode *block_stmt = stmt->block.stmts.items[i];
+				if (!gen_stmt(block_stmt))
+					return false;
+			}
+			break;
+		default:
+			return false; // if, while, return, for
+	}
+	return true;
+}
