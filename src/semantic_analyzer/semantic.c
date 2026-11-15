@@ -685,8 +685,11 @@ Error analyze_function(SemanticContext *ctx, FunctionEntry *entry) {
 	ctx->current_function = saved_func;
 	ctx->current_return_type = saved_return_type;
 
-	if (!ERROR_IS_ERR(err))
-		entry->state = FUNC_DONE; // Mark the function as analyzed
+	if (!ERROR_IS_ERR(err)) {
+		entry->state = FUNC_DONE;				   // Mark the function as analyzed
+		set_type(entry->decl, entry->return_type); // Codegen needs to know if the function's last
+												   // expression is returned or thrown away
+	}
 
 	return err;
 }
