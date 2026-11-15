@@ -107,3 +107,20 @@ ValType unop_result(OpType op, ValType operand) {
 	}
 	return UNDEF;
 }
+
+Error type_from_nodes(const ASTNodeList *types, size_t line, size_t col, ValType *out) {
+	if (types->count == 0) {
+		*out = UNDEF;
+		return ERROR_OK();
+	}
+	if (types->count > 1)
+		return ERROR_EMIT(ERR_INTERNAL, line, col, "Union types are not suppoerted yet"); // ALGEBDT
+
+	ASTNode *t = types->items[0];
+	if (t->type == NODE_TYPE_ORIG) {
+		*out = t->data_type.orig_type;
+		return ERROR_OK();
+	}
+
+	return ERROR_EMIT(ERR_SEM_UNDEF, line, col, "Undefined type"); // ALGEBDT
+}
