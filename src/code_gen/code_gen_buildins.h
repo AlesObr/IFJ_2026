@@ -1,6 +1,6 @@
 /**
  * @project IFJ26 Compiler
- * @file code_gen_buidlins.h
+ * @file code_gen_buildins.h
  * @brief Built-in routine emitters for the IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11

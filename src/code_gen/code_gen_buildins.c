@@ -1,8 +1,9 @@
 /**
  * @project IFJ26 Compiler
- * @file code_gen_buidlins.c
- * @brief Code gen buidlins module implementation for IFJ26 compiler.
+ * @file code_gen_buildins.c
+ * @brief Code gen buildins module implementation for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
+ * @author Karel Kříž (xkrizka00)
  * @note Standard: ISO C11
  */
 
@@ -38,6 +39,8 @@ void read_double(void) {
 void print(void) {
 	printf("LABEL $built_in_print\n");
 	printf("PUSHFRAME\n");
+	printf("DEFVAR LF@%%retval\n");
+	printf("MOVE LF@%%retval nil@nil\n");
 	printf("WRITE LF@%%arg1\n");
 	printf("POPFRAME\n");
 	printf("RETURN\n");
