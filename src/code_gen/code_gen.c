@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <string.h>
 
+static size_t label_id = 0;
+
 static void print_escaped(const char *str) {
 	for (const char *c = (const char *)str; *c; c++) {
 		if (*c <= 32 || *c == 35 || *c == 92)
@@ -300,6 +302,44 @@ bool gen_expr(const ASTNode *exp) {
 	return passed;
 }
 
+static bool gen_if(const ASTNode *node) {
+	if (!node || node->type != NODE_IF)
+		return false;
+
+	size_t id = label_id++;
+	size_t if_count = node->if_else_stmt.next_conds.count;
+	for (size_t i = 0; i <= if_count; i++) {
+		const ASTNode *branch;
+		if (i == 0)
+			branch = node;
+		else
+			branch = node->if_else_stmt.next_conds.items[i - 1];
+
+		// Double check (same in semantic)
+		if (!branch || (i > 0 && branch->type != NODE_ELSE))
+			return false;
+
+		if (branch->if_else_stmt.cond != NULL) {
+			if (!gen_expr(branch->if_else_stmt.cond))
+				return false;
+			printf("PUSHS bool@false\n");
+			printf("JUMPIFEQS $if_%zu_%zu\n", id, i + 1);
+		}
+
+		if (!gen_stmt(branch->if_else_stmt.body))
+			return false;
+
+		if (branch->if_else_stmt.cond != NULL) {
+			printf("JUMP $if_%zu_end\n", id);
+			printf("LABEL $if_%zu_%zu\n", id, i + 1);
+		}
+	}
+
+	printf("LABEL $if_%zu_end\n", id);
+
+	return true;
+}
+
 bool gen_stmt(const ASTNode *stmt) {
 	if (!stmt)
 		return false;
@@ -349,6 +389,8 @@ bool gen_stmt(const ASTNode *stmt) {
 			printf("POPFRAME\n");
 			printf("RETURN\n");
 			return true;
+		case NODE_IF:
+			return gen_if(stmt);
 		default:
 			return false; // if, while, return, for
 	}
