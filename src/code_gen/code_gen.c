@@ -95,6 +95,8 @@ Error gen_run(const ASTNode *outermost_node) {
 
 	printf(".IFJcode26\n");
 	printf("DEFVAR GF@throwaway\n");
+	printf("DEFVAR GF@%%t1\n");
+	printf("DEFVAR GF@%%t2\n");
 	printf("JUMP $main\n");
 
 	read_line();
@@ -198,6 +200,13 @@ Error gen_function(ASTNode *func) {
 Error gen_binary_op_stack(const ASTNode *exp) {
 	switch (exp->op.op) {
 		case OP_ADD:
+			if (exp->expr_types == STRING) {
+				printf("POPS GF@%%t2\n");
+				printf("POPS GF@%%t1\n");
+				printf("CONCAT GF@%%t1 GF@%%t1 GF@%%t2\n");
+				printf("PUSHS GF@%%t1\n");
+				break;
+			}
 			printf("ADDS\n");
 			break;
 		case OP_SUB:
@@ -231,6 +240,18 @@ Error gen_binary_op_stack(const ASTNode *exp) {
 			printf("ORS\n");
 			break;
 		case OP_NOT:
+			printf("NOTS\n");
+			break;
+		case OP_NEQ:
+			printf("EQS\n");
+			printf("NOTS\n");
+			break;
+		case OP_LTE:
+			printf("GTS\n");
+			printf("NOTS\n");
+			break;
+		case OP_GTE:
+			printf("LTS\n");
 			printf("NOTS\n");
 			break;
 		default: { // OP_CONCAT, OP_ASSIGN, OP_NEQ, OP_LTE, OP_GTE, OP_UNARY_MINUS, OP_UNARY_PLUS
@@ -306,6 +327,41 @@ Error gen_expr(const ASTNode *exp) {
 				printf("CALL $func_%s\n", func_name);
 
 			printf("PUSHS TF@%%retval\n");
+			break;
+		}
+		case NODE_UNARY_OP: {
+			switch (exp->op.op) {
+				case OP_UNARY_MINUS:
+					if (exp->expr_types == INT)
+						printf("PUSHS int@0\n");
+					else if (exp->expr_types == DOUBLE)
+						printf("PUSHS float@0x0p+0\n");
+					else
+						return ERROR_EMIT(ERR_INTERNAL, exp->line, exp->col,
+							"Unsupported opperatins"); // Double check ;P
+
+					err = gen_expr(exp->op.left);
+					if (ERROR_IS_ERR(err))
+						return err;
+
+					printf("SUBS\n");
+					break;
+				case OP_NOT:
+					err = gen_expr(exp->op.left);
+					if (ERROR_IS_ERR(err))
+						return err;
+
+					printf("NOTS\n");
+					break;
+				case OP_UNARY_PLUS:
+					err = gen_expr(exp->op.left);
+					if (ERROR_IS_ERR(err))
+						return err;
+					break;
+				default:
+					return ERROR_EMIT(
+						ERR_INTERNAL, exp->line, exp->col, "Unsupported NODE_UNARY_OP node");
+			}
 			break;
 		}
 		default: {
