@@ -340,6 +340,29 @@ static bool gen_if(const ASTNode *node) {
 	return true;
 }
 
+static bool gen_while(const ASTNode *node) {
+	if (!node || node->type != NODE_WHILE)
+		return false;
+
+	size_t id = label_id++;
+
+	printf("LABEL $while_%zu_start\n", id);
+
+	if (!gen_expr(node->while_stmt.cond))
+		return false;
+
+	printf("PUSHS bool@false\n");
+	printf("JUMPIFEQS $while_%zu_end\n", id);
+
+	if (!gen_stmt(node->while_stmt.body))
+		return false;
+
+	printf("JUMP $while_%zu_start\n", id);
+	printf("LABEL $while_%zu_end\n", id);
+
+	return true;
+}
+
 bool gen_stmt(const ASTNode *stmt) {
 	if (!stmt)
 		return false;
@@ -391,8 +414,10 @@ bool gen_stmt(const ASTNode *stmt) {
 			return true;
 		case NODE_IF:
 			return gen_if(stmt);
-		default:
-			return false; // if, while, return, for
+		case NODE_WHILE:
+			return gen_while(stmt);
+		default: // for
+			return false;
 	}
 	return true;
 }
