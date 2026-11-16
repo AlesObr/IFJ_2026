@@ -47,6 +47,9 @@ PRECEDENCE_SRC   = src/parser/precedence.c
 PARSER_SRC       = src/parser/parser.c $(PRECEDENCE_SRC) $(AST_SRC) $(LEXER_SRC)
 PARSER_TEST_SRC  = test/syntax_test/test_parser.c
 
+SEMANTIC_SRC      = $(wildcard src/semantic_analyzer/*.c) src/symtable.c $(PARSER_SRC)
+SEMANTIC_TEST_SRC = test/semantic_test/test_semantic.c
+
 # ----------------------------------------------------------------------
 # Cílové binárky (vše konzistentně do BUILD_DIR)
 # ----------------------------------------------------------------------
@@ -61,6 +64,7 @@ TARGET_SYMTABLE_VALGRIND = $(BUILD_DIR)/test_symtable_valgrind
 
 TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
 TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
+TARGET_SEMANTIC_TEST     = $(BUILD_DIR)/semantic_test
 
 # ----------------------------------------------------------------------
 # Phony cíle
@@ -71,6 +75,7 @@ TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
         symtable-asan symtable-valgrind symtable-check test_symtable \
         scanner-build test-scanner test-scanner-valgrind \
         parser-build test-parser test-parser-valgrind gen-tests \
+        semantic-build test-semantic test-semantic-valgrind gen-sem-tests \
         linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep is-it-ok
 
@@ -208,6 +213,39 @@ gen-tests:
 	python3 fuzzer.py --seeds-dir seed/basic seed/random --out-dir ../generated_tests \
 		--valid-count $(GEN_VALID) --invalid-count $(GEN_INVALID) --seed $(GEN_SEED) \
 		--tag $(GEN_TAG) --copy-seeds --oracle
+
+# ----------------------------------------------------------------------
+# Testy sémantické analýzy (parser + sémantika, očekávaný kód je v názvu testu)
+# ----------------------------------------------------------------------
+# cases/: ruční testy pravidel zadání (make_cases.py), generated/: validní seedy a jejich
+# mutace s jednou sémantickou chybou (make gen-sem-tests). Jen vybrané: make test-semantic SEM_FILTER=e6_
+SEM_TEST_DIRS ?= test/semantic_test/cases test/semantic_test/generated
+SEM_FILTER    ?=
+SEM_PER_SEED  ?= 3
+
+$(TARGET_SEMANTIC_TEST): $(SEMANTIC_SRC) $(SEMANTIC_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+semantic-build: $(TARGET_SEMANTIC_TEST)
+
+test-semantic: semantic-build
+	@echo "=== Spuštění testů sémantiky ==="
+	@python3 test/semantic_test/sem_runner.py --bin ./$(TARGET_SEMANTIC_TEST) --dir $(SEM_TEST_DIRS) \
+		$(if $(SEM_FILTER),--filter $(SEM_FILTER))
+
+test-semantic-valgrind: semantic-build
+	@echo "=== Spuštění testů sémantiky pod Valgrindem ==="
+	@python3 test/semantic_test/sem_runner.py --bin ./$(TARGET_SEMANTIC_TEST) --dir $(SEM_TEST_DIRS) \
+		--valgrind $(if $(SEM_FILTER),--filter $(SEM_FILTER))
+
+# Ruční testy se přegenerují z make_cases.py, mutace z validních seedů (přeskočí ty, které
+# neprojdou parserem); obsah obou adresářů se přepíše
+gen-sem-tests: parser-build
+	@python3 test/semantic_test/make_cases.py
+	@python3 test/semantic_test/sem_mutator.py \
+		--seeds-dir test/syntax_test/seed/basic test/syntax_test/seed/random \
+		--out-dir test/semantic_test/generated --per-seed $(SEM_PER_SEED) --seed $(GEN_SEED) \
+		--parser-bin ./$(TARGET_PARSER_TEST)
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery

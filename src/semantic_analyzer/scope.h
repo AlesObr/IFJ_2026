@@ -3,22 +3,23 @@
  * @file scope.h
  * @brief Scope management for semantic analysis (issue #21).
  * @author Karel Kříž (xkrizka00)
- * @note Standard: ISO C11, Temporary linear-scan storage until symtable is finished.
+ * @note Standard: ISO C11
  */
 
 #ifndef IFJ26_SCOPE_H
 #define IFJ26_SCOPE_H
 
+#include "../_utils/stack.h"
 #include "../parser/ast.h"
 #include <stdbool.h>
 #include <stddef.h>
 
 /** @brief A symbol in the scope */
 typedef struct {
-	char *name;	   /**< Owned copy of the identifier */
-	ValType type;  /**< Type of the symbol */
-	bool is_const; /**< Whether the symbol is a constant */
-	size_t id;	   /**< Unique identifier for the symbol */
+	const ASTNode *node; /**< The declaring node */
+	ValType type;		 /**< Type of the symbol */
+	bool is_const;		 /**< Whether the symbol is a constant */
+	size_t id;			 /**< Unique identifier for the symbol, same as node->sym_id, starts at 1 */
 } Symbol;
 
 /** @brief Result of scope operations */
@@ -30,13 +31,10 @@ typedef enum {
 
 /** @brief A stack of scopes */
 typedef struct {
-	Symbol *syms;	/**< Array of symbols, oldest first */
-	size_t count;	/**< Number of symbols in the scope */
-	size_t cap;		/**< Capacity of the symbols array */
-	size_t *marks;	/**< marks[i] = index in syms where scope i begins*/
-	size_t nmarks;	/**< Current nesting depth */
-	size_t mcap;	/**< Capacity of the marks array */
-	size_t next_id; /**< Next unique identifier for symbols */
+	Symbol *syms; /**< Array of symbols, oldest first */
+	size_t count; /**< Number of symbols in the scope */
+	size_t cap;	  /**< Capacity of the symbols array */
+	Stack scopes; /**< Stack of symtable */
 } ScopeStack;
 
 /**
@@ -74,15 +72,13 @@ void scope_pop(ScopeStack *stack);
 Symbol *scope_lookup(const ScopeStack *s, const char *name);
 
 /**
- * @brief Declares a name in the current scope only
+ * @brief Declares a variable/param in the current scope only
  * @param s The scope stack to insert into
- * @param name The name of the symbol to insert
+ * @param decl NODE_VAR_DECL or NODE_FUNC_PARAM
  * @param type The type of the symbol to insert
- * @param is_const Whether the symbol is a constant
  * @param out Optional; recieves the new symbol, or the existing one on SCOPE_DUP.
  * @return SCOPE_OK on success, SCOPE_DUP if the name already exists in the current scope,
  */
-ScopeResult scope_insert(
-	ScopeStack *s, const char *name, ValType type, bool is_const, Symbol **out);
+ScopeResult scope_insert(ScopeStack *s, ASTNode *decl, ValType type, Symbol **out);
 
 #endif // IFJ26_SCOPE_H

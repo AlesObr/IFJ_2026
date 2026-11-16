@@ -10,8 +10,16 @@
 #define IFJ26_FTABLE_H
 
 #include "../parser/ast.h"
+#include "symtable.h"
 #include <stdbool.h>
 #include <stddef.h>
+
+/** @brief Analysis state of a function to infer ommited return types on demand */
+typedef enum {
+	FUNC_NEW,	  /**< Body not analyzed yet */
+	FUNC_RUNNING, /**< Body is being analyzed */
+	FUNC_DONE	  /**< Body analyzed, return type known */
+} FuncState;
 
 /** @brief A function in the table */
 typedef struct {
@@ -22,13 +30,17 @@ typedef struct {
 	bool is_main;		  /**< If the function is main */
 	bool is_builtin;	  /**< If the function is builtin */
 	ASTNode *decl;		  /**< The function node */
+	FuncState state;	  /**< Analysis state */
+	ASTNode *symnode;	  /**< The function node that's stored in the symtable */
 } FunctionEntry;
 
 /** @brief Table of all inserted functions */
 typedef struct {
-	FunctionEntry **f_entries; /**< Array of pointers to functions */
-	size_t count;			   /**< Number of functions in the table */
-	size_t capacity;		   /**< Capacity of the functions array */
+	symtable *names; /**< name */
+	FunctionEntry *
+		*f_entries;	 /**< Array of pointers to functions, node->sym_id = index + 1 if f_entries */
+	size_t count;	 /**< Number of functions in the table */
+	size_t capacity; /**< Capacity of the functions array */
 } FunctionTable;
 
 /**

@@ -10,7 +10,7 @@
 #define IFJ26_FREGISTER_H
 
 #include "../_utils/error.h"
-#include "ast.h"
+#include "../parser/ast.h"
 #include "ftable.h"
 
 /**
