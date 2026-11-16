@@ -1,10 +1,10 @@
 /**
  * @file test_codegen.c
- * @brief Harness generatoru kodu: parser -> code_gen bez semanticke analyzy.
+ * @brief Harness generatoru kodu: parser -> semantika -> gen_run.
  *
- * Cte program IFJ26 ze stdin a na stdout vypise IFJcode26. Navratovy kod: 1/2 pri chybe
- * lexeru/parseru, kod chyby generatoru (99), jinak 0. Semantika se nespousti, testovane
- * programy proto musi byt semanticky spravne.
+ * Cte program IFJ26 ze stdin a na stdout vypise IFJcode26. Navratovy kod je kod chyby dle
+ * zadani (1/2 lexer/parser, 3-10 semantika, 99 interni chyba vc. selhani generatoru), jinak 0.
+ * Zprava chyby jde na stderr ve tvaru "[faze] radek:sloupec zprava".
  */
 
 #include <stdio.h>
@@ -12,6 +12,12 @@
 #include "../../src/_utils/error.h"
 #include "../../src/code_gen/code_gen.h"
 #include "../../src/parser/parser.h"
+#include "../../src/semantic_analyzer/semantic.h"
+
+static int report(const char *phase, Error err) {
+	fprintf(stderr, "[%s] %zu:%zu %s\n", phase, err.line, err.col, err.message ? err.message : "");
+	return (int)err.type;
+}
 
 int main(void) {
 	ParserStatus status = parse();
@@ -23,13 +29,17 @@ int main(void) {
 	} else if (ERROR_IS_ERR(status.error)) {
 		rc = (int)status.error.type;
 	} else {
-		Error err = code_gen(status.new_node);
+		Error err = sem_run(status.new_node);
 		if (ERROR_IS_ERR(err)) {
-			fprintf(stderr, "[code_gen] %zu:%zu %s\n", err.line, err.col,
-				err.message ? err.message : "");
-			rc = (int)err.type;
+			rc = report("semantic", err);
+		} else {
+			err = gen_run(status.new_node);
+			if (ERROR_IS_ERR(err)) {
+				rc = report("code_gen", err);
+			}
 		}
 	}
+	fflush(stdout);
 	ast_destroy(status.new_node);
 	return rc;
 }

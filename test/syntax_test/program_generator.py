@@ -59,9 +59,16 @@ class Expr:
 
 
 class ProgramGenerator:
-    def __init__(self, rng: random.Random, stress: bool = False):
+    def __init__(self, rng: random.Random, stress: bool = False, safe: bool = False,
+                 control: bool = True):
         self.rng = rng
         self.stress = stress
+        # Bez behovych chyb (deleni nulou) a bez preteceni 32bitoveho Int: program se da spustit
+        # Scalou a jeji vystup pouzit jako ocekavany vystup testu generatoru kodu
+        self.safe = safe
+        # Bez if, while a return: jen deklarace, prirazeni, vyrazy a volani (pro postupne
+        # testovani generatoru kodu, ktery ridici struktury jeste neumi)
+        self.control = control
         self.functions: list[tuple[str, list[str], str]] = []  # (jmeno, typy parametru, navratovy typ)
         self.counter = 0
         self.max_expr_depth = 4
@@ -98,6 +105,8 @@ class ProgramGenerator:
     # --- Literaly ---
 
     def int_literal(self) -> str:
+        if self.safe:
+            return str(self.rng.randint(0, 20))
         value = self.rng.choice([0, 1, 2, 3, 7, 10, 42, 100, self.rng.randint(0, 99999)])
         if value >= 1000 and self.chance(0.3):
             text = f"{value:,}".replace(",", "_")
@@ -162,6 +171,10 @@ class ProgramGenerator:
 
         ops = ["+"] if typ == "String" else ["+", "-", "*", "/"]
         op = self.rng.choice(ops)
+        if self.safe and op in ("*", "/"):
+            # Delitel i druhy cinitel je maly nenulovy literal: zadne deleni nulou ani rychly rust
+            small = str(self.rng.randint(1, 5)) if typ == "Int" else f"{self.rng.randint(1, 5)}.5"
+            return Expr("bin", op, [self.expr(typ, scope, depth + 1), Expr("lit", small)])
         return Expr("bin", op, [self.expr(typ, scope, depth + 1), self.expr(typ, scope, depth + 1)])
 
     def condition(self, scope: Scope) -> Expr:
@@ -239,7 +252,7 @@ class ProgramGenerator:
         pad = " " * indent
         r = self.rng.random()
         mutable = [n for n, (_, is_var) in scope.all().items() if is_var]
-        compound_ok = depth < (8 if self.stress else 4)
+        compound_ok = self.control and depth < (8 if self.stress else 4)
 
         if r < 0.3:
             typ = self.rng.choice(TYPES)
@@ -260,7 +273,7 @@ class ProgramGenerator:
             return self.if_statement(indent, scope, ret_type, depth)
         if r < 0.78 and compound_ok:
             return self.while_statement(indent, scope, ret_type, depth)
-        if r < 0.83 and ret_type is not None:
+        if r < 0.83 and ret_type is not None and self.control:
             if ret_type == "Unit":
                 return [f"{pad}return"]
             return [f"{pad}return {self.render(self.expr(ret_type, scope), indent)}"]
@@ -430,13 +443,18 @@ def main():
     parser.add_argument("--count", type=int, default=50, help="Pocet nahodnych programu")
     parser.add_argument("--stress", action="store_true", help="Pridat i mezni (stress) programy")
     parser.add_argument("--seed", type=int, default=None, help="Seed nahodneho generatoru")
+    parser.add_argument("--no-control", action="store_true",
+                        help="Programy bez if, while a return (jen vyrazy, deklarace a volani)")
+    parser.add_argument("--runtime-safe", action="store_true",
+                        help="Programy bez deleni nulou a s malymi cisly (pro testy generatoru kodu)")
     args = parser.parse_args()
 
     rng = random.Random(args.seed)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     for i in range(1, args.count + 1):
-        generator = ProgramGenerator(rng, stress=args.stress and rng.random() < 0.2)
+        generator = ProgramGenerator(rng, stress=args.stress and rng.random() < 0.2, safe=args.runtime_safe,
+                                     control=not args.no_control)
         (out_dir / f"random_{i:03d}.scala").write_text(generator.program(), encoding="utf-8")
     if args.stress:
         for name, code in stress_programs().items():

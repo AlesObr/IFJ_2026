@@ -50,6 +50,9 @@ PARSER_TEST_SRC  = test/syntax_test/test_parser.c
 SEMANTIC_SRC      = $(wildcard src/semantic_analyzer/*.c) src/symtable.c $(PARSER_SRC)
 SEMANTIC_TEST_SRC = test/semantic_test/test_semantic.c
 
+CODEGEN_SRC       = $(wildcard src/code_gen/*.c) $(SEMANTIC_SRC)
+CODEGEN_TEST_SRC  = test/codegen_test/test_codegen.c
+
 # ----------------------------------------------------------------------
 # Cílové binárky (vše konzistentně do BUILD_DIR)
 # ----------------------------------------------------------------------
@@ -65,6 +68,7 @@ TARGET_SYMTABLE_VALGRIND = $(BUILD_DIR)/test_symtable_valgrind
 TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
 TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
 TARGET_SEMANTIC_TEST     = $(BUILD_DIR)/semantic_test
+TARGET_CODEGEN_TEST      = $(BUILD_DIR)/codegen_test
 
 # ----------------------------------------------------------------------
 # Phony cíle
@@ -76,6 +80,7 @@ TARGET_SEMANTIC_TEST     = $(BUILD_DIR)/semantic_test
         scanner-build test-scanner test-scanner-valgrind \
         parser-build test-parser test-parser-valgrind gen-tests \
         semantic-build test-semantic test-semantic-valgrind gen-sem-tests \
+        codegen-build test-codegen test-codegen-valgrind gen-codegen-tests \
         linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep is-it-ok
 
@@ -246,6 +251,55 @@ gen-sem-tests: parser-build
 		--seeds-dir test/syntax_test/seed/basic test/syntax_test/seed/random \
 		--out-dir test/semantic_test/generated --per-seed $(SEM_PER_SEED) --seed $(GEN_SEED) \
 		--parser-bin ./$(TARGET_PARSER_TEST)
+
+# ----------------------------------------------------------------------
+# Testy generátoru kódu (parser + sémantika + codegen -> interpret -> porovnání s výstupem Scaly)
+# ----------------------------------------------------------------------
+# programs/: ruční testy (make_programs.py), random/: náhodné programy bez běhových chyb,
+# random_simple/: náhodné programy bez if, while a return, k tomu základní seedy.
+# Interpret: INTERP=cesta (např. INTERP=test/codegen_test/ic26int.sh), jinak ic26int z PATH,
+# jinak náhradní test/codegen_test/ifjcode_interp.py. Vygenerovaný kód a výstupy: CG_KEEP=adresář.
+# Testy s nepodporovanými konstrukcemi se přeskočí přes CG_EXCLUDE, např.
+#   make test-codegen CG_EXCLUDE=if,while,for,return
+# (seznam konstrukcí: python3 test/codegen_test/codegen_runner.py --help)
+CG_TEST_DIRS ?= test/codegen_test/programs test/codegen_test/random test/codegen_test/random_simple \
+                test/syntax_test/seed/basic
+CG_FILTER    ?=
+CG_EXCLUDE   ?=
+CG_KEEP      ?=
+CG_RANDOM    ?= 120
+INTERP       ?=
+CG_RUNNER     = python3 test/codegen_test/codegen_runner.py --bin ./$(TARGET_CODEGEN_TEST) \
+	--dir $(CG_TEST_DIRS) $(if $(INTERP),--interp $(INTERP)) $(if $(CG_FILTER),--filter $(CG_FILTER)) \
+	$(if $(CG_EXCLUDE),--exclude $(CG_EXCLUDE)) $(if $(CG_KEEP),--keep $(CG_KEEP))
+
+$(TARGET_CODEGEN_TEST): $(CODEGEN_SRC) $(CODEGEN_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+codegen-build: $(TARGET_CODEGEN_TEST)
+
+test-codegen: codegen-build
+	@echo "=== Spuštění testů generátoru kódu ==="
+	@$(CG_RUNNER)
+
+test-codegen-valgrind: codegen-build
+	@echo "=== Spuštění testů generátoru kódu (překladač pod Valgrindem) ==="
+	@$(CG_RUNNER) --valgrind
+
+# Pomalé (každý program se jednou spustí Scalou, ~1-2 s): ruční testy a náhodné programy
+# včetně očekávaných výstupů. Náhodné programy, které ve Scale selžou, přetečou Int nebo
+# neprojdou parserem, se vyřadí.
+gen-codegen-tests: parser-build
+	@cd test/codegen_test && python3 make_programs.py && \
+	python3 scala_expected.py --dir programs --force && \
+	rm -rf random && \
+	python3 ../syntax_test/program_generator.py --out-dir random --count $(CG_RANDOM) \
+		--seed $(GEN_SEED) --runtime-safe && \
+	python3 scala_expected.py --dir random --filter-random --parser-bin ../../$(TARGET_PARSER_TEST) && \
+	rm -rf random_simple && \
+	python3 ../syntax_test/program_generator.py --out-dir random_simple --count $(CG_RANDOM) \
+		--seed $(GEN_SEED) --runtime-safe --no-control && \
+	python3 scala_expected.py --dir random_simple --filter-random --parser-bin ../../$(TARGET_PARSER_TEST)
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery
