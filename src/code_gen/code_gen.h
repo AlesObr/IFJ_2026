@@ -24,32 +24,30 @@ Error gen_run(const ASTNode *outermost_node);
 /**
  * @brief Takes a function node and prints it using instructions onto std output
  * @param fuc The func node
- * @return True on successful generation, false otherwise
+ * @return Returns Error code according to how it passed or failed
  */
-bool gen_function(ASTNode *func);
+Error gen_function(ASTNode *func);
 
 /**
  * @brief Gets operand type and it's result type and prints the corresponding instruction to std
  * output
- * @param op The operand type
- * @param result_type The resulting type
- * @return Returns false if the operand type is not supported or when division the result_type is
- * neither INT or DOUBLE, true otherwise
+ * @param exp The operand node
+ * @return Returns Error code according to how it passed or failed
  */
-bool gen_binary_op_stack(OpType op, ValType result_type);
+Error gen_binary_op_stack(const ASTNode *exp);
 
 /**
  * @brief Gets the root node of an expression and recursivelly prints instructions onto std output
  * @param exp The root node of the expression
- * @return Returns false if it failed, true otherwise
+ * @return Returns Error code according to how it passed or failed
  */
-bool gen_expr(const ASTNode *exp);
+Error gen_expr(const ASTNode *exp);
 
 /**
  * @brief Analyze a statement
  * @param stmt The node
- * @return Returns false if it failed or the stmt is of type that's not supported, true otherwise
+ * @return Returns Error code according to how it passed or failed
  */
-bool gen_stmt(const ASTNode *stmt);
+Error gen_stmt(const ASTNode *stmt);
 
 #endif /* IFJ26_CODE_GEN_H */
