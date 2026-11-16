@@ -69,6 +69,8 @@ TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
 TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
 TARGET_SEMANTIC_TEST     = $(BUILD_DIR)/semantic_test
 TARGET_CODEGEN_TEST      = $(BUILD_DIR)/codegen_test
+TARGET_COMPILER          = $(BUILD_DIR)/ifj26
+COMPILER_SRC             = src/main.c $(CODEGEN_SRC)
 
 # ----------------------------------------------------------------------
 # Phony cíle
@@ -81,6 +83,7 @@ TARGET_CODEGEN_TEST      = $(BUILD_DIR)/codegen_test
         parser-build test-parser test-parser-valgrind gen-tests \
         semantic-build test-semantic test-semantic-valgrind gen-sem-tests \
         codegen-build test-codegen test-codegen-valgrind gen-codegen-tests \
+        compiler test-full \
         linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep is-it-ok
 
@@ -300,6 +303,29 @@ gen-codegen-tests: parser-build
 	python3 ../syntax_test/program_generator.py --out-dir random_simple --count $(CG_RANDOM) \
 		--seed $(GEN_SEED) --runtime-safe --no-control && \
 	python3 scala_expected.py --dir random_simple --filter-random --parser-bin ../../$(TARGET_PARSER_TEST)
+
+# ----------------------------------------------------------------------
+# Celý překladač (src/main.c) a testy celé pipeline nad ním
+# ----------------------------------------------------------------------
+$(TARGET_COMPILER): $(COMPILER_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+compiler: $(TARGET_COMPILER)
+
+# Sémantické testy (očekávaný kód; ok_* tedy musí projít i generováním kódu) a end-to-end
+# testy generátoru, obojí se skutečným překladačem build/ifj26
+test-full: compiler
+	@echo "=== Celý překladač: kódy chyb (testy sémantiky) ==="
+	-@python3 test/semantic_test/sem_runner.py --bin ./$(TARGET_COMPILER) --dir $(SEM_TEST_DIRS)
+	@echo "=== Celý překladač: kódy chyb (testy parseru; validní musí projít celou pipeline) ==="
+	-@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_COMPILER) --dir test/generated_tests \
+		--quiet
+	@echo "=== Celý překladač: výstup validních testů parseru (s neprázdným .out) ==="
+	-@python3 test/codegen_test/codegen_runner.py --bin ./$(TARGET_COMPILER) --dir test/generated_tests \
+		--skip-empty-out --group-by-seed $(if $(INTERP),--interp $(INTERP))
+	@echo "=== Celý překladač: výstup programů (testy generátoru) ==="
+	@python3 test/codegen_test/codegen_runner.py --bin ./$(TARGET_COMPILER) --dir $(CG_TEST_DIRS) \
+		$(if $(INTERP),--interp $(INTERP)) $(if $(CG_EXCLUDE),--exclude $(CG_EXCLUDE))
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery

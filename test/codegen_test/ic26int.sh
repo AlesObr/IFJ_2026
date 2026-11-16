@@ -30,7 +30,9 @@ if "$BIN" --help >/dev/null 2>&1; then
 	exec "$BIN" "$@"
 fi
 
-LOADER="$RUNTIME/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2"
+# Debian 13 ma sloucene /usr: knihovny i zavadec jsou v usr/lib/x86_64-linux-gnu
+LIBDIR="$RUNTIME/usr/lib/x86_64-linux-gnu"
+LOADER="$LIBDIR/ld-linux-x86-64.so.2"
 if [ ! -x "$LOADER" ]; then
 	mkdir -p "$RUNTIME"
 	# Zamek: runner muze spustit vic instanci najednou
@@ -48,5 +50,4 @@ if [ ! -x "$LOADER" ]; then
 	flock -u 9
 fi
 
-LIBS="$RUNTIME/lib/x86_64-linux-gnu:$RUNTIME/usr/lib/x86_64-linux-gnu"
-exec "$LOADER" --library-path "$LIBS" "$BIN" "$@"
+exec "$LOADER" --library-path "$LIBDIR" "$BIN" "$@"

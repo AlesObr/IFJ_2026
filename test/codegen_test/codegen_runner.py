@@ -79,12 +79,35 @@ COMPILE_TIMEOUT = 10
 RUN_TIMEOUT = 30
 
 
+ROOT = HERE.parent.parent
+BUNDLED = ROOT / "ic26int-linux-x86_64"
+WRAPPER = HERE / "ic26int.sh"
+RUNTIME_LOADER = ROOT / "build" / "ic26int-runtime" / "usr" / "lib" / "x86_64-linux-gnu" / "ld-linux-x86-64.so.2"
+
+
+def runs(cmd: list[str]) -> bool:
+    try:
+        return subprocess.run(cmd + ["--help"], capture_output=True, timeout=10).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
 def find_interpreter(requested: str | None) -> list[str]:
+    """--interp, IC26INT, ic26int v PATH, ic26int-linux-x86_64 v koreni (primo nebo pres
+    ic26int.sh s pripravenymi knihovnami), jinak nahradni ifjcode_interp.py."""
     if requested:
         return [requested] if not requested.endswith(".py") else [sys.executable, requested]
     for candidate in (os.environ.get("IC26INT"), shutil.which("ic26int")):
         if candidate:
             return [candidate]
+    if BUNDLED.exists():
+        if runs([str(BUNDLED)]):
+            return [str(BUNDLED)]
+        if RUNTIME_LOADER.exists() and runs([str(WRAPPER)]):
+            return [str(WRAPPER)]
+        print(f"POZOR: {BUNDLED.name} se na tomto systemu nespusti (stara glibc). Jednou spustte\n"
+              f"  {WRAPPER.relative_to(ROOT)} --help\n"
+              f"(stahne knihovny do build/ic26int-runtime), pak se pouzije automaticky.\n")
     return [sys.executable, str(FALLBACK_INTERP)]
 
 
@@ -157,6 +180,10 @@ def main():
     parser.add_argument("--exclude", default="",
                         help=f"Preskocit testy s temito konstrukcemi (carkou oddelene): {', '.join(FEATURES)}, runtime_error")
     parser.add_argument("--features", action="store_true", help="Jen vypsat konstrukce kazdeho testu")
+    parser.add_argument("--skip-empty-out", action="store_true",
+                        help="Preskocit testy s prazdnym .out (fuzzer ho vytvari jako zastupny u seedu bez vystupu)")
+    parser.add_argument("--group-by-seed", action="store_true",
+                        help="Souhrn podle seedu, ze ktereho test vznikl (test_valid_..._<seed>.scala)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Vypsat vysledek kazdeho testu")
     args = parser.parse_args()
 
@@ -165,7 +192,8 @@ def main():
         sys.exit(1)
     args.bin = str(Path(args.bin).resolve())
     candidates = sorted(t for d in args.dir for t in Path(d).glob("*.scala")
-                        if t.with_suffix(".out").exists() and (args.filter is None or args.filter in t.name))
+                        if t.with_suffix(".out").exists() and (args.filter is None or args.filter in t.name)
+                        and not (args.skip_empty_out and t.with_suffix(".out").stat().st_size == 0))
     excluded = {name.strip() for name in args.exclude.split(",") if name.strip()}
     unknown = excluded - set(FEATURES) - {"runtime_error"}
     if unknown:
@@ -199,7 +227,11 @@ def main():
         args.tmp = tmp
         for test in tests:
             ok, kind, detail = run_test(args, interp, test)
-            per_dir.setdefault(test.parent.name, [0, 0])[0 if ok else 1] += 1
+            group = test.parent.name
+            if args.group_by_seed:
+                match = re.match(r"test_valid_(?:[a-z]+_)?(?:seed_)?(?:\d+_)?(.+)$", test.stem)
+                group = f"{test.parent.name}/{match.group(1) if match else test.stem}"
+            per_dir.setdefault(group, [0, 0])[0 if ok else 1] += 1
             for feature in features[test] or {"(zadna)"}:
                 per_feature.setdefault(feature, [0, 0])[0 if ok else 1] += 1
             if not ok:

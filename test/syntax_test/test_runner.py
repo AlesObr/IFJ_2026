@@ -143,6 +143,7 @@ def main():
     parser.add_argument("--check-ast", action="store_true", help="Porovnávat AST výstup s .ast soubory")
     parser.add_argument("--repeat", type=int, default=1,
                         help="Spustit celou sadu N× a vypsat jen souhrn a testy, které se mezi běhy lišily")
+    parser.add_argument("-q", "--quiet", action="store_true", help="Nevypisovat jednotlivé testy, jen souhrn")
     args = parser.parse_args()
 
     if args.repeat < 1:
@@ -167,7 +168,7 @@ def main():
     runs: list[dict[str, TestResult]] = []
     for run_index in range(args.repeat):
         # Výpis jednotlivých testů jen při jediném běhu, jinak by byl N× delší
-        results = run_suite(compiler_bin, tests, args, verbose=args.repeat == 1)
+        results = run_suite(compiler_bin, tests, args, verbose=args.repeat == 1 and not args.quiet)
         runs.append(results)
         if args.repeat > 1:
             run_failed = sum(not r.ok for r in results.values())
