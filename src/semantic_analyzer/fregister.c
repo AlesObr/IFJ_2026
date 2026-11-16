@@ -15,6 +15,7 @@ bool register_builtin_function(FunctionTable *t) {
 		ValType return_type;
 		size_t param_count;
 		ValType param_types[3];
+		// if changed, change it in code_gen.c as well
 	} builtins[] = {{"print", UNIT, 1, {ANY}}, {"readLine", STRING, 0, {0}},
 		{"readInt", INT, 0, {0}}, {"readDouble", DOUBLE, 0, {0}}, {"toStr", STRING, 1, {ANY}},
 		{"toInt", INT, 1, {DOUBLE}}, {"strLength", INT, 1, {STRING}},

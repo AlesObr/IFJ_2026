@@ -10,6 +10,7 @@
 #include "code_gen.h"
 #include "code_gen_buildins.h"
 #include <stdio.h>
+#include <string.h>
 
 static void print_escaped(const char *str) {
 	for (const char *c = (const char *)str; *c; c++) {
@@ -70,6 +71,19 @@ static bool is_expression(const ASTNode *node) {
 		default:
 			return false;
 	}
+	return false;
+}
+
+static bool is_builtin(const char *name) {
+	// builtin_names from semantic register_builtin_function in fregister.c
+	static const char *builtin_names[] = {"print", "readLine", "readInt", "readDouble", "toStr",
+		"toInt", "strLength", "subStr", "ord", "chr"};
+
+	for (size_t i = 0; i < sizeof(builtin_names) / sizeof(builtin_names[0]); i++) {
+		if (strcmp(name, builtin_names[i]) == 0)
+			return true;
+	}
+
 	return false;
 }
 
@@ -245,6 +259,36 @@ bool gen_expr(const ASTNode *exp) {
 		case NODE_IDENTIFIER:
 			printf("PUSHS LF@v%zu\n", exp->sym_id);
 			break;
+		case NODE_CALL: {
+			const char *func_name = dstring_get(&exp->call.func_name);
+			const ASTNodeList *params = NULL;
+			size_t params_count = 0;
+
+			if (exp->call.args.count > 0) {
+				params = &exp->call.args.items[0]->param_window.params;
+				params_count = params->count;
+
+				for (size_t i = 0; i < params_count; i++) {
+					ASTNode *param = params->items[i];
+					if (!gen_expr(param))
+						return false;
+				}
+			}
+
+			printf("CREATEFRAME\n");
+			for (size_t i = 1; i <= params_count; i++)
+				printf("DEFVAR TF@%%arg%zu\n", i);
+			for (size_t i = params_count; i > 0; i--)
+				printf("POPS TF@%%arg%zu\n", i);
+
+			if (is_builtin(func_name))
+				printf("CALL $built_in_%s\n", func_name);
+			else
+				printf("CALL $func_%s\n", func_name);
+
+			printf("PUSHS TF@%%retval\n");
+			break;
+		}
 		default:
 			passed = false;
 			break;
