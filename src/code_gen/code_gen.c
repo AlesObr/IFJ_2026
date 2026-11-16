@@ -125,8 +125,9 @@ Error gen_run(const ASTNode *outermost_node) {
 					ERR_INTERNAL, node->line, node->col, "Multiple main functions defined");
 		}
 
-		if (!gen_function(node))
-			return ERROR_EMIT(ERR_INTERNAL, node->line, node->col, "Function gen_function failed");
+		Error err = gen_function(node);
+		if (ERROR_IS_ERR(err))
+			return err;
 	}
 
 	// Again, I'm just making sure that semantic didn't mess up somewhere
@@ -140,7 +141,7 @@ Error gen_run(const ASTNode *outermost_node) {
 	return ERROR_OK();
 }
 
-bool gen_function(ASTNode *func) {
+Error gen_function(ASTNode *func) {
 	printf("LABEL $func_%s\n", dstring_get(&func->func_decl.func_name));
 	printf("PUSHFRAME\n");
 	printf("DEFVAR LF@%%retval\n");
@@ -150,6 +151,7 @@ bool gen_function(ASTNode *func) {
 	ASTNode *window = (window_count > 0) ? func->func_decl.param_windows.items[0] : NULL;
 	size_t param_count = window ? window->param_window.params.count : 0;
 	size_t var_count = bigger_size(param_count, max_sym_id(func->func_decl.body));
+	Error err = ERROR_OK();
 
 	for (size_t i = 1; i <= var_count; i++)
 		printf("DEFVAR LF@v%zu\n", i);
@@ -166,8 +168,9 @@ bool gen_function(ASTNode *func) {
 			// Skip the last stmt and then save it
 			for (size_t i = 0; i + 1 < stmts->count; i++) {
 				ASTNode *stmt = stmts->items[i];
-				if (!gen_stmt(stmt))
-					return false;
+				err = gen_stmt(stmt);
+				if (ERROR_IS_ERR(err))
+					return err;
 			}
 			last_stmt = stmts->items[stmts->count - 1];
 		}
@@ -176,19 +179,24 @@ bool gen_function(ASTNode *func) {
 
 	if (last_stmt) {
 		if (is_expression(last_stmt) && func->expr_types != UNIT) {
-			if (!gen_expr(last_stmt))
-				return false;
+			err = gen_expr(last_stmt);
+			if (ERROR_IS_ERR(err))
+				return err;
 			printf("POPS LF@%%retval\n");
-		} else if (!gen_stmt(last_stmt))
-			return false;
+		} else {
+			err = gen_stmt(last_stmt);
+			if (ERROR_IS_ERR(err))
+				return err;
+		}
 	}
+
 	printf("POPFRAME\n");
 	printf("RETURN\n");
-	return true;
+	return ERROR_OK();
 }
 
-bool gen_binary_op_stack(OpType op, ValType result_type) {
-	switch (op) {
+Error gen_binary_op_stack(const ASTNode *exp) {
+	switch (exp->op.op) {
 		case OP_ADD:
 			printf("ADDS\n");
 			break;
@@ -199,12 +207,13 @@ bool gen_binary_op_stack(OpType op, ValType result_type) {
 			printf("MULS\n");
 			break;
 		case OP_DIV:
-			if (result_type == INT)
+			if (exp->expr_types == INT)
 				printf("IDIVS\n");
-			else if (result_type == DOUBLE)
+			else if (exp->expr_types == DOUBLE)
 				printf("DIVS\n");
 			else
-				return false;
+				return ERROR_EMIT(ERR_INTERNAL, exp->line, exp->col,
+					"result_type is not the correct type for division, expected INT or DOUBLE");
 			break;
 		case OP_LT:
 			printf("LTS\n");
@@ -224,25 +233,32 @@ bool gen_binary_op_stack(OpType op, ValType result_type) {
 		case OP_NOT:
 			printf("NOTS\n");
 			break;
-		default: // OP_CONCAT, OP_ASSIGN, OP_NEQ, OP_LTE, OP_GTE, OP_UNARY_MINUS, OP_UNARY_PLUS
-			return false;
+		default: { // OP_CONCAT, OP_ASSIGN, OP_NEQ, OP_LTE, OP_GTE, OP_UNARY_MINUS, OP_UNARY_PLUS
+			static char msg[64];
+			snprintf(msg, sizeof(msg), "Unsupported operand node type %d", exp->op.op);
+			return ERROR_EMIT(ERR_INTERNAL, exp->line, exp->col, msg);
+		}
 	}
-	return true;
+
+	return ERROR_OK();
 }
 
-bool gen_expr(const ASTNode *exp) {
+Error gen_expr(const ASTNode *exp) {
 	if (!exp)
-		return false;
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to gen_expr");
 
-	bool passed = true;
+	Error err = ERROR_OK();
 	switch (exp->type) {
 		case NODE_BINARY_OP:
-			if (!gen_expr(exp->op.left))
-				return false;
-			if (!gen_expr(exp->op.right))
-				return false;
-			if (!gen_binary_op_stack(exp->op.op, exp->expr_types))
-				passed = false;
+			err = gen_expr(exp->op.left);
+			if (ERROR_IS_ERR(err))
+				return err;
+			err = gen_expr(exp->op.right);
+			if (ERROR_IS_ERR(err))
+				return err;
+			err = gen_binary_op_stack(exp);
+			if (ERROR_IS_ERR(err))
+				return err;
 			break;
 		case NODE_INT_LITERAL:
 			printf("PUSHS int@%ld\n", exp->int_val);
@@ -272,8 +288,9 @@ bool gen_expr(const ASTNode *exp) {
 
 				for (size_t i = 0; i < params_count; i++) {
 					ASTNode *param = params->items[i];
-					if (!gen_expr(param))
-						return false;
+					err = gen_expr(param);
+					if (ERROR_IS_ERR(err))
+						return err;
 				}
 			}
 
@@ -291,23 +308,26 @@ bool gen_expr(const ASTNode *exp) {
 			printf("PUSHS TF@%%retval\n");
 			break;
 		}
-		default:
-			passed = false;
-			break;
+		default: {
+			static char msg[64];
+			snprintf(msg, sizeof(msg), "Unsupported expression node type %d", exp->type);
+			return ERROR_EMIT(ERR_INTERNAL, exp->line, exp->col, msg);
+		}
 	}
 
 	if (exp->to_double)
 		printf("INT2FLOATS\n");
 
-	return passed;
+	return ERROR_OK();
 }
 
-static bool gen_if(const ASTNode *node) {
+static Error gen_if(const ASTNode *node) {
 	if (!node || node->type != NODE_IF)
-		return false;
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to gen_if");
 
 	size_t id = label_id++;
 	size_t if_count = node->if_else_stmt.next_conds.count;
+	Error err = ERROR_OK();
 	for (size_t i = 0; i <= if_count; i++) {
 		const ASTNode *branch;
 		if (i == 0)
@@ -317,17 +337,19 @@ static bool gen_if(const ASTNode *node) {
 
 		// Double check (same in semantic)
 		if (!branch || (i > 0 && branch->type != NODE_ELSE))
-			return false;
+			return ERROR_EMIT(ERR_INTERNAL, node->line, node->col, "Invalid branch");
 
 		if (branch->if_else_stmt.cond != NULL) {
-			if (!gen_expr(branch->if_else_stmt.cond))
-				return false;
+			err = gen_expr(branch->if_else_stmt.cond);
+			if (ERROR_IS_ERR(err))
+				return err;
 			printf("PUSHS bool@false\n");
 			printf("JUMPIFEQS $if_%zu_%zu\n", id, i + 1);
 		}
 
-		if (!gen_stmt(branch->if_else_stmt.body))
-			return false;
+		err = gen_stmt(branch->if_else_stmt.body);
+		if (ERROR_IS_ERR(err))
+			return err;
 
 		if (branch->if_else_stmt.cond != NULL) {
 			printf("JUMP $if_%zu_end\n", id);
@@ -337,54 +359,61 @@ static bool gen_if(const ASTNode *node) {
 
 	printf("LABEL $if_%zu_end\n", id);
 
-	return true;
+	return ERROR_OK();
 }
 
-static bool gen_while(const ASTNode *node) {
+static Error gen_while(const ASTNode *node) {
 	if (!node || node->type != NODE_WHILE)
-		return false;
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to gen_while");
 
 	size_t id = label_id++;
 
 	printf("LABEL $while_%zu_start\n", id);
 
-	if (!gen_expr(node->while_stmt.cond))
-		return false;
+	Error err = gen_expr(node->while_stmt.cond);
+	if (ERROR_IS_ERR(err))
+		return err;
 
 	printf("PUSHS bool@false\n");
 	printf("JUMPIFEQS $while_%zu_end\n", id);
 
-	if (!gen_stmt(node->while_stmt.body))
-		return false;
+	err = gen_stmt(node->while_stmt.body);
+	if (ERROR_IS_ERR(err))
+		return err;
 
 	printf("JUMP $while_%zu_start\n", id);
 	printf("LABEL $while_%zu_end\n", id);
 
-	return true;
+	return ERROR_OK();
 }
 
-bool gen_stmt(const ASTNode *stmt) {
+Error gen_stmt(const ASTNode *stmt) {
 	if (!stmt)
-		return false;
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameter to gen_stmt");
+
+	Error err = ERROR_OK();
 
 	switch (stmt->type) {
 		case NODE_VAR_DECL:
-			if (!gen_expr(stmt->var_decl.init_expr))
-				return false;
+			err = gen_expr(stmt->var_decl.init_expr);
+			if (ERROR_IS_ERR(err))
+				return err;
 			printf("POPS LF@v%zu\n", stmt->sym_id);
-			return true;
+			break;
 		case NODE_BINARY_OP:
 			if (stmt->op.op == OP_ASSIGN) {
-				if (!gen_expr(stmt->op.right))
-					return false;
+				err = gen_expr(stmt->op.right);
+				if (ERROR_IS_ERR(err))
+					return err;
 				printf("POPS LF@v%zu\n", stmt->op.left->sym_id);
-				return true;
+				break;
 			}
 			// expressions like 1 + 5 without assignment
-			if (!gen_expr(stmt))
-				return false;
+			err = gen_expr(stmt);
+			if (ERROR_IS_ERR(err))
+				return err;
 			printf("POPS GF@throwaway\n");
-			return true;
+			break;
 		case NODE_INT_LITERAL:
 		case NODE_FLOAT_LITERAL:
 		case NODE_STRING_LITERAL:
@@ -392,32 +421,38 @@ bool gen_stmt(const ASTNode *stmt) {
 		case NODE_CALL:
 		case NODE_UNARY_OP:
 		case NODE_IDENTIFIER:
-			if (!gen_expr(stmt))
-				return false;
+			err = gen_expr(stmt);
+			if (ERROR_IS_ERR(err))
+				return err;
 			printf("POPS GF@throwaway\n");
 			break;
 		case NODE_BLOCK:
 			for (size_t i = 0; i < stmt->block.stmts.count; i++) {
 				ASTNode *block_stmt = stmt->block.stmts.items[i];
-				if (!gen_stmt(block_stmt))
-					return false;
+				err = gen_stmt(block_stmt);
+				if (ERROR_IS_ERR(err))
+					return err;
 			}
 			break;
 		case NODE_RETURN:
 			if (stmt->return_stmt.expr) {
-				if (!gen_expr(stmt->return_stmt.expr))
-					return false;
+				err = gen_expr(stmt->return_stmt.expr);
+				if (ERROR_IS_ERR(err))
+					return err;
 				printf("POPS LF@%%retval\n");
 			}
 			printf("POPFRAME\n");
 			printf("RETURN\n");
-			return true;
+			break;
 		case NODE_IF:
 			return gen_if(stmt);
 		case NODE_WHILE:
 			return gen_while(stmt);
-		default: // for
-			return false;
+		default: { // for
+			static char msg[64];
+			snprintf(msg, sizeof(msg), "Unsupported statement node type %d", stmt->type);
+			return ERROR_EMIT(ERR_INTERNAL, stmt->line, stmt->col, msg);
+		}
 	}
-	return true;
+	return ERROR_OK();
 }
