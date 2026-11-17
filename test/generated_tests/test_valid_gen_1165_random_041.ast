@@ -1,0 +1,2 @@
+(block (def f1 (params (param p2_fuzz86:Double) (param p3:Int)):String (block (call print (params "")) (+ "" (+ "Hello
+" "textHellox y\")))) (def main3 (params):Unit (block (const v_4:Int (/ 7 0)))))

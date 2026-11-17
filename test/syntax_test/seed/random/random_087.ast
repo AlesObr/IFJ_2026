@@ -1,0 +1,7 @@
+(block (def f1 (params (param p2:String) (param p3:Int) (param p4:String) (param p_5:Unit)):String (block (call print (params "
+")) p2)) (def main5 (params):Unit (block (call print (params (- 7 (/ (/ (- 5 1.2) 3) (/ 5.99 30000))))) (const v6:Double 5) (return) (var v7X:String "") (if (== (+ "a" (+ "" (call f1 (params "" 27348 "
+textHellotext" null)))) (+ (+ v7X v7X) v7X)) (block (const v8:Double 153.79) (call print (params "
+")) (if (> (+ (- 100 (- 2)) 0) (* (* (- 34935) 77606) 0)) (block (var v9X:Undef 73132) (var i_10:Undef 0) (while (< i_10 0) (block (const v11:Int (- 100)) (call print (params "
+")) (= i_10 (+ i_10 1)))) (var v12X:Undef (- (- (+ v9X 2) (- i_10 100)) 100)) (= v7X (call toStr (params (* v6 v8)))) (return)) (else (block (call print (params "
+")) (= v7X (+ (+ "0Helloa" v7X) (call toStr (params 3)))) (const v13:Double (- (- v6) (- (/ v6 1000.25) 8.5))))))) (else (block (call print (params "
+")) (var v14X:Double v6) null))))))

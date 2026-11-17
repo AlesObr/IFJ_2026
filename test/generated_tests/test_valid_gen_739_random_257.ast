@@ -1,0 +1,1 @@
+(block (def f1 (params):Int (block (call print (params (/ 7 26186))) (* 100 (* 100 1)))) (def main1 (params):Unit (block (call print (params 2)) (call print (params 3)) (const v2_fuzz67:Undef (* (- (- (* 7 42) 3)) 3)) (var v3:Undef "") (call print (params 1)) (call print (params 42)))))

@@ -1,0 +1,2 @@
+(block (def f_1 (params):Double (block (call print (params (+ 1 (/ (/ 2 100) 100)))) 0.371)) (def main1 (params):Unit (block (var v_2:Double 0.31) (call print (params "
+")))))

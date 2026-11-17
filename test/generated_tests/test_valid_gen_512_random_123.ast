@@ -1,0 +1,1 @@
+(block (def f1X (params (param p_2:Double)):String (block (+ (+ "text\HelloHello" (+ "\HelloaHello" "x y")) "texta"))) (def main2 (params):Unit (block (call print (params (- 3))))))

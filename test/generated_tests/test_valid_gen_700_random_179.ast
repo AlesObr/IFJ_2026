@@ -1,0 +1,1 @@
+(block (def f1 (params):Unit (block (call print (params 6)) (call print (params 2)))) (def main1_fuzz16 (params):Unit (block (call print (params (- 0.0595))) (call print (params (- (- (- 1 (- 100)))))))))

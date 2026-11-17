@@ -1,0 +1,2 @@
+(block (def f1 (params):Double (block (call print (params (+ (+ " 
+	" "") (call toStr (params (/ 1 7)))))) (return (- 200 (* 7.8 (- 400 900)))) (call print (params (+ "x yHello " ""))) (const v2:Undef (- (+ (+ 1 0) (* 100 7)) 0)) (* (+ 5.3 100) 335.39))) (def main2 (params):Unit (block (var v3:Undef (+ "0	" (call toStr (params 10)))) (const v4_fuzz66:Undef (+ 3 (* 0 (* 0 78132)))) (return) (call print (params (call toStr (params v4_fuzz66)))) null)))

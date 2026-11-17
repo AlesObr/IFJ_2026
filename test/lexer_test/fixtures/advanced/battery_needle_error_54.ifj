@@ -1,161 +1,158 @@
-0.0 // comment on line 1
-veryLongIdentifierNameThatShouldStillWorkInDynamicString  } _var __private
-0"escape: \n nova radka"42
-1234567890123456 // comment on line 4
+ /* comment 
+ */ 
 3.14159
-0.0  1234567890123456 while  999999999 "escape: \t tabulator"  )
-def // comment on line 7
-999999999   snake_case
-"escape: \t tabulator" /* comment 
- */ "hex: \x41"
-__private
-1234567890123456   with123Numbers  1234567890123456   999999999
-0 42 val   999999999   >=x   1 !=return  ==_var   1e10
-2.5E-3
-2.5E-3   +
-3.14159 1
-with123Numbers 1234567890123456"text s mezerami"
-1e10 1234567890123456  snake_case "escape: \" uvozovka" // comment on line 18
-_1 // comment on line 19
-_1 with123Numbers   0
-1e10 /* comment 
- */ 2.5E-3   with123Numbers  return x   else
-;
-with123Numbers   0  "escape: \" uvozovka"veryLongIdentifierNameThatShouldStillWorkInDynamicString /* comment 
- */ ""
-== /* comment 
+,  ; _var __private   1 /* comment 
+ */ 
+"escape: \n nova radka" // comment on line 6
+readInt  .  1_000_000
+0.0 // comment on line 8
+0
+1  10_20_30 // comment on line 10
+veryLongIdentifierNameThatShouldStillWorkInDynamicString factorial _1  0.5
+1_000.50_1   <=
+"escape: \t tabulator" // comment on line 13
+"escape: \\ lomitko"
+Double  1_000_000 Boolean
+"escape: \\ lomitko"
+match   <
+"hello" while /* comment 
 
+ */ 
+10_20_30 /* comment 
 
- */ _1  _1   100.5e+2 /* comment 
- */ 42  - // comment on line 30
-1234567890123456   3.14159   __private 0.0
-1  42 1234567890123456 /* comment 
+ */ 
+_   1_000.50_1 // comment on line 24
+x // comment on line 25
+2147483647 2147483647 /* inline comment */ else __private // comment on line 26
+_ /* comment 
 
- */ camelCase veryLongIdentifierNameThatShouldStillWorkInDynamicString  <
-- // comment on line 35
-1234567890123456 // comment on line 36
-100.5e+2 // comment on line 37
-_1 // comment on line 38
-snake_case veryLongIdentifierNameThatShouldStillWorkInDynamicString
-1   1   var /* comment 
- */ }   camelCase __private  while
-return   var   with123Numbers /* comment  */ 3.14159   100.5e+2
-1 1 "" // comment on line 43
-val   999999999   2.5E-3 /* comment 
+ */ 
+>=
+42.0d  42.0d   while   else   "escape: \\ lomitko" 1_000_000
+(   1   | 999_999_999
+_1   result with123Numbers   0   100.5e+2 "escape: \n nova radka"  readInt 0.125e+2
+1_000_000   then /* comment 
 
- */ "text s mezerami" // comment on line 46
-camelCase  __private
-_1   "text s mezerami"   0  __private
-while // comment on line 49
-x  ;   == // comment on line 50
-2.5E-3
-1   snake_case /* comment 
+ */ 
+List
+2147483647 10_20_30
+thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString   snake_case  999_999_999
+class _1
+_1   10_20_30 // comment on line 41
+@main
+"escape: \r carriage return"
+0.125e+2
+@main /* comment 
+ */ 
+"escape: \\ lomitko"  -   123_456_789 // comment on line 47
+__private +   case  999_999_999 42  "hello" // comment on line 48
+return   camelCase  @main
+"escape: \t tabulator"  999_999_999 1e10
+100.5e+2 42 0.5 class /* comment 
 
- */ 100.5e+2 _var 1 999999999
-_var 42  _1   x  1e10;   __private /* comment 
-
- */ =
-def
-1234567890123456 /* comment  */ 1e10 val
-100.5e+2  1 1e10 /
-0.0 if 0   1234567890123456
-0.0
-42 // comment on line 63
-val   *
-while /* comment 
-
-
- */ "escape: \" uvozovka" "escape: \\ lomitko" // comment on line 68
-< return   return  2.5E-3 /* comment 
-
- */ 999999999 :0.0   999999999
-1e10 /* comment 
- */ if  val, /* comment 
-
- */ veryLongIdentifierNameThatShouldStillWorkInDynamicString /* comment 
- */ else // comment on line 76
-- :veryLongIdentifierNameThatShouldStillWorkInDynamicString
-def  3.14159  _var   1e10 /* comment 
-
-
- */ + // comment on line 81
-1234567890123456
-return  "escape: \n nova radka" /* comment 
-
- */ snake_case   with123Numbers else // comment on line 85
-with123Numbers   42 0   3.14159 /* comment  */ _var // comment on line 86
-veryLongIdentifierNameThatShouldStillWorkInDynamicString   1234567890123456
-else <=   snake_case*   <= // comment on line 88
-{ def 1234567890123456/ // comment on line 89
-"escape: \n nova radka"  camelCase __private // comment on line 90
-1e10   =
-else // comment on line 92
-== /* comment 
-
-
- */ 1   999999999
-2.5E-3   -   while   snake_case"text s mezerami" /* comment 
-
- */ snake_case 1234567890123456   _1 /* comment 
-
-
- */ _1  1 /* comment 
-
- */ }
-_var /* comment 
-
-
- */ with123Numbers // comment on line 108
-{   camelCase // comment on line 109
-snake_case""__private // comment on line 110
-:with123Numbers  def  0 // comment on line 111
-0   _var /* comment 
-
- */ 0  < // comment on line 114
-"text s mezerami" /* comment 
- */ 1e10 snake_case   2.5E-3  else // comment on line 116
-veryLongIdentifierNameThatShouldStillWorkInDynamicString  0.0 /* comment 
-
-
- */ val  "escape: \t tabulator"
-return
-0 0.0
-"hex male: \x61"
-0 0 veryLongIdentifierNameThatShouldStillWorkInDynamicString /* comment 
-
-
- */ - /* comment 
-
- */ __private // comment on line 129
-=with123Numbers /* comment 
-
- */ veryLongIdentifierNameThatShouldStillWorkInDynamicString
-val 42
-while // comment on line 134
-x-1e10 // comment on line 135
-{   999999999  0   /
-var with123Numbers
-val
-def 999999999
-1
-"hex: \x41" /* comment 
-
- */ 100.5e+2"escape: \\ lomitko" return
-+
-snake_case
-with123Numbers   with123Numbers  snake_case   1   1e10 /* comment 
-
-
- */ snake_case
+ */ 
+for   10_20_30 Double 1e5D
+import // comment on line 55
+Unit   1_000_000   with123Numbers // comment on line 56
 1e10
-> // comment on line 151
-3.14159
-var return   if // comment on line 153
-0   var
-* // comment on line 155
-1234567890123456  999999999  camelCase
-3.14159
-snake_case // comment on line 158
-snake_case val   3.14159 /* comment 
+/ /* comment 
+ */ 
+2147483647   2.5E-3   1e5D   for  veryLongIdentifierNameThatShouldStillWorkInDynamicString   123_456_789 // comment on line 60
+"text s mezerami"  "escape: \n nova radka"  while   _1 1_000.50_1
+factorial then   camelCase   1e10
+0.0  .   ==
+1e5D 42 /* comment 
 
- */ if   if "\xA" 
+ */ 
+snake_case // comment on line 67
+0.6 _1
+import /* comment 
+ */ 
+case
+-
+readInt   0.125e+2 var // comment on line 73
+_1 x /* comment 
+ */ 
+2.5E-3 /* comment 
+
+ */ 
+_1  ( /* inline comment */ 5e-2  "text s mezerami"
+if
+42 factorial   Double
+5e-2 /* comment 
+ */ 
+camelCase 100.5e+2 / 3.14159 0.0
+then  10_20_30
+999_999_999
+Int   * /* comment 
+
+ */ 
+extension // comment on line 90
+1_000.50_1
+: 1_000_000
+< return   return  42.0d
+123_456_789 /* comment 
+ */ 
+_1
+_var  Boolean
+factorial  factorial "kombinace: \n\t\"\\"   0 // comment on line 98
+( // comment on line 99
+1e5D  x /* inline comment */ <   0.0  ==   def
+42  readInt   _1
++
+veryLongIdentifierNameThatShouldStillWorkInDynamicString  0.0   "escape: \t tabulator" // comment on line 103
+with123Numbers // comment on line 104
+<  1_000.50_1   _   x : 123_456_789
+/ veryLongIdentifierNameThatShouldStillWorkInDynamicString   match // comment on line 106
+"escape: \t tabulator"
+0.6   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 1_000_000   snake_case /* comment 
+ */ 
+* /* comment 
+ */ 
+. 0.0 10_20_30 /* comment 
+ */ 
+1  5e-2  == __private
+1_000.50_1   = extension readInt // comment on line 115
+"escape: \n nova radka"  )
+@main /* inline comment */ 1   class   factorial
+"" /* comment 
+ */ 
+42 // comment on line 120
+2.5E-3   with123Numbers  camelCase  match "escape: \t tabulator"  _1 // comment on line 121
+1e5D
+snake_case /* comment 
+ */ 
+"escape: \\ lomitko" thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+100.5e+2   (
+__private
+snake_case /* comment 
+ */ 
+"" // comment on line 130
+__private
+, /* inline comment */ with123Numbers  _var  0
+1   _var
+0 /* comment 
+
+ */ 
+>=  with123Numbers  "escape: \r carriage return" import
+x   1  _1
+0.125e+2 /* inline comment */ Boolean  )  veryLongIdentifierNameThatShouldStillWorkInDynamicString  != /* inline comment */ 0.0
+"kombinace: \n\t\"\\"   0 2147483647 Boolean // comment on line 140
+- // comment on line 141
+var // comment on line 142
+123_456_789   "hello"
+42 // comment on line 144
+with123Numbers   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString  _var
+veryLongIdentifierNameThatShouldStillWorkInDynamicString   x /* inline comment */ 42  0.125e+2 /* comment 
+ */ 
+100.5e+2 ; "kombinace: \n\t\"\\" /* inline comment */ String thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 1_000_000 // comment on line 148
+0   42 String   thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString   "escape: \\ lomitko" // comment on line 149
+.
+factorial = 0
+2.5E-3  with123Numbers  while  <   2147483647   1_000.50_1 // comment on line 152
+factorial // comment on line 153
+__private
+) // comment on line 155
+_1   >
+camelCase
+42e

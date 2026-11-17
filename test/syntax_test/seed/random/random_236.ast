@@ -1,0 +1,2 @@
+(block (def f1 (params (param p2:Double) (param p3:Int) (param p_4:Double)):Unit (block (call print (params (- (* 3 (/ p3 p3)) (- 72786 p3)))) (call print (params (- 100 (* (* p3 7) p3)))) (call print (params "
+")) (call print (params (+ "x ya0" (+ (+ (call toStr (params p_4)) "x y") (+ "0Hello," "aa"))))) (const v5X:Int (- (* (- (* 2 p3) 10) p3) (* 100 p3))))) (def main5 (params):Unit (block (var v6:Undef "x yHello") (call f1 (params 8.2 10 813.1)) (var i7:Undef 0) (while (< i7 5) (block (call f1 (params 800 44817 (- 0.3 2.4))) (= v6 "aa ") (= i7 (+ i7 1)))))))

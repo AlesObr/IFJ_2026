@@ -1,0 +1,6 @@
+import ifj26 . *
+
+  f1(p2: Int, p3X: Int): String = "00" + "HelloHello" + "\\Hello"
+
+@main def main3(): Unit =
+  var v4: Int   = -(- (49269/(46_742))) /* a /* nested */ b */ * /**/ 10

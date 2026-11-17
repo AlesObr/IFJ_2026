@@ -1,0 +1,23 @@
+0
+42
+1000000
+-17
+3.14
+0.50
+0.00
+1000.00
+200.00
+150.00
+2.50
+5.00
+2.50
+7.25
+100.00
+1000.25
+tab:	| quote:" | backslash:\ | cr:| end
+// not a comment, /* neither */
+first line
+second \n "quoted" line
+// not a comment /* neither */
+single physical line
+()()

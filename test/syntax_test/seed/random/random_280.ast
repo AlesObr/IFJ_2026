@@ -1,0 +1,5 @@
+(block (def f1 (params (param p2:String) (param p3:Int)):String (block (const v4:Undef p2) (var i5:Undef 0) (while (< i5 1) (block (call print (params (- 3 (+ (/ p3 (- 2 p3)) p3)))) (= i5 (+ i5 1)))) (if (!= ""0"" p2) (block (call print (params "
+")) (call print (params (+ 100 i5))) (var _i6:Undef 0) (while (< _i6 5) (block (var i7:Undef 0) (while (< i7 0) (block (var _i8:Undef 0) (while (< _i8 2) (block (var v9:Double (- (* 900 0.1))) (call print (params "
+")) (= _i8 (+ _i8 1)))) (var v10:Undef (+ (- p3 10) (+ i5 p3))) (= i7 (+ i7 1)))) (const v11X:Undef (- 1000.25)) (= _i6 (+ _i6 1)))) (var v12:Int i5) (return (+ (+ (call toStr (params 3266)) p2) p2))) (else (block (call print (params "
+")) (call print (params "
+")) (const v13:Double 5)))) (+ p2 (+ v4 p2)))) (def f14 (params (param p_15:Unit) (param p16:Int)):Double (block (* 0.639 (- 0.28 (* 711.59 30))))) (def main16 (params):Unit (block (call print (params (* (* 3 10) 3))))))

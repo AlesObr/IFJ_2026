@@ -1,0 +1,44 @@
+import ifj26 . *
+
+// funkce
+def f1(p2 /**/: Int, p3: /* a /* nested */ b */ String, p4: Unit, p5: Unit): String =
+   print("\n")
+   var i6 = 0
+   while i6 < (3) do
+           if p3 != p3 + p3 then
+             var v_7 = -42
+           else
+               ()
+     
+           var v8 = - 3
+          
+           i6 = i6 + 1
+   print("\n")
+   var _i9 = 0
+   while _i9 < 0 do
+     var v10_fuzz58 = -(7e0 * 7e5 / /* * / */ 2e3)
+    
+     var v11: Double =   v10_fuzz58
+     if -v10_fuzz58 <= -v10_fuzz58 then
+         v10_fuzz58 = v11
+     else
+         var i_12 = 0
+         while i_12 < 5 /**/ do
+             val v13 = (-(i6 -
+                    i6))
+ // komentar
+             i_12 = i_12 + (1)
+         print(toStr(3 + (654) - p2))
+     _i9 = _i9 + 1
+   toStr(- 1_000.2_5 / -6e2)+p3
+
+def f14(p15: String, p_16: Int, p17: Unit): Double =
+    var v_18:   Double = (.19 / (7E+3 - 9E+3)) - /**/ (
+        1_000.2_5) / (558.50)
+ // */
+    var v19 = v_18
+    val /* c */ v20X = p15
+    (- (453.41))
+
+@main def main20(): Unit =
+  var /* c */ v21 = ""

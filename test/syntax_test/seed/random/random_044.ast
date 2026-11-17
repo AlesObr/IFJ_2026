@@ -1,0 +1,2 @@
+(block (def f1 (params (param p2:Int)):String (block (+ "
+x y" "0"))) (def main2 (params):Unit (block (if (>= 100 0) (block (var v_3:Undef 8.48) (const v4:Undef (- 42)) (var v5:Double (- (/ (* (- v_3) v_3) 0.55) 100)) (var i6:Undef 0) (while (< i6 1) (block (var v7:Undef (+ " Hellotext" "")) (= i6 (+ i6 1))))) (else (block (var v_8:Int (- 80300))))))))

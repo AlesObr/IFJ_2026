@@ -1,0 +1,1 @@
+(block (def _f1 (params):Double (block (var v2:Double (/ 5.2 (/ 274.4 0.7))) (return (* v2 (* (- v2 (/ v2 3.28)) 700))) (var v3:Undef 0.0598) (/ v3 (- 0.565 888.81)))) (def main3 (params):Unit (block (call print (params (call _f1 (params)))) (call print (params 7)) (call print (params 10)) (call print (params (+ (- 100) 14916))) null)))

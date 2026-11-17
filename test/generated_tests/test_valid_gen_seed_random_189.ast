@@ -1,0 +1,2 @@
+(block (def f1 (params (param p2:Unit) (param p3:Double) (param p4:Unit) (param p5:Double)):Double (block (call print (params "
+")) (- (- p5) (+ 0.349 p5)))) (def main5 (params):Unit (block (call print (params (* (/ 80000 300) 100))))))

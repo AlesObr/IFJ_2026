@@ -1,0 +1,3 @@
+def foo(): Unit =
+    val x = 1
+    x

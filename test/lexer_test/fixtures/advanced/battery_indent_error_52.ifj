@@ -1,0 +1,40 @@
+"escape: \\ lomitko"
+0 0 camelCase
+1e10 42 123_456_789 "text s mezerami"
+snake_case String 1_000.50_1 0 camelCase 2.5E-3
+camelCase <
+123_456_789 __private x / 0.0 _1
+    else , _var veryLongIdentifierNameThatShouldStillWorkInDynamicString if >= // line 7 comment
+        "escape: \t tabulator" 0.0 .
+    0 999_999_999
+    10_20_30 factorial case // line 10 comment
+        10_20_30 "escape: \r carriage return" @main 1e5D
+            snake_case
+                if 1_000_000 ; Int // line 13 comment
+                0.0
+                _var extension 1e10 with123Numbers 1e5D ; // line 15 comment
+                veryLongIdentifierNameThatShouldStillWorkInDynamicString "escape: \n nova radka" 0 1e10
+                import _var String | 123_456_789
+                "kombinace: \n\t\"\\" 123_456_789 result 2147483647
+                1
+                999_999_999 "escape: \r carriage return" for class - result
+veryLongIdentifierNameThatShouldStillWorkInDynamicString
+readInt with123Numbers
+999_999_999
+!=
+. 10_20_30 def readInt "kombinace: \n\t\"\\" result
+/ thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 10_20_30 return // line 26 comment
+2.5E-3 thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+Int
+1 < 42 != // line 29 comment
+    <= return List
+    0.0 999_999_999 "kombinace: \n\t\"\\"
+        thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+        2147483647 def thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 1_000.50_1 123_456_789 // line 33 comment
+        snake_case thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString 10_20_30 _1 result
+        , 1 "escape: \\ lomitko" factorial 999_999_999
+        camelCase "escape: \n nova radka" camelCase 42 10_20_30 "escape: \\ lomitko" // line 36 comment
+        >= result 123_456_789
+    "escape: \t tabulator"
+"text s mezerami" >= 999_999_999 // line 39 comment
+"text bez uvozovky na konci

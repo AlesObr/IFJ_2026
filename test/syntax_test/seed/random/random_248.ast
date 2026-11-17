@@ -1,0 +1,6 @@
+(block (def f1 (params (param p2:Double) (param p3:Int) (param p4:Int) (param p5:Int) (param p6:String) (param p7:String) (param p8:Unit) (param _p9:Int) (param p10:String) (param p_11:Double) (param p12:String) (param p13:Double) (param p_14:Int) (param p15:String)):Double (block (call print (params "
+")) (call print (params "
+")) (call print (params "
+")) (const v16:Undef (* p13 p2)) (call print (params 0.0805)) (call print (params 7)) (- 1000.25))) (def main16 (params):Unit (block (call print (params (+ "text(text" (+ (call toStr (params 2.1)) "Hello
+Hello")))) (call print (params "
+")))))

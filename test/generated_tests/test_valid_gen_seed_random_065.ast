@@ -1,0 +1,8 @@
+(block (def f1 (params (param p2X:Unit) (param p3:Int)):String (block (var v4:Undef p3) (call print (params 5.3)) (call print (params 42)) (const v5X:Undef (+ (call toStr (params (* 700 1000.25))) "x ytext")) (+ (+ (+ " texttext" v5X) v5X) (+ (+ (+ "" "
+a") "") "")))) (def f6 (params (param p7:Unit) (param p_8:Double) (param p9:String)):String (block (var i10X:Undef 0) (while (< i10X 5) (block (if (< 7 10) (block (call print (params "
+")) (call print (params 962.12)) (call print (params 100))) (else (block (var v11:String p9) (call print (params "
+"))))) (return (+ p9 p9)) (return "x y
+a ") (call print (params "
+")) (const v12:Undef (- 1)) (= i10X (+ i10X 1)))) (call print (params (call toStr (params p_8)))) (+ (+ p9 (call f1 (params null 7))) (call toStr (params (* i10X 58382)))))) (def f13 (params):String (block (const _v14:Undef (/ 0.51 (- 702.3 0.683))) (call print (params (- (* (* 7 7) 0)))) (call print (params (+ (+ (+ (+ " Hello/*Hello" "atext") "text") (+ (call toStr (params 7)) (+ "texttext
+" ""Hello)"))) (+ "(" "a(a")))) (+ "x yHello\" (+ "a0" (+ "a" " a"))))) (def main14 (params):Unit (block (const v15:Undef (+ (+ (+ "text" (call toStr (params 0))) "") "")) (call print (params (+ v15 (+ v15 "
+Hello ")))) (return))))
