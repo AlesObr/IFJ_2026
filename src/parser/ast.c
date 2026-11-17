@@ -159,7 +159,7 @@ ASTNode *ast_create_string(const dstring_t *val, size_t line, size_t col) {
 	return node;
 }
 
-ASTNode *ast_create_bool(bool bool_val, size_t line, size_t col){
+ASTNode *ast_create_bool(bool bool_val, size_t line, size_t col) {
 	ASTNode *node = ast_alloc(NODE_BOOL_LITERAL, line, col);
 	if (node == NULL) {
 		return NULL;
@@ -550,8 +550,8 @@ ASTNode *ast_create_return(size_t line, size_t col) {
 	return node;
 }
 
-bool ast_return_add_expr(ASTNode *return_node, ASTNode *return_expr){
-	if (return_node == NULL || return_node->type != NODE_RETURN){
+bool ast_return_add_expr(ASTNode *return_node, ASTNode *return_expr) {
+	if (return_node == NULL || return_node->type != NODE_RETURN) {
 		return false;
 	}
 	return_node->return_stmt.expr = return_expr;
@@ -763,6 +763,12 @@ static const char *op_to_str(OpType op) {
 			return "!";
 		case OP_UNARY_MINUS:
 			return "-";
+		case OP_UNARY_PLUS:
+			return "+";
+		case OP_AND:
+			return "&&";
+		case OP_OR:
+			return "||";
 		default:
 			return "?";
 	}
@@ -969,10 +975,8 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 	}
 }
 
-/** --- Setting type of ASTNode for semantics */
-
-void ast_set_type(ASTNode *node, ValType type){
-	if (node != NULL){
+void ast_set_type(ASTNode *node, ValType type) {
+	if (node != NULL) {
 		node->expr_types = type;
 	}
 }

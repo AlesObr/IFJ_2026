@@ -3,7 +3,8 @@
  * @file lexer.h
  * @brief Lexer module interface for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
- * @author Admiral (xkolekj00)
+ * @author Jiří Kolek (xkolekj00)
+ * @author admiral <Jkolikovec@gmail.com>
  * @note Standard: ISO C11
  */
 
@@ -33,6 +34,8 @@ typedef enum {
 	STATE_EXP_SIGN_2,
 	STATE_EXPONENT,
 	STATE_SUFFIX,
+	STATE_AND,
+	STATE_OR,
 
 	STATE_IDENTIFIER,
 	STATE_WANNABE_FLOAT,

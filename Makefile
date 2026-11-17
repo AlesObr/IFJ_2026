@@ -47,6 +47,12 @@ PRECEDENCE_SRC   = src/parser/precedence.c
 PARSER_SRC       = src/parser/parser.c $(PRECEDENCE_SRC) $(AST_SRC) $(LEXER_SRC)
 PARSER_TEST_SRC  = test/syntax_test/test_parser.c
 
+SEMANTIC_SRC      = $(wildcard src/semantic_analyzer/*.c) src/symtable.c $(PARSER_SRC)
+SEMANTIC_TEST_SRC = test/semantic_test/test_semantic.c
+
+CODEGEN_SRC       = $(wildcard src/code_gen/*.c) $(SEMANTIC_SRC)
+CODEGEN_TEST_SRC  = test/codegen_test/test_codegen.c
+
 # ----------------------------------------------------------------------
 # Cílové binárky (vše konzistentně do BUILD_DIR)
 # ----------------------------------------------------------------------
@@ -61,6 +67,10 @@ TARGET_SYMTABLE_VALGRIND = $(BUILD_DIR)/test_symtable_valgrind
 
 TARGET_LEXER_TEST        = $(BUILD_DIR)/lexer_test
 TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
+TARGET_SEMANTIC_TEST     = $(BUILD_DIR)/semantic_test
+TARGET_CODEGEN_TEST      = $(BUILD_DIR)/codegen_test
+TARGET_COMPILER          = $(BUILD_DIR)/ifj26
+COMPILER_SRC             = src/main.c $(CODEGEN_SRC)
 
 # ----------------------------------------------------------------------
 # Phony cíle
@@ -71,6 +81,9 @@ TARGET_PARSER_TEST       = $(BUILD_DIR)/parser_test
         symtable-asan symtable-valgrind symtable-check test_symtable \
         scanner-build test-scanner test-scanner-valgrind \
         parser-build test-parser test-parser-valgrind gen-tests \
+        semantic-build test-semantic test-semantic-valgrind gen-sem-tests \
+        codegen-build test-codegen test-codegen-valgrind gen-codegen-tests \
+        compiler test-full ext-status \
         linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep is-it-ok
 
@@ -210,6 +223,116 @@ gen-tests:
 		--tag $(GEN_TAG) --copy-seeds --oracle
 
 # ----------------------------------------------------------------------
+# Testy sémantické analýzy (parser + sémantika, očekávaný kód je v názvu testu)
+# ----------------------------------------------------------------------
+# cases/: ruční testy pravidel zadání (make_cases.py), generated/: validní seedy a jejich
+# mutace s jednou sémantickou chybou (make gen-sem-tests). Jen vybrané: make test-semantic SEM_FILTER=e6_
+SEM_TEST_DIRS ?= test/semantic_test/cases test/semantic_test/generated
+SEM_FILTER    ?=
+SEM_PER_SEED  ?= 3
+
+$(TARGET_SEMANTIC_TEST): $(SEMANTIC_SRC) $(SEMANTIC_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+semantic-build: $(TARGET_SEMANTIC_TEST)
+
+test-semantic: semantic-build
+	@echo "=== Spuštění testů sémantiky ==="
+	@python3 test/semantic_test/sem_runner.py --bin ./$(TARGET_SEMANTIC_TEST) --dir $(SEM_TEST_DIRS) \
+		$(if $(SEM_FILTER),--filter $(SEM_FILTER))
+
+test-semantic-valgrind: semantic-build
+	@echo "=== Spuštění testů sémantiky pod Valgrindem ==="
+	@python3 test/semantic_test/sem_runner.py --bin ./$(TARGET_SEMANTIC_TEST) --dir $(SEM_TEST_DIRS) \
+		--valgrind $(if $(SEM_FILTER),--filter $(SEM_FILTER))
+
+# Ruční testy se přegenerují z make_cases.py, mutace z validních seedů (přeskočí ty, které
+# neprojdou parserem); obsah obou adresářů se přepíše
+gen-sem-tests: parser-build
+	@python3 test/semantic_test/make_cases.py
+	@python3 test/semantic_test/sem_mutator.py \
+		--seeds-dir test/syntax_test/seed/basic test/syntax_test/seed/random \
+		--out-dir test/semantic_test/generated --per-seed $(SEM_PER_SEED) --seed $(GEN_SEED) \
+		--parser-bin ./$(TARGET_PARSER_TEST)
+
+# ----------------------------------------------------------------------
+# Testy generátoru kódu (parser + sémantika + codegen -> interpret -> porovnání s výstupem Scaly)
+# ----------------------------------------------------------------------
+# programs/: ruční testy (make_programs.py), random/: náhodné programy bez běhových chyb,
+# random_simple/: náhodné programy bez if, while a return, k tomu základní seedy.
+# Interpret: INTERP=cesta (např. INTERP=test/codegen_test/ic26int.sh), jinak ic26int z PATH,
+# jinak náhradní test/codegen_test/ifjcode_interp.py. Vygenerovaný kód a výstupy: CG_KEEP=adresář.
+# Testy s nepodporovanými konstrukcemi se přeskočí přes CG_EXCLUDE, např.
+#   make test-codegen CG_EXCLUDE=if,while,for,return
+# (seznam konstrukcí: python3 test/codegen_test/codegen_runner.py --help)
+CG_TEST_DIRS ?= test/codegen_test/programs test/codegen_test/random test/codegen_test/random_simple \
+                test/syntax_test/seed/basic
+CG_FILTER    ?=
+CG_EXCLUDE   ?=
+CG_KEEP      ?=
+CG_RANDOM    ?= 120
+INTERP       ?=
+CG_RUNNER     = python3 test/codegen_test/codegen_runner.py --bin ./$(TARGET_CODEGEN_TEST) \
+	--dir $(CG_TEST_DIRS) $(if $(INTERP),--interp $(INTERP)) $(if $(CG_FILTER),--filter $(CG_FILTER)) \
+	$(if $(CG_EXCLUDE),--exclude $(CG_EXCLUDE)) $(if $(CG_KEEP),--keep $(CG_KEEP))
+
+$(TARGET_CODEGEN_TEST): $(CODEGEN_SRC) $(CODEGEN_TEST_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+codegen-build: $(TARGET_CODEGEN_TEST)
+
+test-codegen: codegen-build
+	@echo "=== Spuštění testů generátoru kódu ==="
+	@$(CG_RUNNER)
+
+test-codegen-valgrind: codegen-build
+	@echo "=== Spuštění testů generátoru kódu (překladač pod Valgrindem) ==="
+	@$(CG_RUNNER) --valgrind
+
+# Pomalé (každý program se jednou spustí Scalou, ~1-2 s): ruční testy a náhodné programy
+# včetně očekávaných výstupů. Náhodné programy, které ve Scale selžou, přetečou Int nebo
+# neprojdou parserem, se vyřadí.
+gen-codegen-tests: parser-build
+	@cd test/codegen_test && python3 make_programs.py && \
+	python3 scala_expected.py --dir programs --force && \
+	rm -rf random && \
+	python3 ../syntax_test/program_generator.py --out-dir random --count $(CG_RANDOM) \
+		--seed $(GEN_SEED) --runtime-safe && \
+	python3 scala_expected.py --dir random --filter-random --parser-bin ../../$(TARGET_PARSER_TEST) && \
+	rm -rf random_simple && \
+	python3 ../syntax_test/program_generator.py --out-dir random_simple --count $(CG_RANDOM) \
+		--seed $(GEN_SEED) --runtime-safe --no-control && \
+	python3 scala_expected.py --dir random_simple --filter-random --parser-bin ../../$(TARGET_PARSER_TEST)
+
+# ----------------------------------------------------------------------
+# Celý překladač (src/main.c) a testy celé pipeline nad ním
+# ----------------------------------------------------------------------
+$(TARGET_COMPILER): $(COMPILER_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+compiler: $(TARGET_COMPILER)
+
+# Sémantické testy (očekávaný kód; ok_* tedy musí projít i generováním kódu) a end-to-end
+# testy generátoru, obojí se skutečným překladačem build/ifj26
+test-full: compiler
+	@echo "=== Celý překladač: kódy chyb (testy sémantiky) ==="
+	-@python3 test/semantic_test/sem_runner.py --bin ./$(TARGET_COMPILER) --dir $(SEM_TEST_DIRS)
+	@echo "=== Celý překladač: kódy chyb (testy parseru; validní musí projít celou pipeline) ==="
+	-@python3 test/syntax_test/test_runner.py --bin ./$(TARGET_COMPILER) --dir test/generated_tests \
+		--quiet
+	@echo "=== Celý překladač: výstup validních testů parseru (s neprázdným .out) ==="
+	-@python3 test/codegen_test/codegen_runner.py --bin ./$(TARGET_COMPILER) --dir test/generated_tests \
+		--skip-empty-out --group-by-seed $(if $(INTERP),--interp $(INTERP))
+	@echo "=== Celý překladač: výstup programů (testy generátoru) ==="
+	@python3 test/codegen_test/codegen_runner.py --bin ./$(TARGET_COMPILER) --dir $(CG_TEST_DIRS) \
+		$(if $(INTERP),--interp $(INTERP)) $(if $(CG_EXCLUDE),--exclude $(CG_EXCLUDE))
+
+# Stav rozšíření po fázích (parser -> sémantika -> generátor -> běh -> výstup) nad cílenými
+# programy v test/codegen_test/extensions (make_ext_programs.py, výstupy: scala_expected.py)
+ext-status: parser-build semantic-build compiler
+	@python3 test/codegen_test/ext_status.py $(if $(INTERP),--interp $(INTERP))
+
+# ----------------------------------------------------------------------
 # Formátování a Lintery
 # ----------------------------------------------------------------------
 linter:
@@ -251,7 +374,9 @@ dist-prep: format linter-full | $(DIST_DIR)
 zip: dist-prep
 	@echo "=== Vytvářím odevzdávací archiv $(ZIP_NAME) ==="
 	@rm -f $(ZIP_NAME)
-	@cd $(DIST_DIR) && zip -r ../../$(ZIP_NAME) . -x "*.git*" "*build*" "*output*" "*.vscode*"
+	@# Bez vylučovacích vzorů: DIST_DIR je vygenerovaný a obsahuje jen soubory k odevzdání
+	@# (vzor "*build*" dříve tiše vyřadil i code_gen_buildins.c/.h)
+	@cd $(DIST_DIR) && zip -r ../../$(ZIP_NAME) .
 	@echo "\033[32m✓ Archiv $(ZIP_NAME) byl úspěšně vygenerován.\033[0m"
 	@echo "--- Obsah archivu: ---"
 	@unzip -l $(ZIP_NAME)

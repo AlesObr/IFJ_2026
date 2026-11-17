@@ -3,8 +3,9 @@
  * @file lexer.c
  * @brief Lexer module implementation for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
- * @author Admiral (xkolekj00)
+ * @author Jiří Kolek (xkolekj00)
  * @author Štěpán Hořenek (xhorens00)
+ * @author admiral <Jkolikovec@gmail.com>
  * @note Standard: ISO C11
  */
 
@@ -51,7 +52,7 @@ bool lexer_newline_before_token(void) {
 /** Character that would continue an operator in Scala (i.e. not two separate tokens). */
 static bool continues_operator(int c) {
 	return c == '=' || c == '>' || c == '<' || c == '@' || c == ':' || c == '/' || c == '+' ||
-		   c == '-' || c == '*' || c == '|';
+		   c == '-' || c == '*' || c == '|' || c == '&' || c == '!';
 }
 
 /** Creates an integer token; a non-zero literal must not start with zero. */
@@ -302,9 +303,10 @@ Error lexer_get_next_token(Token *out_token) {
 
 				if (at_line_start && paren_depth > 0 && lexeme.current_lexeme != '\n' &&
 					lexeme.current_lexeme != '/') {
-					if (line_indent <= indent_top()){
+					if (line_indent <= indent_top()) {
 						dstring_free(&token_buffer);
-						return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid indentation inside parenthesis expr\n");
+						return ERROR_EMIT(ERR_LEXICAL, current_line, current_col,
+							"Invalid indentation inside parenthesis expr\n");
 					}
 					at_line_start = false;
 				}
@@ -669,8 +671,8 @@ Error lexer_get_next_token(Token *out_token) {
 					}
 					lexer_give(&lexeme, source_file);
 					dstring_free(&token_buffer);
-					return ERROR_EMIT(
-								ERR_LEXICAL, current_line, current_col, "Invalid operand (expected second &).\n");
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col,
+						"Invalid operand (expected second &).\n");
 				}
 				if (lexeme.current_lexeme == '+') {
 					token_make_simple(out_token, TOKEN_PLUS, current_line, current_col);
@@ -701,6 +703,7 @@ Error lexer_get_next_token(Token *out_token) {
 						dstring_free(&token_buffer);
 						return ERROR_OK();
 					}
+
 					lexer_give(&lexeme, source_file);
 					token_make_simple(out_token, TOKEN_NOT, token_start_line, token_start_col);
 					dstring_free(&token_buffer);

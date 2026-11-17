@@ -75,14 +75,14 @@ static void precedence_trace_token(const char *location, const Token *token) {
 		}                                                                                          \
 	} while (0)
 
-#define APPEND_BEFORE_EOF_RETURN(status, node, append_expr)							   			   \
-	do {																						   \
-		if ((status).flag == PAR_EOF){															   \
-			if ((status).new_node != NULL){													  	   \
-				CHECK_AST_APPEND(node, append_expr);									   		   \
-				return PARSE_OK(PAR_EOF, node);													   \
-			}																					   \
-		}																						   \
+#define APPEND_BEFORE_EOF_RETURN(status, node, append_expr)                                        \
+	do {                                                                                           \
+		if ((status).flag == PAR_EOF) {                                                            \
+			if ((status).new_node != NULL) {                                                       \
+				CHECK_AST_APPEND(node, append_expr);                                               \
+				return PARSE_OK(PAR_EOF, node);                                                    \
+			}                                                                                      \
+		}                                                                                          \
 	} while (0)
 
 #define CHECK_STATUS(status)                                                                       \
@@ -209,9 +209,10 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 			} else if (curr_token->type == TOKEN_COMMA) {
 				GET_TOKEN(curr_token, node, false);
 				status = parse_climb(curr_token, 0);
-				APPEND_BEFORE_EOF_RETURN(status, window, ast_window_add_param(window, status.new_node));
+				APPEND_BEFORE_EOF_RETURN(
+					status, window, ast_window_add_param(window, status.new_node));
 				CHECK_STATUS_OWNED(status, node);
-				if (status.new_node != NULL){
+				if (status.new_node != NULL) {
 					CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
 				}
 			} else {
@@ -257,13 +258,11 @@ ParserStatus parse_prefix(Token *curr_token) {
 				node, ast_create_int(curr_token->data.int_val, curr_token->line, curr_token->col));
 			break;
 		case TOKEN_KEYWORD_TRUE:
-			ALLOC_NODE(node,
-				ast_create_bool(true, curr_token->line, curr_token->col));
+			ALLOC_NODE(node, ast_create_bool(true, curr_token->line, curr_token->col));
 			break;
 
 		case TOKEN_KEYWORD_FALSE:
-			ALLOC_NODE(node,
-				ast_create_bool(false, curr_token->line, curr_token->col));
+			ALLOC_NODE(node, ast_create_bool(false, curr_token->line, curr_token->col));
 			break;
 
 		case TOKEN_KEYWORD_IF:
@@ -387,11 +386,10 @@ static ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec) {
 		OpType op_type = token_to_op(curr_token);
 		fprintf(stderr, "[precedence] parse_climb: operator=%s precedence=%d\n",
 			token_type_name(curr_token->type), prec);
-		if (op_type == OP_ASSIGN && (node->type != NODE_IDENTIFIER)){
+		if (op_type == OP_ASSIGN && (node->type != NODE_IDENTIFIER)) {
 			ast_destroy(node);
-			return PARSE_ERROR(
-				ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-					"Tried assigning into literal or expression\n"),
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								   "Tried assigning into literal or expression\n"),
 				PAR_FAIL);
 		}
 		GET_TOKEN(curr_token, node, false);

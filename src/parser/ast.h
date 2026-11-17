@@ -115,7 +115,7 @@ struct ASTNode {
 	size_t col;	 /**< Source code column where the construct starts. */
 
 	ValType expr_types; /**< Determines which type of operation to use (DIV / IDIV) for example*/
-	bool to_double; 	/**< Determines if conversion to int / double needed*/
+	bool to_double;		/**< Determines if conversion to int / double needed*/
 	size_t sym_id;		/**< Identifier of the variable in symtable if needed */
 
 	union {
@@ -638,7 +638,8 @@ ASTNode *ast_ext_create(const dstring_t *param_name, size_t line, size_t col);
  * @param is_orig Determines if data type is original or user defined
  * @return True if success, false if problem occurs or wrong parameters passed
  */
-bool ast_add_type(ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig);
+bool ast_add_type(
+	ASTNode *node, ValType type_name_orig, const dstring_t *type_name_def, bool is_orig);
 
 /**
  * @brief Appends a function to extension AST_NODE

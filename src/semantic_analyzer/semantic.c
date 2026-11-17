@@ -9,13 +9,15 @@
 #include "semantic.h"
 #include "fregister.h"
 #include "type_rules.h"
+#include <stdio.h>
+#include <string.h>
 
 static void set_type(ASTNode *n, ValType t) {
-	(void)n;
-	(void)t; // Fields are in ast.h, just have to implement it
+	ast_set_type(n, t);
 }
+
 static void mark_convert(ASTNode *n) {
-	(void)n; // Fields are in ast.h, just have to implement it
+	n->to_double = true;
 }
 
 static bool booleans_enabled(void) {
@@ -143,9 +145,11 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 				return err;
 			break;
 		}
-		default: // Temporary default case for unsupported expression types
-			return ERROR_EMIT(
-				ERR_INTERNAL, expr->line, expr->col, "Unsupported expression type for analysis");
+		default: { // Temporary default case for unsupported expression types
+			static char msg[64];
+			snprintf(msg, sizeof(msg), "Unsupported expression node type %d", expr->type);
+			return ERROR_EMIT(ERR_INTERNAL, expr->line, expr->col, msg);
+		}
 	}
 
 	set_type(expr, *out); // Record the type of the expression node
@@ -264,26 +268,36 @@ Error analyze_call(SemanticContext *ctx, ASTNode *call, ValType *out) {
 	size_t param_count = entry->param_count;
 	ValType return_type = entry->return_type;
 	ValType *param_types = entry->param_types;
+	ASTNodeList *args = NULL;
+	size_t arg_count = 0;
 
-	if (param_count != call->call.args.count) {
+	if (call->call.args.count > 0) {
+		ASTNode *window = call->call.args.items[0];
+		if (window->type != NODE_FUNC_WINDOW)
+			return ERROR_EMIT(ERR_INTERNAL, call->line, call->col,
+				"Parameters window is not of type NODE_FUNC_WINDOW");
+		args = &window->param_window.params;
+		arg_count = args->count;
+	}
+
+	if (param_count != arg_count) {
 		return ERROR_EMIT(ERR_SEM_CALL, call->line, call->col,
 			"Argument count does not match function parameter count");
 	}
 
 	for (size_t i = 0; i < param_count; i++) {
 		ValType arg_type;
-		Error err = analyze_expression(ctx, call->call.args.items[i], &arg_type);
+		Error err = analyze_expression(ctx, args->items[i], &arg_type);
 		if (ERROR_IS_ERR(err))
 			return err;
 
 		bool conv_needed;
 		if (!type_compatible(param_types[i], arg_type, &conv_needed)) {
-			return ERROR_EMIT(ERR_SEM_CALL, call->call.args.items[i]->line,
-				call->call.args.items[i]->col,
+			return ERROR_EMIT(ERR_SEM_CALL, args->items[i]->line, args->items[i]->col,
 				"Argument type does not match function parameter type");
 		}
 		if (conv_needed) {
-			mark_convert(call->call.args.items[i]);
+			mark_convert(args->items[i]);
 		}
 	}
 
@@ -342,6 +356,171 @@ Error analyze_block(
 	return ERROR_OK();
 }
 
+static Error analyze_return(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+	if (!ctx || !node || !out || !returns || node->type != NODE_RETURN)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_return");
+	if (!ctx->current_function)
+		return ERROR_EMIT(ERR_SEM_MAIN, node->line, node->col, "Return is outside of a function");
+
+	ValType return_type = ctx->current_return_type;
+	ASTNode *value = node->return_stmt.expr;
+
+	// Check if the function has a return type
+	if (return_type == UNDEF)
+		return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col,
+			"Function that has a return also needs declared return type");
+
+	// Check if the return returns smth
+	if (!value) {
+		if (return_type != UNIT)
+			return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col,
+				"Empty return a function which return type is not UNIT");
+	} else {
+		ValType type;
+
+		Error err = analyze_expression(ctx, value, &type);
+		if (ERROR_IS_ERR(err))
+			return err;
+
+		if (type == BOOLEAN && !booleans_enabled())
+			return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col, "Cannot return a BOOLEAN value");
+
+		if (return_type != UNIT) {
+			bool conv;
+
+			if (!type_compatible(return_type, type, &conv))
+				return ERROR_EMIT(ERR_SEM_TYPE, node->line, node->col,
+					"Returned value does not match with functions return type");
+
+			if (conv)
+				mark_convert(value);
+		}
+	}
+
+	*out = UNIT;
+	*returns = true;
+
+	return ERROR_OK();
+}
+
+static Error analyze_body(SemanticContext *ctx, ASTNode *body, ValType *out, bool *returns) {
+	if (!ctx || !body || !out || !returns)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_body");
+
+	if (body->type == NODE_BLOCK)
+		return analyze_block(ctx, body, true, out, returns);
+
+	if (!scope_push(&ctx->scope_stack))
+		return ERROR_EMIT(ERR_INTERNAL, body->line, body->col, "Out of memory when opening a scop");
+
+	Error err = analyze_stmt(ctx, body, out, returns);
+	scope_pop(&ctx->scope_stack);
+
+	return err;
+}
+
+static Error analyze_condition(SemanticContext *ctx, ASTNode *cond) {
+	if (!ctx || !cond)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_condition");
+
+	ValType type;
+
+	Error err = analyze_expression(ctx, cond, &type);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	if (type != BOOLEAN)
+		return ERROR_EMIT(
+			ERR_SEM_TYPE, cond->line, cond->col, "Condition is not of a BOOLEAN expression");
+
+	return ERROR_OK();
+}
+
+static Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+	if (!ctx || !node || !out || !returns || node->type != NODE_IF)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_if");
+
+	bool all_return = true; // Every branch returns
+	bool all_unit = true;	// Every branch has a type UNIT
+	bool has_else = false;	// If the 'if' has else, if not it will be like a branch with ()
+	ValType common_type = UNDEF;
+
+	bool first_non_return = true;
+	size_t if_count = node->if_else_stmt.next_conds.count;
+	for (size_t i = 0; i <= if_count; i++) {
+		ASTNode *branch;
+		if (i == 0) {
+			branch = node;
+		} // The 'if' itself
+		else {
+			branch = node->if_else_stmt.next_conds.items[i - 1];
+		}
+
+		if (!branch || (i > 0 && branch->type != NODE_ELSE))
+			return ERROR_EMIT(ERR_INTERNAL, node->line, node->col, "Invalid branch");
+
+		if (branch->if_else_stmt.cond != NULL) {
+			Error err = analyze_condition(ctx, branch->if_else_stmt.cond);
+			if (ERROR_IS_ERR(err))
+				return err;
+		} else {
+			has_else = true;
+		}
+
+		ValType type;
+		bool ret;
+
+		Error err = analyze_body(ctx, branch->if_else_stmt.body, &type, &ret);
+		if (ERROR_IS_ERR(err))
+			return err;
+
+		if (!ret) {
+			if (first_non_return) {
+				common_type = type;
+				first_non_return = false;
+			}
+
+			if (common_type != type)
+				common_type = UNDEF;
+		}
+
+		all_return = all_return && ret;
+		all_unit = all_unit && (type == UNIT);
+	}
+
+	*returns = has_else && all_return;
+	if (*returns || all_unit) {
+		*out = UNIT;
+	} else {
+		*out = common_type;
+	}
+
+	return ERROR_OK();
+}
+
+static Error analyze_while(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+	if (!ctx || !node || !out || !returns || node->type != NODE_WHILE)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_while");
+
+	Error err = analyze_condition(ctx, node->while_stmt.cond);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	ValType type;
+	bool ret;
+
+	err = analyze_body(ctx, node->while_stmt.body, &type, &ret);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	*out = UNIT;
+	// The condition could be false all along,
+	// which results in program not reaching the return
+	*returns = false;
+
+	return ERROR_OK();
+}
+
 Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *returns) {
 	if (!ctx || !stmt || !out || !returns) {
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_stmt");
@@ -369,13 +548,17 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 		case NODE_FLOAT_LITERAL:
 		case NODE_STRING_LITERAL:
 		case NODE_NULL_LITERAL:
-		case NODE_IDENTIFIER: {
+		case NODE_IDENTIFIER:
 			return analyze_expression(ctx, stmt, out);
-		}
-		case NODE_BLOCK: {
+		case NODE_BLOCK:
 			return analyze_block(ctx, stmt, true, out, returns);
-		}
-		default: // NODE_IF, NODE_WHILE, NODE_FOR, NODE_RETURN
+		case NODE_RETURN:
+			return analyze_return(ctx, stmt, out, returns);
+		case NODE_IF:
+			return analyze_if(ctx, stmt, out, returns);
+		case NODE_WHILE:
+			return analyze_while(ctx, stmt, out, returns);
+		default: // NODE_FOR
 			return ERROR_EMIT(
 				ERR_INTERNAL, stmt->line, stmt->col, "Unsupported statement type for analysis");
 	}
@@ -502,8 +685,11 @@ Error analyze_function(SemanticContext *ctx, FunctionEntry *entry) {
 	ctx->current_function = saved_func;
 	ctx->current_return_type = saved_return_type;
 
-	if (!ERROR_IS_ERR(err))
-		entry->state = FUNC_DONE; // Mark the function as analyzed
+	if (!ERROR_IS_ERR(err)) {
+		entry->state = FUNC_DONE;				   // Mark the function as analyzed
+		set_type(entry->decl, entry->return_type); // Codegen needs to know if the function's last
+												   // expression is returned or thrown away
+	}
 
 	return err;
 }

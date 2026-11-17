@@ -3,6 +3,7 @@
  * @file error.h
  * @brief Error codes and diagnostic reporter interface.
  * @author Aleš Obr (xobrale00)
+ * @author Karel Kříž (xkrizka00)
  * @note Standard: ISO C11
  */
 
