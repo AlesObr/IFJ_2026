@@ -83,7 +83,7 @@ COMPILER_SRC             = src/main.c $(CODEGEN_SRC)
         parser-build test-parser test-parser-valgrind gen-tests \
         semantic-build test-semantic test-semantic-valgrind gen-sem-tests \
         codegen-build test-codegen test-codegen-valgrind gen-codegen-tests \
-        compiler test-full \
+        compiler test-full ext-status \
         linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep is-it-ok
 
@@ -327,6 +327,11 @@ test-full: compiler
 	@python3 test/codegen_test/codegen_runner.py --bin ./$(TARGET_COMPILER) --dir $(CG_TEST_DIRS) \
 		$(if $(INTERP),--interp $(INTERP)) $(if $(CG_EXCLUDE),--exclude $(CG_EXCLUDE))
 
+# Stav rozšíření po fázích (parser -> sémantika -> generátor -> běh -> výstup) nad cílenými
+# programy v test/codegen_test/extensions (make_ext_programs.py, výstupy: scala_expected.py)
+ext-status: parser-build semantic-build compiler
+	@python3 test/codegen_test/ext_status.py $(if $(INTERP),--interp $(INTERP))
+
 # ----------------------------------------------------------------------
 # Formátování a Lintery
 # ----------------------------------------------------------------------
@@ -369,7 +374,9 @@ dist-prep: format linter-full | $(DIST_DIR)
 zip: dist-prep
 	@echo "=== Vytvářím odevzdávací archiv $(ZIP_NAME) ==="
 	@rm -f $(ZIP_NAME)
-	@cd $(DIST_DIR) && zip -r ../../$(ZIP_NAME) . -x "*.git*" "*build*" "*output*" "*.vscode*"
+	@# Bez vylučovacích vzorů: DIST_DIR je vygenerovaný a obsahuje jen soubory k odevzdání
+	@# (vzor "*build*" dříve tiše vyřadil i code_gen_buildins.c/.h)
+	@cd $(DIST_DIR) && zip -r ../../$(ZIP_NAME) .
 	@echo "\033[32m✓ Archiv $(ZIP_NAME) byl úspěšně vygenerován.\033[0m"
 	@echo "--- Obsah archivu: ---"
 	@unzip -l $(ZIP_NAME)

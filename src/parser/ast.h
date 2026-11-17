@@ -114,7 +114,7 @@ struct ASTNode {
 	size_t col;	 /**< Source code column where the construct starts. */
 
 	ValType expr_types; /**< Determines which type of operation to use (DIV / IDIV) for example*/
-	bool to_double; 	/**< Determines if conversion to int / double needed*/
+	bool to_double;		/**< Determines if conversion to int / double needed*/
 	size_t sym_id;		/**< Identifier of the variable in symtable if needed */
 
 	union {

@@ -4,6 +4,7 @@
  * @brief Code gen module implementation for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
  * @author Karel Kříž (xkrizka00)
+ * @author Štěpán Hořenek (xhorens00)
  * @note Standard: ISO C11
  */
 
@@ -60,8 +61,8 @@ static size_t max_sym_id(const ASTNode *node) {
 static bool is_expression(const ASTNode *node) {
 	switch (node->type) {
 		case NODE_BINARY_OP:
-			if (node->op.op == OP_ASSIGN)
-				return false;
+			// An assignment is a statement, any other binary operation is an expression
+			return node->op.op != OP_ASSIGN;
 		case NODE_INT_LITERAL:
 		case NODE_FLOAT_LITERAL:
 		case NODE_STRING_LITERAL:

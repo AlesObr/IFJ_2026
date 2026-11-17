@@ -52,7 +52,7 @@ bool lexer_newline_before_token(void) {
 /** Character that would continue an operator in Scala (i.e. not two separate tokens). */
 static bool continues_operator(int c) {
 	return c == '=' || c == '>' || c == '<' || c == '@' || c == ':' || c == '/' || c == '+' ||
-		   c == '-' || c == '*' || c == '|';
+		   c == '-' || c == '*' || c == '|' || c == '&' || c == '!';
 }
 
 /** Creates an integer token; a non-zero literal must not start with zero. */
@@ -639,6 +639,29 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_free(&token_buffer);
 					return ERROR_OK();
 				}
+				if (lexeme.current_lexeme == '&') {
+					token_start_line = current_line;
+					token_start_col = current_col;
+					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+					lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+					if (lexeme.current_lexeme == '&') {
+						dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
+						lexeme.current_lexeme = lexer_take(&lexeme, source_file);
+						if (continues_operator(lexeme.current_lexeme)) {
+							lexer_give(&lexeme, source_file);
+							dstring_free(&token_buffer);
+							return ERROR_EMIT(
+								ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
+						}
+						lexer_give(&lexeme, source_file);
+						token_make_simple(out_token, TOKEN_AND, token_start_line, token_start_col);
+						dstring_free(&token_buffer);
+						return ERROR_OK();
+					}
+					lexer_give(&lexeme, source_file);
+					dstring_free(&token_buffer);
+					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
+				}
 				if (lexeme.current_lexeme == '+') {
 					token_make_simple(out_token, TOKEN_PLUS, current_line, current_col);
 					dstring_free(&token_buffer);
@@ -668,9 +691,11 @@ Error lexer_get_next_token(Token *out_token) {
 						dstring_free(&token_buffer);
 						return ERROR_OK();
 					}
+
 					lexer_give(&lexeme, source_file);
+					token_make_simple(out_token, TOKEN_NOT, token_start_line, token_start_col);
 					dstring_free(&token_buffer);
-					return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "Invalid operand.\n");
+					return ERROR_OK();
 				}
 				if ((lexeme.current_lexeme >= 'A' && lexeme.current_lexeme <= 'Z') ||
 					(lexeme.current_lexeme >= 'a' && lexeme.current_lexeme <= 'z')) {

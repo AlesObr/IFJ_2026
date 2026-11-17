@@ -747,6 +747,12 @@ static const char *op_to_str(OpType op) {
 			return "!";
 		case OP_UNARY_MINUS:
 			return "-";
+		case OP_UNARY_PLUS:
+			return "+";
+		case OP_AND:
+			return "&&";
+		case OP_OR:
+			return "||";
 		default:
 			return "?";
 	}
@@ -952,8 +958,8 @@ void ast_dump_sexpr(const ASTNode *node, FILE *out) { // add new nodes into this
 	}
 }
 
-void ast_set_type(ASTNode *node, ValType type){
-	if (node != NULL){
+void ast_set_type(ASTNode *node, ValType type) {
+	if (node != NULL) {
 		node->expr_types = type;
 	}
 }
