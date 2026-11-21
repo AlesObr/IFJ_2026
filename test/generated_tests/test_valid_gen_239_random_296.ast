@@ -1,0 +1,6 @@
+(block (def f1 (params (param p_2:Double)):String (block (+ "x yx ytext" (+ "" " 0
+0")))) (def main2 (params):Unit (block (if (<= (/ (- (- 7.5)) 0.0882) 20000) (block (call print (params "
+")) (var i3:Undef 0) (while (< i3 3) (block (call print (params "
+")) (= i3 (+ i3 1)))) (call print (params "")) (const v4X_fuzz65:Double 1000.25)) (else (block (const v5:Undef (* (/ (/ 0.75 0.2) 0.44) (+ 0.59 0.16)))))) (var _v6:Double 0.309) (var v7:String (+ (+ (+ """" (+ "a 0"" ")x y")) "
+") (+ "" " "))) (= v7 (+ (+ (+ (+ "" "x yx yHello") (+ v7 "")) (+ "= x y" "*/
+(	")) "a ")))))

@@ -1,0 +1,2 @@
+(block (def f1X (params):Int (block (* 2 100))) (def f2 (params):String (block (call print (params (+ "" ""))) (call print (params (- (/ 0 50061) (+ 100 42)))) (var v3:Undef 1) (+ "0a" (call toStr (params v3))))) (def f4X (params (param p5:Double)):String (block (var i6:Undef 0) (while (< i6 4) (block (call print (params "	"text0")) (call print (params 3)) (= i6 (+ i6 1)))) null (var v7:Undef 0.74) "")) (def main7 (params):Unit (block (call print (params 100)) (var v8:Undef (+ "" 0x y" (+ "
+0" ""))) (const v9:Int (- (call f1X (params)))))))

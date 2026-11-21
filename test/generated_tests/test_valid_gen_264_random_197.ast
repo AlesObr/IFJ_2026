@@ -1,0 +1,2 @@
+(block (def _f1_fuzz68 (params (param p2:Double) (param p3:String) (param p4:String) (param p5:Double)):Unit (block (call print (params "
+")))) (def main5 (params):Unit (block (call _f1_fuzz68 (params 50 "" (+ (call toStr (params 10)) (+ "00\" "")) (/ 800 (- (* 1000.25 8.5))))))))

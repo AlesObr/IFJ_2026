@@ -3,6 +3,15 @@
  * @file dstring.c
  * @brief Implementation of dynamic string library to be used for work with strings
  * @author Aleš Obr (xobrale00)
+ *
+ * @par Ownership contract
+ * Functions receiving a pointer to dstring_t operate on borrowed references;
+ * they DO NOT take ownership of the instance or its allocated buffer.
+ * The caller retains full ownership and is strictly responsible for calling dstring_free().
+ *
+ * If any function fails (e.g. realloc failure or invalid arguments), the dstring_t
+ * is guaranteed to remain in a valid, consistent, and destructible state.
+ *
  * @note Standard: ISO C11
  */
 
@@ -19,9 +28,15 @@ bool dstring_init(dstring_t *str) {
 	if (str == NULL) {
 		return false;
 	}
-	str->data = NULL;
+	str->data = malloc(DSTRING_INIT_CAPACITY);
+	if (str->data == NULL) {
+		str->length = 0;
+		str->capacity = 0;
+		return false;
+	}
+	str->data[0] = '\0';
 	str->length = 0;
-	str->capacity = 0;
+	str->capacity = DSTRING_INIT_CAPACITY;
 	return true;
 }
 
@@ -71,20 +86,17 @@ bool dstring_append_char(dstring_t *str, char c) {
 	return true;
 }
 
-bool dstring_append_str(dstring_t *str, const char *text) {
-	if (str == NULL || text == NULL) {
+bool dstring_append_mem(dstring_t *str, const char *data, size_t length) {
+	if (str == NULL || (data == NULL && length > 0)) {
 		return false;
 	}
-
-	size_t text_length = strlen(text);
-	if (text_length == 0) {
+	if (length == 0) {
 		return true;
 	}
 
-	// Note: We need to account for the null terminator, so we add 1 to the length.
-	if (str->length + text_length + 1 > str->capacity) {
+	if (str->length + length + 1 > str->capacity) {
 		size_t new_capacity = (str->capacity == 0) ? DSTRING_INIT_CAPACITY : str->capacity;
-		while (new_capacity < str->length + text_length + 1) {
+		while (new_capacity < str->length + length + 1) {
 			new_capacity *= 2;
 		}
 		char *new_data = realloc(str->data, new_capacity);
@@ -95,11 +107,18 @@ bool dstring_append_str(dstring_t *str, const char *text) {
 		str->capacity = new_capacity;
 	}
 
-	memcpy(str->data + str->length, text, text_length);
-	str->length += text_length;
+	memcpy(str->data + str->length, data, length);
+	str->length += length;
 	str->data[str->length] = '\0';
 
 	return true;
+}
+
+bool dstring_append_str(dstring_t *str, const char *text) {
+	if (str == NULL || text == NULL) {
+		return false;
+	}
+	return dstring_append_mem(str, text, strlen(text));
 }
 
 const char *dstring_get(const dstring_t *str) {
@@ -109,6 +128,10 @@ const char *dstring_get(const dstring_t *str) {
 	return str->data;
 }
 
+const char *dstring_get_raw(const dstring_t *str) {
+	return dstring_get(str);
+}
+
 int dstring_cmp_str(const dstring_t *str, const char *text) {
 	const char *str_val = (str != NULL && str->data != NULL) ? str->data : "";
 	const char *text_val = (text != NULL) ? text : "";
@@ -116,18 +139,25 @@ int dstring_cmp_str(const dstring_t *str, const char *text) {
 }
 
 bool dstring_copy(dstring_t *dest, const dstring_t *src) {
-	if (dest == NULL || src == NULL) {
+	if (dest == NULL) {
 		return false;
 	}
 
-	if (src->length == 0) {
+	// Source is NULL or completely empty
+	if (src == NULL || src->data == NULL || src->length == 0) {
+		if (dest->data == NULL) {
+			return dstring_init(dest);
+		}
 		dstring_clear(dest);
 		return true;
 	}
 
-
+	// Ensure capacity for string + null terminator
 	if (src->length + 1 > dest->capacity) {
-		size_t new_capacity = src->length + 1;
+		size_t new_capacity = (dest->capacity == 0) ? DSTRING_INIT_CAPACITY : dest->capacity;
+		while (new_capacity < src->length + 1) {
+			new_capacity *= 2;
+		}
 		char *new_data = realloc(dest->data, new_capacity);
 		if (new_data == NULL) {
 			return false;
@@ -136,7 +166,7 @@ bool dstring_copy(dstring_t *dest, const dstring_t *src) {
 		dest->capacity = new_capacity;
 	}
 
-	// Copy the data from src to dest
+	// Copy the raw bytes and ensure null-termination
 	memcpy(dest->data, src->data, src->length);
 	dest->length = src->length;
 	dest->data[dest->length] = '\0';

@@ -1,0 +1,7 @@
+(block (def f1 (params (param _p2:String) (param p_3:Unit) (param p4:Double) (param p5:String)):Int (block (var i6:Undef 0) (while (< i6 4) (block (call print (params 2)) (call print (params 13074)) (const v7:Undef 7) (var v8X:Undef (call toStr (params (- (- 100 v7) v7)))) (if (< (- v7) 42) (block (call print (params "
+")) (var i9:Undef 0) (while (< i9 3) (block (call print (params 0)) (call print (params 10)) (= i9 (+ i9 1)))) (var v10:Undef 1000.25) (var i11:Undef 0) (while (< i11 5) (block (call print (params "0x y")) (call print (params 7)) (= i11 (+ i11 1))))) (else (block (var v12:Int (- (- (- 7) v7) v7)) (call print (params "
+")) (if (< v12 (- v12)) (block (return (* (+ 3 10) v12))) (else (block (var i13:Undef 0) (while (< i13 3) (block (return (+ 3 (+ 7 v7))) (= i13 (+ i13 1)))) (call print (params "
+"))))) (= v8X (+ "" (call toStr (params (+ 700 p4))))) (= v8X "(then0")))) (= i6 (+ i6 1)))) (var _v14:Undef (+ _p2 _p2)) (call print (params "
+")) (const v15X:Int i6) 100)) (def f16 (params):String (block (+ (+ "Hello" "") (+ "aHello" ")")))) (def main16 (params):Unit (block (if (> (call f1 (params "" null 7.6 "0
+")) 100) (block (call print (params (- 900))) (var i17X:Undef 0) (while (< i17X 0) (block (call print (params (+ (+ 9 80) 800))) (call print (params (+ (/ 296.18 (* (/ 297.81 400) (* 900000 9.8))) 700))) (call print (params "
+")) (return) (= i17X (+ i17X 1))))) (else (block (return) (var i18:Undef 0) (while (< i18 3) (block (call print (params 100)) (call print (params 100)) (= i18 (+ i18 1))))))))))

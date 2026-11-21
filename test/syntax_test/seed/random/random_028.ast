@@ -1,0 +1,2 @@
+(block (def f_1 (params (param p2:String) (param p_3:Unit) (param p4:Int) (param p5X:Double)):Double (block (const v6:Undef "x y	text") (* (+ (/ (- 0.9 700) p5X) p5X) (- p5X)))) (def main6 (params):Unit (block (call print (params "
+")))))

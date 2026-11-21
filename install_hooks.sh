@@ -27,7 +27,7 @@ echo -e "${MAGENTA}${BOLD}====================================================${
 echo -e "${CYAN}${BOLD}       IFJ26 :: INSTALACE PROJEKTOVÉ INKVIZICE       ${NC}"
 echo -e "${MAGENTA}${BOLD}====================================================${NC}"
 
-# 1. Příprava složky a zápis pre-commit hooku na přímo
+# 1. Příprava složky a zápis opraveného pre-commit hooku
 echo -e "\n${BLUE}${BOLD}[1/4]${NC} ${DIM}Vytvářím scripts/hooks/pre-commit...${NC}"
 mkdir -p scripts/hooks
 
@@ -46,6 +46,7 @@ NC='\033[0m'
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "$ROOT_DIR"
 
+# Filtrovat pouze změněné/přidané C/H soubory v src/
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^src/.*\.(c|h)$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
@@ -54,18 +55,28 @@ fi
 
 echo -e "${YELLOW}[HOOK] Spouštím inkvizici nad staged soubory...${NC}"
 
-# Auto-fix / kontrola hlaviček pokud existuje generátor
-if [ -f "./DONNOTTOUCH/generate_headers.py" ]; then
-    python3 ./DONOTTOUCH/generate_headers.py $STAGED_FILES
-    git add $STAGED_FILES 2>/dev/null || true
+# 1. Formátování pouze nad staged soubory
+if command -v clang-format >/dev/null 2>&1; then
+    echo -e "${CYAN}[HOOK] Aplikuji clang-format...${NC}"
+    echo "$STAGED_FILES" | xargs clang-format -i
 fi
 
-# Kontrola komentářů a Doxygenu
+# 2. Generování / úprava hlaviček
+if [ -f "scripts/generate_headers.py" ]; then
+    echo -e "${CYAN}[HOOK] Aktualizuji hlavičky souborů...${NC}"
+    python3 scripts/generate_headers.py $STAGED_FILES
+fi
+
+# 3. Znovu přidat automaticky zformátované soubory do stagingu
+echo "$STAGED_FILES" | xargs git add
+
+# 4. Validace komentářů a Doxygenu
 if [ -f "scripts/lint_comments.py" ]; then
+    echo -e "${CYAN}[HOOK] Kontroluji komentáře a dokumentaci...${NC}"
     python3 scripts/lint_comments.py $STAGED_FILES
 fi
 
-echo -e "${GREEN}[OK] Všechny soubory jsou sterilní.${NC}"
+echo -e "${GREEN}[OK] Všechny soubory prošly inkvizicí.${NC}"
 exit 0
 EOF
 

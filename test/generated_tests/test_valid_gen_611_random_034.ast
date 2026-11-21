@@ -1,0 +1,1 @@
+(block (def f1 (params (param p2:Double)):Int (block (call print (params (+ (+ (+ "a " "//x y//") (+ " text"" "0")) " x yx yHello"))) (* (/ 3 (+ 42 (* 1 2))) 2))) (def f3 (params (param p4_fuzz99:Unit) (param p_5:Int)):Unit (block (return))) (def main5 (params):Unit (block (call print (params "x y0Hello"")))))

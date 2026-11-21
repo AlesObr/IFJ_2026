@@ -12,6 +12,7 @@ NC='\033[0m'
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "$ROOT_DIR"
 
+# Vybrat pouze modifikované C/H soubory v src/
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^src/.*\.(c|h)$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
@@ -20,16 +21,26 @@ fi
 
 echo -e "${YELLOW}[HOOK] Spouštím inkvizici nad staged soubory...${NC}"
 
-# Auto-fix / kontrola hlaviček pokud existuje generátor
-if [ -f "./DONNOTTOUCH/generate_headers.py" ]; then
-    python3 ./DONOTTOUCH/generate_headers.py $STAGED_FILES
-    git add $STAGED_FILES 2>/dev/null || true
+# 1. Formátování přes clang-format POUZE nad staged soubory
+if command -v clang-format >/dev/null 2>&1; then
+    echo -e "${CYAN}[HOOK] Aplikuji clang-format...${NC}"
+    echo "$STAGED_FILES" | xargs clang-format -i
 fi
 
-# Kontrola komentářů a Doxygenu
+# 2. Generování / úprava hlaviček (sjednocená cesta do scripts/)
+if [ -f "scripts/generate_headers.py" ]; then
+    echo -e "${CYAN}[HOOK] Aktualizuji hlavičky souborů...${NC}"
+    python3 scripts/generate_headers.py $STAGED_FILES
+fi
+
+# 3. Znovu přidat automaticky upravené staged soubory do commitu
+echo "$STAGED_FILES" | xargs git add
+
+# 4. Validace komentářů a Doxygenu (pokud selže, commit je zamítnut)
 if [ -f "scripts/lint_comments.py" ]; then
+    echo -e "${CYAN}[HOOK] Kontroluji komentáře a dokumentaci...${NC}"
     python3 scripts/lint_comments.py $STAGED_FILES
 fi
 
-echo -e "${GREEN}[OK] Všechny soubory jsou sterilní.${NC}"
+echo -e "${GREEN}[OK] Všechny soubory prošly inkvizicí.${NC}"
 exit 0

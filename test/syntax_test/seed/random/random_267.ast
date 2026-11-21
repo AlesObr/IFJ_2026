@@ -1,0 +1,3 @@
+(block (def f1 (params (param p2:Double) (param p3:Unit) (param p4:Unit)):Int (block (- (- (/ 3 24074)) (- (- 7))))) (def f5 (params (param p6:Unit) (param p7:String) (param p8:Double)):Int (block 2)) (def main8 (params):Unit (block (const v9:Double 979.47) (call print (params "
+")) (var v10:Undef (+ (+ (+ (+ "text"" "a0") "\	") "
+") "atextx y"")) (= v10 " textHello0"))))

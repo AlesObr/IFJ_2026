@@ -3,6 +3,7 @@
  * @file error.h
  * @brief Error codes and diagnostic reporter interface.
  * @author Aleš Obr (xobrale00)
+ * @author Karel Kříž (xkrizka00)
  * @note Standard: ISO C11
  */
 
@@ -22,7 +23,11 @@ typedef enum {
 	ERR_LEXICAL = 1,
 	ERR_SYNTAX = 2,
 	ERR_SEM_UNDEF = 3,
-	ERR_SEM_TYPE = 4,
+	ERR_SEM_REDEF = 4,
+	ERR_SEM_CALL = 5,
+	ERR_SEM_TYPE = 6,
+	ERR_SEM_ASSIGN = 7,
+	ERR_SEM_MAIN = 10,
 	ERR_INTERNAL = 99
 } ErrorType;
 
@@ -30,9 +35,9 @@ typedef enum {
  * @brief Representation of an error payload propagated up the call stack.
  */
 typedef struct {
-	ErrorType type;      /**Specific error type and process exit code. */
-	size_t line;         /** Source code line where the error occurred. */
-	size_t col;          /** Source code column where the error occurred. */
+	ErrorType type;		 /**Specific error type and process exit code. */
+	size_t line;		 /** Source code line where the error occurred. */
+	size_t col;			 /** Source code column where the error occurred. */
 	const char *message; /** Descriptive error diagnostics message. */
 } Error;
 

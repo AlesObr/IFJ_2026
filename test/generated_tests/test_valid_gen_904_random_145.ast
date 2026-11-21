@@ -1,0 +1,7 @@
+(block (def f1 (params (param p2:String)):String (block (if (> 8000 9) (block (var v3:Undef (- 69977)) (call print (params "
+")) (if (< (+ v3 7) (- v3)) (block (call print (params "
+")) (var i_4:Undef 0) (while (< i_4 0) (block null (call print (params "
+")) (= i_4 (+ i_4 1)))) (= v3 (/ v3 v3)) (var i5:Undef 0) (while (< i5 1) (block (var v6:Undef (* (+ (* v3 i_4) (* 7 i_4)) (- i_4 i_4))) (= i5 (+ i5 1))))) (else (block (if (>= 600 (/ (* 800 30) (/ (- 1000.25 600) 0.35))) (block (const v7:Double (- (- 0.03 0.0931)))) (else (block (= v3 (* v3 (- (- (* v3 19094) v3) v3)))))) (return (call toStr (params (- 0)))) (call print (params "Hello")))))) (else (block (call print (params 0.11))))) (call print (params (+ p2 (+ (+ "
+x y
+ " "x y0") p2)))) p2)) (def main7_fuzz90 (params):Unit (block (call print (params (/ 900 (+ 9.4 1000.25)))) (call print (params "
+")) (var v8:Undef 7))))

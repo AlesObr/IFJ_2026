@@ -1,0 +1,4 @@
+(block (def f1 (params (param p2X:String) (param p3:Double)):String (block (var i_4:Undef 0) (while (< i_4 3) (block (call print (params "")) (call print (params 10)) (var i5:Undef 0) (while (< i5 5) (block (const v6:Int 49375) (call print (params (+ p2X (call toStr (params (- 4.72)))))) (= i5 (+ i5 1)))) (= i_4 (+ i_4 1)))) (var v7:Int (- i_4)) (call print (params "
+")) (call print (params "
+")) (call print (params "
+")) (call toStr (params i_4)))) (def f8 (params (param p9:Double) (param p10:Unit) (param p11:String) (param p12:Double)):String (block (var i13:Undef 0) (while (< i13 1) (block (const v14:Undef p11) (var _v15:Undef (* 3 40104)) (= i13 (+ i13 1)))) (var i16:Undef 0) (while (< i16 5) (block (var v17:Undef (* (- 65850) (- (+ i13 35135) (- 3 i13)))) (call print (params 100)) (= i16 (+ i16 1)))) (+ (+ p11 (+ (call f1 (params "texttextaHello" p9)) "\0")) "text\Hello/*"))) (def main17 (params):Unit (block (return))))

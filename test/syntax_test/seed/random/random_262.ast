@@ -1,0 +1,1 @@
+(block (def _f1 (params (param p_2:Int) (param p3:String)):Int (block (const v_4:Double 1000.25) (const v5:Undef (- (* (/ v_4 v_4) 50))) null (/ p_2 p_2))) (def main5 (params):Unit (block (call print (params (+ "text" (+ (+ "	x yx y " "\") "00x y"")))))))

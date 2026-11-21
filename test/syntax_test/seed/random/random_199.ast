@@ -1,0 +1,8 @@
+(block (def _f1 (params (param p2:Unit) (param p3X:Double)):Double (block (call print (params "
+")) (var i4:Undef 0) (while (< i4 1) (block (if (<= 76498 (/ 10 (+ 0 7))) (block (call print (params 10)) (call print (params 10)) (call print (params "Hello=")) (call print (params (call toStr (params (- (+ (- p3X) (- p3X))))))) (call print (params "
+"))) (else (block null))) (const v5:Undef (+ 2 3)) (= i4 (+ i4 1)))) (call print (params " a ")) (call print (params "thenHello")) (call print (params 2)) (var v6:String (+ (+ (+ (+ "" "text0
+") "Hello"0a") (+ (+ ") /*" "aa*/") (call toStr (params i4)))) "\text")) (- p3X (- 0.25)))) (def main6 (params):Unit (block (if (< 5.8 (- (- 800 257.59) 900)) (block (call print (params "
+")) (var v7:String "")) (else (block (if (== 0.332 134.77) (block (call print (params (/ (- (/ 0 (* 2 42))) (- (+ 0 (* 90461 3)))))) (call print (params (* (/ 3 1) 0)))) (else (block (call print (params "
+")) (call print (params (/ (+ 800 (+ 0.57 0.917)) (- 1.74 0.172))))))) (call print (params 1000.25)) (call print (params 3)) (const _v8:Undef (+ (call toStr (params (* 300 100))) (+ (+ "a;
+" (call toStr (params 42))) (+ "ax y" (+ ""
+textx y" " 		,")))))))))))

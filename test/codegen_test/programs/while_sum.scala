@@ -1,0 +1,11 @@
+// cyklus while
+import ifj26.*
+
+@main def main(): Unit =
+  var i = 1
+  var sum = 0
+  while i <= 10 do
+    sum = sum + i
+    i = i + 1
+  print(sum)
+  print("\n")

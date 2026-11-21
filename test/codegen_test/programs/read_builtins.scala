@@ -1,0 +1,27 @@
+// readLine/readInt/readDouble vc. chybneho vstupu a EOF
+import ifj26.*
+
+@main def main(): Unit =
+  val line = readLine()
+  val i = readInt()
+  val bad = readInt()
+  val d = readDouble()
+  val e = readDouble()
+  val spaced = readInt()
+  val eofLine = readLine()
+  val eofInt = readInt()
+  print(line)
+  print(i)
+  print(" ")
+  print(bad)
+  print(" ")
+  print(d)
+  print(" ")
+  print(e)
+  print(" ")
+  print(spaced)
+  print(" [")
+  print(eofLine)
+  print("] ")
+  print(eofInt)
+  print("\n")

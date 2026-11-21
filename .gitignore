@@ -55,5 +55,13 @@ dkms.conf
 *.dwo
 
 /output/
+/build/
 /.vscode/
 /.vs/
+/test/.scala-build/
+/test/.bsp/
+/cs
+/.idea/
+*.gz
+*.zip
+*.log

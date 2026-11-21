@@ -91,3 +91,6 @@ Obhajoba projektu se skládá ze dvou částí:
 
 > [!note]
 > Textace v pomocných souborech je záměrně psaná česky pro snazší orientaci členů týmu v tom, co přesně je jeho výstupem - aby nedošlo ke "ztrátě v překladu" ve věcech, kde je to zcela nežádoucí a jakékoliv hlubší řešení významu neefektivní
+
+> [!important]
+> README v jednotlivých adresářích jsou určena primárně jako interní dokumentace sloužící k zjednonznačnění a snadnějšímu pochopení jednotlivých částí. Pro zajištění jejich maxmální přesnosti a jednoznačnosti **byly** použity nástroje umělé inteligence (Gemini 3.8 flash)

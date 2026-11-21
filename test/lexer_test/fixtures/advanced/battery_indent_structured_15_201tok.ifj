@@ -1,0 +1,60 @@
+1 <= _1 x "hello" camelCase
+"escape: \\ lomitko" camelCase
+0 x
+case thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString
+123_456_789 10_20_30 "escape: \" uvozovka" ;
+readInt
+1
+    1_000_000 0 factorial snake_case
+    1_000_000 @main 5e-2 camelCase snake_case
+    1e5D 123_456_789 2.5E-3 import 10_20_30 123_456_789 // line 10 comment
+    | .
+100.5e+2 __private x
+1_000.50_1 2.5E-3 Unit then "escape: \\ lomitko" _1
+<= factorial // line 14 comment
+1_000_000 100.5e+2 while "escape: \\ lomitko" for / // line 15 comment
+999_999_999 _ 0 @main >
+1e10 >= +
+class extension else 1 1
+0.6 999_999_999 do
+123_456_789 2.5E-3 // line 20 comment
+42 1 "escape: \\ lomitko"
+42 123_456_789 "escape: \r carriage return" 1e10
+_1 42.0d *
+0 // line 24 comment
+"" 2147483647 x 2.5E-3 return
+5e-2 1_000_000
+"escape: \t tabulator" 5e-2
+2147483647 0 var "escape: \n nova radka" 0 snake_case
+, 10_20_30 3.14159 class
+_var 42.0d
+    var
+    Int 3.14159 Int
+    __private @main
+    then 1
+    != 2147483647 0.5 with123Numbers 0.0 "escape: \n nova radka" // line 35 comment
+    == "escape: \" uvozovka" snake_case // line 36 comment
+factorial
+> 5e-2 0.0 == 1_000_000 // line 38 comment
+with123Numbers camelCase :
+1e10 camelCase "text s mezerami"
+"escape: \r carriage return" 0 0 "kombinace: \n\t\"\\"
+0.0 if
+    for ; 5e-2 snake_case do
+    123_456_789 1_000_000 < Boolean 42 while // line 44 comment
+        class with123Numbers
+    readInt 123_456_789 1e5D 42 0.6 10_20_30 // line 46 comment
+"hello" < with123Numbers
+readInt thisIsAVeryLongIdentifierThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicStringveryLongIdentifierNameThatShouldStillWorkInDynamicString class
+    0 _ "escape: \n nova radka" return
+1_000_000
+1e5D snake_case 5e-2
+"escape: \r carriage return" with123Numbers 10_20_30 + 1
+1e5D 0
+1 Boolean
+x 1_000_000
+"escape: \t tabulator" 1_000.50_1 999_999_999
+999_999_999 . = while _1 2.5E-3
+1e10 42 x readInt Double _var
+__private 0 "escape: \r carriage return" |
++

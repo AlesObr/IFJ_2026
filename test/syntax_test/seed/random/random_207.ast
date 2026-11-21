@@ -1,0 +1,8 @@
+(block (def f1 (params (param p2:Unit) (param p3:Double)):Double (block p3)) (def main3 (params):Unit (block (call print (params (+ 0.5 (* (/ 300000 500) 800000)))) (call print (params "
+")) (var v4:Undef "x y") (if (<= (- 42 1) (/ 10001 (+ 21175 2))) (block (if (<= (* 700 (/ 1000.25 (- 6.98 0.0951))) (- 0.75)) (block (= v4 (+ v4 "	Hellotext")) (call print (params "x ytext ")) (const v_5:Undef (call toStr (params (/ 1000.25 100)))) (if (<= 30000 400000) (block (var v6:Undef (+ "x y" /*" (+ (+ v4 (+ v_5 v4)) ""0"))) (const v7:Undef 1)) (else (block (call print (params "
+Hello"))))) (var v8:Undef v_5)) (else (block (var i9X:Undef 0) (while (< i9X 0) (block (var i10:Undef 0) (while (< i10 4) (block (return) (call print (params (call toStr (params (* (* 10 (/ 0 100)) 1))))) (= i10 (+ i10 1)))) (call print (params "
+")) (= i9X (+ i9X 1)))) (call print (params "
+")) (call print (params 6.7)) (call print (params 90935))))) (call print (params "
+")) (call print (params "
+")) (if (>= 3 (+ 3 (/ 3 1))) (block (const v11:Undef v4) (const v12:Double (/ (- 1000.25 (- 90000 0.0133)) 191.9))) (else (block (call print (params (+ (+ " aaHello" v4) "Hellox y"))) (return) (const _v13:String (+ v4 (+ "" v4))) (if (!= "0
+ " (call toStr (params (- 1)))) (block (call print (params 5.2)) (call print (params (call toStr (params 7))))) (else (block (return) (const v14:Int (+ (- (- 83888 0)) 42))))) (var v15:Undef (* 665.42 146.36))))) (const v_16:Undef (- 0 42))) (else (block (call print (params (+ v4 (call toStr (params 10))))) (const v17:Undef (* (- (/ 0.46 3000)) 0.95)) (if (<= (* v17 0.41) (/ (+ 0.0418 v17) v17)) (block (= v4 (+ (+ (+ v4 v4) v4) (+ (+ "\ textx y" (call toStr (params 100))) (+ v4 (+ v4 "")))))) (else (block (= v4 (+ v4 v4)))))))))))
