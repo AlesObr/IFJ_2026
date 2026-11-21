@@ -1,0 +1,41 @@
+// Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+// SVG: dot -Tsvg <tento soubor> -o <vystup>.svg
+digraph DKA {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=16, labelloc=t, nodesep=0.35, ranksep=0.55,
+         label="DKA lexeru IFJ26 – Řetězce"];
+  node  [shape=circle, fontname="Helvetica", fontsize=9, margin=0, width=0.3];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.7];
+  __start [shape=point, width=0.12, label=""];
+  __start -> "START";
+  "START" [label="START", shape=circle, id="s_START", URL="#all/START", target="_top", tooltip="START", style=bold];
+  subgraph "cluster_str" {
+    label="Řetězce"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_str"; URL="#str"; target="_top"; tooltip="Řetězce";
+    "STR_OPEN" [label="STR_OPEN", shape=circle, id="s_STR_OPEN", URL="#str/STR_OPEN", target="_top", tooltip="STR_OPEN"];
+    "STRING" [label="STRING", shape=circle, id="s_STRING", URL="#str/STRING", target="_top", tooltip="STRING"];
+    "STR_ESC" [label="STR_ESC", shape=circle, id="s_STR_ESC", URL="#str/STR_ESC", target="_top", tooltip="STR_ESC"];
+    "ML_STRING" [label="ML_STRING", shape=circle, id="s_ML_STRING", URL="#str/ML_STRING", target="_top", tooltip="ML_STRING"];
+    "ML_QUOTE_1" [label="ML_QUOTE_1", shape=circle, id="s_ML_QUOTE_1", URL="#str/ML_QUOTE_1", target="_top", tooltip="ML_QUOTE_1"];
+    "ML_QUOTE_2" [label="ML_QUOTE_2", shape=circle, id="s_ML_QUOTE_2", URL="#str/ML_QUOTE_2", target="_top", tooltip="ML_QUOTE_2"];
+    "STR_END" [label=<STR_END<BR/><FONT POINT-SIZE="7">LIT_STRING</FONT>>, shape=doublecircle, id="s_STR_END", URL="#str/STR_END", target="_top", tooltip="STR_END"];
+    "STR_QUOTE_2" [label=<STR_QUOTE_2<BR/><FONT POINT-SIZE="7">LIT_STRING</FONT>>, shape=doublecircle, id="s_STR_QUOTE_2", URL="#str/STR_QUOTE_2", target="_top", tooltip="STR_QUOTE_2: prázdný řetězec \"\""];
+    "ML_END" [label=<ML_END<BR/><FONT POINT-SIZE="7">LIT_STRING</FONT>>, shape=doublecircle, id="s_ML_END", URL="#str/ML_END", target="_top", tooltip="ML_END: poslední tři \" ukončují"];
+  }
+  "START" -> "STR_OPEN" [label="'\"'", id="e35"];
+  "STR_OPEN" -> "STR_QUOTE_2" [label="'\"'", id="e36"];
+  "STR_OPEN" -> "STR_ESC" [label="'\\'", id="e37"];
+  "STR_OPEN" -> "STRING" [label="Σ \\ {\", \\, LF, EOF}", id="e38"];
+  "STRING" -> "STRING" [label="Σ \\ {\", \\, LF, EOF}", id="e39"];
+  "STRING" -> "STR_ESC" [label="'\\'", id="e40"];
+  "STRING" -> "STR_END" [label="'\"'", id="e41"];
+  "STR_ESC" -> "STRING" [label="n, t, r, \", \\", id="e42"];
+  "STR_QUOTE_2" -> "ML_STRING" [label="'\"'", id="e43"];
+  "ML_STRING" -> "ML_STRING" [label="Σ \\ {\", EOF}", id="e44"];
+  "ML_STRING" -> "ML_QUOTE_1" [label="'\"'", id="e45"];
+  "ML_QUOTE_1" -> "ML_QUOTE_2" [label="'\"'", id="e46"];
+  "ML_QUOTE_1" -> "ML_STRING" [label="Σ \\ {\", EOF}", id="e47"];
+  "ML_QUOTE_2" -> "ML_END" [label="'\"'", id="e48"];
+  "ML_QUOTE_2" -> "ML_STRING" [label="Σ \\ {\", EOF}", id="e49"];
+  "ML_END" -> "ML_END" [label="'\"'\n/ předchozí \" patří do obsahu", id="e50"];
+  __legend [shape=note, fontsize=9, label="Dvojitý kruh = koncový stav (token).\nChybějící přechod z koncového stavu: token se přijme, znak se vrátí.\nChybějící přechod z nekoncového stavu: chyba 1.\n[podmínka] a / akce: kontext mimo konečný automat."];
+}

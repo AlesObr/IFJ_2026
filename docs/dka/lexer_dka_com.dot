@@ -1,0 +1,47 @@
+// Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+// SVG: dot -Tsvg <tento soubor> -o <vystup>.svg
+digraph DKA {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=16, labelloc=t, nodesep=0.35, ranksep=0.55,
+         label="DKA lexeru IFJ26 – Komentáře"];
+  node  [shape=circle, fontname="Helvetica", fontsize=9, margin=0, width=0.3];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.7];
+  __start [shape=point, width=0.12, label=""];
+  __start -> "START";
+  "START" [label="START", shape=circle, id="s_START", URL="#all/START", target="_top", tooltip="START", style=bold];
+  subgraph "cluster_ws" {
+    label="Bílé znaky, konec řádku a souboru"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_ws"; URL="#ws"; target="_top"; tooltip="Bílé znaky, konec řádku a souboru";
+    "EOL" [label=<EOL<BR/><FONT POINT-SIZE="7">EOL</FONT>>, shape=doublecircle, id="s_EOL", URL="#ws/EOL", target="_top", tooltip="EOL"];
+    "EOF" [label=<EOF<BR/><FONT POINT-SIZE="7">EOF</FONT>>, shape=doublecircle, id="s_EOF", URL="#ws/EOF", target="_top", tooltip="EOF: nejdřív zbývající OUTDENT"];
+  }
+  subgraph "cluster_com" {
+    label="Komentáře"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_com"; URL="#com"; target="_top"; tooltip="Komentáře";
+    "SLASH" [label=<SLASH<BR/><FONT POINT-SIZE="7">DIV</FONT>>, shape=doublecircle, id="s_SLASH", URL="#com/SLASH", target="_top", tooltip="SLASH"];
+    "LINE_COMMENT" [label="LINE_COMMENT", shape=circle, id="s_LINE_COMMENT", URL="#com/LINE_COMMENT", target="_top", tooltip="LINE_COMMENT"];
+    "BLOCK" [label="BLOCK", shape=circle, id="s_BLOCK", URL="#com/BLOCK", target="_top", tooltip="BLOCK"];
+    "BLOCK_SLASH" [label="BLOCK_SLASH", shape=circle, id="s_BLOCK_SLASH", URL="#com/BLOCK_SLASH", target="_top", tooltip="BLOCK_SLASH"];
+    "BLOCK_STAR" [label="BLOCK_STAR", shape=circle, id="s_BLOCK_STAR", URL="#com/BLOCK_STAR", target="_top", tooltip="BLOCK_STAR"];
+    "BLOCK_EOL" [label=<BLOCK_EOL<BR/><FONT POINT-SIZE="7">EOL</FONT>>, shape=doublecircle, id="s_BLOCK_EOL", URL="#com/BLOCK_EOL", target="_top", tooltip="BLOCK_EOL: další token pokračuje v BLOCK"];
+  }
+  "START" -> "SLASH" [label="'/'", id="e51"];
+  "SLASH" -> "LINE_COMMENT" [label="'/'", id="e52"];
+  "SLASH" -> "BLOCK" [label="'*'\n/ depth = 1", id="e53"];
+  "LINE_COMMENT" -> "LINE_COMMENT" [label="Σ \\ {LF, EOF}", id="e54"];
+  "LINE_COMMENT" -> "EOL" [label="LF\n[mimo závorky]", id="e55"];
+  "LINE_COMMENT" -> "EOF" [label="EOF", id="e56"];
+  "BLOCK" -> "BLOCK_EOL" [label="LF\n[mimo závorky]", id="e57"];
+  "BLOCK" -> "BLOCK_STAR" [label="'*'", id="e58"];
+  "BLOCK" -> "BLOCK_SLASH" [label="'/'", id="e59"];
+  "BLOCK" -> "BLOCK" [label="Σ \\ {*, /, LF, EOF}", id="e60"];
+  "BLOCK_SLASH" -> "BLOCK_EOL" [label="LF\n[mimo závorky]", id="e61"];
+  "BLOCK_SLASH" -> "BLOCK" [label="'*'\n/ depth++", id="e62"];
+  "BLOCK_SLASH" -> "BLOCK" [label="Σ \\ {*, /, LF, EOF}", id="e63"];
+  "BLOCK_STAR" -> "BLOCK_EOL" [label="LF\n[mimo závorky]", id="e64"];
+  "BLOCK_STAR" -> "BLOCK" [label="Σ \\ {*, /, LF, EOF}", id="e65"];
+  "BLOCK_SLASH" -> "BLOCK_SLASH" [label="'/'", id="e66"];
+  "BLOCK_STAR" -> "BLOCK_STAR" [label="'*'", id="e67"];
+  "BLOCK_STAR" -> "START" [label="'/'\n[depth = 1]\n/ depth = 0 (bílý znak)", id="e68"];
+  "BLOCK_STAR" -> "BLOCK" [label="'/'\n[depth > 1]\n/ depth--", id="e69"];
+  __legend [shape=note, fontsize=9, label="Dvojitý kruh = koncový stav (token).\nChybějící přechod z koncového stavu: token se přijme, znak se vrátí.\nChybějící přechod z nekoncového stavu: chyba 1.\n[podmínka] a / akce: kontext mimo konečný automat."];
+}

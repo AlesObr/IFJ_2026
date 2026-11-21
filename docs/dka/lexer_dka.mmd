@@ -1,0 +1,175 @@
+%% Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+%% SVG: mermaid.live nebo draw.io (Uspořádat > Vložit > Pokročilé > Mermaid)
+flowchart LR
+  classDef final stroke-width:3px
+  classDef err stroke:#d00,color:#d00
+  start((" ")) --> s0
+  style start fill:#000,stroke:#000
+  s0(("START"))
+  subgraph ws["Bílé znaky, konec řádku a souboru"]
+    s1((("EOL<br/>(EOL)"))):::final
+    s2((("EOF<br/>(EOF)"))):::final
+  end
+  subgraph num["Čísla (Int, Double)"]
+    s3((("ZERO_SEEN<br/>(LIT_INT)"))):::final
+    s4((("NUMBER_SEEN<br/>(LIT_INT)"))):::final
+    s5((("DOUBLE<br/>(LIT_FLOAT)"))):::final
+    s6((("EXPONENT<br/>(LIT_FLOAT)"))):::final
+    s7((("SUFFIX<br/>(LIT_FLOAT)"))):::final
+    s8((("DOT<br/>(DOT)"))):::final
+    s9(("DIV_DEC"))
+    s10(("WANNA_BE_DOUBLE"))
+    s11(("UNDER_SCORE"))
+    s12(("WANNA_BE_EXP"))
+    s13(("EXP_SIGN"))
+    s14(("EXP_UNDER_SCORE"))
+  end
+  subgraph id["Identifikátory a klíčová slova"]
+    s15((("CHAR<br/>(IDENTIFIER)"))):::final
+    s16((("UNDERSCORE<br/>(UNDERSCORE)"))):::final
+  end
+  subgraph str["Řetězce"]
+    s17(("STR_OPEN"))
+    s18(("STRING"))
+    s19(("STR_ESC"))
+    s20(("ML_STRING"))
+    s21(("ML_QUOTE_1"))
+    s22(("ML_QUOTE_2"))
+    s23((("STR_END<br/>(LIT_STRING)"))):::final
+    s24((("STR_QUOTE_2<br/>(LIT_STRING)"))):::final
+    s25((("ML_END<br/>(LIT_STRING)"))):::final
+  end
+  subgraph com["Komentáře"]
+    s26((("SLASH<br/>(DIV)"))):::final
+    s27(("LINE_COMMENT"))
+    s28(("BLOCK"))
+    s29(("BLOCK_SLASH"))
+    s30(("BLOCK_STAR"))
+    s31((("BLOCK_EOL<br/>(EOL)"))):::final
+  end
+  subgraph op["Operátory a oddělovače"]
+    s32((("PLUS<br/>(PLUS)"))):::final
+    s33((("MINUS<br/>(MINUS)"))):::final
+    s34((("MUL<br/>(MUL)"))):::final
+    s35((("COLON<br/>(COLON)"))):::final
+    s36((("COMMA<br/>(COMMA)"))):::final
+    s37((("SEMICOLON<br/>(SEMICOLON)"))):::final
+    s38((("LPAREN<br/>(LPAREN)"))):::final
+    s39((("RPAREN<br/>(RPAREN)"))):::final
+    s40((("ASSIGN<br/>(ASSIGN)"))):::final
+    s41((("EQ<br/>(EQ)"))):::final
+    s42((("ARROW<br/>(ARROW)"))):::final
+    s43((("LT<br/>(LT)"))):::final
+    s44((("LTE<br/>(LTE)"))):::final
+    s45((("GT<br/>(GT)"))):::final
+    s46((("GTE<br/>(GTE)"))):::final
+    s47((("NOT<br/>(NOT)"))):::final
+    s48((("NEQ<br/>(NEQ)"))):::final
+    s49((("PIPE<br/>(PIPE)"))):::final
+    s50((("OR<br/>(OR)"))):::final
+    s51(("AMP"))
+    s52((("AND<br/>(AND)"))):::final
+  end
+  subgraph main["Anotace @main"]
+    s53(("AT"))
+    s54(("AT_M"))
+    s55(("AT_MA"))
+    s56(("AT_MAI"))
+    s57((("AT_MAIN<br/>(AT_MAIN)"))):::final
+  end
+  s0 -- "' ', TAB" --> s0
+  s0 -- "LF [mimo závorky]" --> s1
+  s0 -- "EOF" --> s2
+  s0 -- "'0'" --> s3
+  s0 -- "1–9" --> s4
+  s0 -- "'.'" --> s8
+  s8 -- "0–9" --> s5
+  s3 -- "'.' [další znak je číslice]" --> s10
+  s3 -- "e, E" --> s12
+  s3 -- "'_'" --> s9
+  s4 -- "0–9" --> s4
+  s4 -- "'.' [další znak je číslice]" --> s10
+  s4 -- "e, E" --> s12
+  s4 -- "'_'" --> s9
+  s9 -- "0–9" --> s4
+  s9 -- "'_'" --> s9
+  s10 -- "0–9" --> s5
+  s5 -- "0–9" --> s5
+  s5 -- "'_'" --> s11
+  s5 -- "e, E" --> s12
+  s5 -- "d, D" --> s7
+  s11 -- "0–9" --> s5
+  s11 -- "'_'" --> s11
+  s12 -- "0–9" --> s6
+  s12 -- "+, -" --> s13
+  s13 -- "0–9" --> s6
+  s6 -- "0–9" --> s6
+  s6 -- "'_'" --> s14
+  s6 -- "d, D" --> s7
+  s14 -- "0–9" --> s6
+  s14 -- "'_'" --> s14
+  s0 -- "a–z, A–Z" --> s15
+  s0 -- "'_'" --> s16
+  s16 -- "a–z, A–Z, 0–9, _" --> s15
+  s15 -- "a–z, A–Z, 0–9, _" --> s15
+  s0 -- "'#34;'" --> s17
+  s17 -- "'#34;'" --> s24
+  s17 -- "'#92;'" --> s19
+  s17 -- "Σ #92; {#34;, #92;, LF, EOF}" --> s18
+  s18 -- "Σ #92; {#34;, #92;, LF, EOF}" --> s18
+  s18 -- "'#92;'" --> s19
+  s18 -- "'#34;'" --> s23
+  s19 -- "n, t, r, #34;, #92;" --> s18
+  s24 -- "'#34;'" --> s20
+  s20 -- "Σ #92; {#34;, EOF}" --> s20
+  s20 -- "'#34;'" --> s21
+  s21 -- "'#34;'" --> s22
+  s21 -- "Σ #92; {#34;, EOF}" --> s20
+  s22 -- "'#34;'" --> s25
+  s22 -- "Σ #92; {#34;, EOF}" --> s20
+  s25 -- "'#34;' / předchozí #34; patří do obsahu" --> s25
+  s0 -- "'/'" --> s26
+  s26 -- "'/'" --> s27
+  s26 -- "'*' / depth = 1" --> s28
+  s27 -- "Σ #92; {LF, EOF}" --> s27
+  s27 -- "LF [mimo závorky]" --> s1
+  s27 -- "EOF" --> s2
+  s28 -- "LF [mimo závorky]" --> s31
+  s28 -- "'*'" --> s30
+  s28 -- "'/'" --> s29
+  s28 -- "Σ #92; {*, /, LF, EOF}" --> s28
+  s29 -- "LF [mimo závorky]" --> s31
+  s29 -- "'*' / depth++" --> s28
+  s29 -- "Σ #92; {*, /, LF, EOF}" --> s28
+  s30 -- "LF [mimo závorky]" --> s31
+  s30 -- "Σ #92; {*, /, LF, EOF}" --> s28
+  s29 -- "'/'" --> s29
+  s30 -- "'*'" --> s30
+  s30 -- "'/' [depth = 1] / depth = 0 (bílý znak)" --> s0
+  s30 -- "'/' [depth #62; 1] / depth--" --> s28
+  s0 -- "'+'" --> s32
+  s0 -- "'-'" --> s33
+  s0 -- "'*'" --> s34
+  s0 -- "':'" --> s35
+  s0 -- "','" --> s36
+  s0 -- "';'" --> s37
+  s0 -- "'(' / hloubka závorek ±1" --> s38
+  s0 -- "')' / hloubka závorek ±1" --> s39
+  s0 -- "'='" --> s40
+  s40 -- "'='" --> s41
+  s40 -- "'#62;'" --> s42
+  s0 -- "'#60;'" --> s43
+  s43 -- "'='" --> s44
+  s0 -- "'#62;'" --> s45
+  s45 -- "'='" --> s46
+  s0 -- "'!'" --> s47
+  s47 -- "'='" --> s48
+  s0 -- "'#124;'" --> s49
+  s49 -- "'#124;'" --> s50
+  s0 -- "'#38;'" --> s51
+  s51 -- "'#38;'" --> s52
+  s0 -- "'@'" --> s53
+  s53 -- "'m'" --> s54
+  s54 -- "'a'" --> s55
+  s55 -- "'i'" --> s56
+  s56 -- "'n'" --> s57

@@ -1,0 +1,22 @@
+// Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+// SVG: dot -Tsvg <tento soubor> -o <vystup>.svg
+digraph DKA {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=16, labelloc=t, nodesep=0.35, ranksep=0.55,
+         label="DKA lexeru IFJ26 – Identifikátory a klíčová slova"];
+  node  [shape=circle, fontname="Helvetica", fontsize=9, margin=0, width=0.3];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.7];
+  __start [shape=point, width=0.12, label=""];
+  __start -> "START";
+  "START" [label="START", shape=circle, id="s_START", URL="#all/START", target="_top", tooltip="START", style=bold];
+  subgraph "cluster_id" {
+    label="Identifikátory a klíčová slova"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_id"; URL="#id"; target="_top"; tooltip="Identifikátory a klíčová slova";
+    "CHAR" [label=<CHAR<BR/><FONT POINT-SIZE="7">IDENTIFIER</FONT>>, shape=doublecircle, id="s_CHAR", URL="#id/CHAR", target="_top", tooltip="CHAR: nebo KEYWORD podle tabulky"];
+    "UNDERSCORE" [label=<UNDERSCORE<BR/><FONT POINT-SIZE="7">UNDERSCORE</FONT>>, shape=doublecircle, id="s_UNDERSCORE", URL="#id/UNDERSCORE", target="_top", tooltip="UNDERSCORE"];
+  }
+  "START" -> "CHAR" [label="a–z, A–Z", id="e31"];
+  "START" -> "UNDERSCORE" [label="'_'", id="e32"];
+  "UNDERSCORE" -> "CHAR" [label="a–z, A–Z, 0–9, _", id="e33"];
+  "CHAR" -> "CHAR" [label="a–z, A–Z, 0–9, _", id="e34"];
+  __legend [shape=note, fontsize=9, label="Dvojitý kruh = koncový stav (token).\nChybějící přechod z koncového stavu: token se přijme, znak se vrátí.\nChybějící přechod z nekoncového stavu: chyba 1.\n[podmínka] a / akce: kontext mimo konečný automat."];
+}
