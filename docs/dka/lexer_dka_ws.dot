@@ -1,0 +1,21 @@
+// Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+// SVG: dot -Tsvg <tento soubor> -o <vystup>.svg
+digraph DKA {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=16, labelloc=t, nodesep=0.35, ranksep=0.55,
+         label="DKA lexeru IFJ26 – Bílé znaky, konec řádku a souboru"];
+  node  [shape=circle, fontname="Helvetica", fontsize=9, margin=0, width=0.3];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.7];
+  __start [shape=point, width=0.12, label=""];
+  __start -> "START";
+  "START" [label="START", shape=circle, id="s_START", URL="#all/START", target="_top", tooltip="START", style=bold];
+  subgraph "cluster_ws" {
+    label="Bílé znaky, konec řádku a souboru"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_ws"; URL="#ws"; target="_top"; tooltip="Bílé znaky, konec řádku a souboru";
+    "EOL" [label=<EOL<BR/><FONT POINT-SIZE="7">EOL</FONT>>, shape=doublecircle, id="s_EOL", URL="#ws/EOL", target="_top", tooltip="EOL"];
+    "EOF" [label=<EOF<BR/><FONT POINT-SIZE="7">EOF</FONT>>, shape=doublecircle, id="s_EOF", URL="#ws/EOF", target="_top", tooltip="EOF: nejdřív zbývající OUTDENT"];
+  }
+  "START" -> "EOL" [label="LF\n[mimo závorky]", id="e1"];
+  "START" -> "EOF" [label="EOF", id="e2"];
+  __indent [shape=note, fontsize=9, label="Odsazení (vrstva nad automatem, zásobník úrovní):\nna začátku řádku mimo závorky se počítají mezery;\nu prvního znaku tokenu: víc než vrchol → INDENT,\nméně → OUTDENT za každou opuštěnou úroveň,\nnesouhlasná úroveň → chyba 1; TAB v odsazení → chyba 1;\nv závorkách musí být řádek odsazen víc než vrchol."];
+  __legend [shape=note, fontsize=9, label="Dvojitý kruh = koncový stav (token).\nChybějící přechod z koncového stavu: token se přijme, znak se vrátí.\nChybějící přechod z nekoncového stavu: chyba 1.\n[podmínka] a / akce: kontext mimo konečný automat."];
+}

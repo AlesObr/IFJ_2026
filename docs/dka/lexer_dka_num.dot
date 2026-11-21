@@ -1,0 +1,56 @@
+// Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+// SVG: dot -Tsvg <tento soubor> -o <vystup>.svg
+digraph DKA {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=16, labelloc=t, nodesep=0.35, ranksep=0.55,
+         label="DKA lexeru IFJ26 – Čísla (Int, Double)"];
+  node  [shape=circle, fontname="Helvetica", fontsize=9, margin=0, width=0.3];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.7];
+  __start [shape=point, width=0.12, label=""];
+  __start -> "START";
+  "START" [label="START", shape=circle, id="s_START", URL="#all/START", target="_top", tooltip="START", style=bold];
+  subgraph "cluster_num" {
+    label="Čísla (Int, Double)"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_num"; URL="#num"; target="_top"; tooltip="Čísla (Int, Double)";
+    "ZERO_SEEN" [label=<ZERO_SEEN<BR/><FONT POINT-SIZE="7">LIT_INT</FONT>>, shape=doublecircle, id="s_ZERO_SEEN", URL="#num/ZERO_SEEN", target="_top", tooltip="ZERO_SEEN"];
+    "NUMBER_SEEN" [label=<NUMBER_SEEN<BR/><FONT POINT-SIZE="7">LIT_INT</FONT>>, shape=doublecircle, id="s_NUMBER_SEEN", URL="#num/NUMBER_SEEN", target="_top", tooltip="NUMBER_SEEN: 0_1 → chyba 1 (vedoucí nula)"];
+    "DOUBLE" [label=<DOUBLE<BR/><FONT POINT-SIZE="7">LIT_FLOAT</FONT>>, shape=doublecircle, id="s_DOUBLE", URL="#num/DOUBLE", target="_top", tooltip="DOUBLE"];
+    "EXPONENT" [label=<EXPONENT<BR/><FONT POINT-SIZE="7">LIT_FLOAT</FONT>>, shape=doublecircle, id="s_EXPONENT", URL="#num/EXPONENT", target="_top", tooltip="EXPONENT"];
+    "SUFFIX" [label=<SUFFIX<BR/><FONT POINT-SIZE="7">LIT_FLOAT</FONT>>, shape=doublecircle, id="s_SUFFIX", URL="#num/SUFFIX", target="_top", tooltip="SUFFIX"];
+    "DOT" [label=<DOT<BR/><FONT POINT-SIZE="7">DOT</FONT>>, shape=doublecircle, id="s_DOT", URL="#num/DOT", target="_top", tooltip="DOT"];
+    "DIV_DEC" [label="DIV_DEC", shape=circle, id="s_DIV_DEC", URL="#num/DIV_DEC", target="_top", tooltip="DIV_DEC"];
+    "WANNA_BE_DOUBLE" [label="WANNA_BE_DOUBLE", shape=circle, id="s_WANNA_BE_DOUBLE", URL="#num/WANNA_BE_DOUBLE", target="_top", tooltip="WANNA_BE_DOUBLE"];
+    "UNDER_SCORE" [label="UNDER_SCORE", shape=circle, id="s_UNDER_SCORE", URL="#num/UNDER_SCORE", target="_top", tooltip="UNDER_SCORE"];
+    "WANNA_BE_EXP" [label="WANNA_BE_EXP", shape=circle, id="s_WANNA_BE_EXP", URL="#num/WANNA_BE_EXP", target="_top", tooltip="WANNA_BE_EXP: v kódu _EXP_1 a _EXP_2"];
+    "EXP_SIGN" [label="EXP_SIGN", shape=circle, id="s_EXP_SIGN", URL="#num/EXP_SIGN", target="_top", tooltip="EXP_SIGN: v kódu _SIGN_1 a _SIGN_2"];
+    "EXP_UNDER_SCORE" [label="EXP_UNDER_SCORE", shape=circle, id="s_EXP_UNDER_SCORE", URL="#num/EXP_UNDER_SCORE", target="_top", tooltip="EXP_UNDER_SCORE"];
+  }
+  "START" -> "ZERO_SEEN" [label="'0'", id="e3"];
+  "START" -> "NUMBER_SEEN" [label="1–9", id="e4"];
+  "START" -> "DOT" [label="'.'", id="e5"];
+  "DOT" -> "DOUBLE" [label="0–9", id="e6"];
+  "ZERO_SEEN" -> "WANNA_BE_DOUBLE" [label="'.'\n[další znak je číslice]", id="e7"];
+  "ZERO_SEEN" -> "WANNA_BE_EXP" [label="e, E", id="e8"];
+  "ZERO_SEEN" -> "DIV_DEC" [label="'_'", id="e9"];
+  "NUMBER_SEEN" -> "NUMBER_SEEN" [label="0–9", id="e10"];
+  "NUMBER_SEEN" -> "WANNA_BE_DOUBLE" [label="'.'\n[další znak je číslice]", id="e11"];
+  "NUMBER_SEEN" -> "WANNA_BE_EXP" [label="e, E", id="e12"];
+  "NUMBER_SEEN" -> "DIV_DEC" [label="'_'", id="e13"];
+  "DIV_DEC" -> "NUMBER_SEEN" [label="0–9", id="e14"];
+  "DIV_DEC" -> "DIV_DEC" [label="'_'", id="e15"];
+  "WANNA_BE_DOUBLE" -> "DOUBLE" [label="0–9", id="e16"];
+  "DOUBLE" -> "DOUBLE" [label="0–9", id="e17"];
+  "DOUBLE" -> "UNDER_SCORE" [label="'_'", id="e18"];
+  "DOUBLE" -> "WANNA_BE_EXP" [label="e, E", id="e19"];
+  "DOUBLE" -> "SUFFIX" [label="d, D", id="e20"];
+  "UNDER_SCORE" -> "DOUBLE" [label="0–9", id="e21"];
+  "UNDER_SCORE" -> "UNDER_SCORE" [label="'_'", id="e22"];
+  "WANNA_BE_EXP" -> "EXPONENT" [label="0–9", id="e23"];
+  "WANNA_BE_EXP" -> "EXP_SIGN" [label="+, -", id="e24"];
+  "EXP_SIGN" -> "EXPONENT" [label="0–9", id="e25"];
+  "EXPONENT" -> "EXPONENT" [label="0–9", id="e26"];
+  "EXPONENT" -> "EXP_UNDER_SCORE" [label="'_'", id="e27"];
+  "EXPONENT" -> "SUFFIX" [label="d, D", id="e28"];
+  "EXP_UNDER_SCORE" -> "EXPONENT" [label="0–9", id="e29"];
+  "EXP_UNDER_SCORE" -> "EXP_UNDER_SCORE" [label="'_'", id="e30"];
+  __legend [shape=note, fontsize=9, label="Dvojitý kruh = koncový stav (token).\nChybějící přechod z koncového stavu: token se přijme, znak se vrátí.\nChybějící přechod z nekoncového stavu: chyba 1.\n[podmínka] a / akce: kontext mimo konečný automat."];
+}

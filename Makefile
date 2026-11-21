@@ -83,7 +83,7 @@ COMPILER_SRC             = src/main.c $(CODEGEN_SRC)
         parser-build test-parser test-parser-valgrind gen-tests \
         semantic-build test-semantic test-semantic-valgrind gen-sem-tests \
         codegen-build test-codegen test-codegen-valgrind gen-codegen-tests \
-        compiler test-full ext-status \
+        compiler test-full ext-status dka tables \
         linter linter-full linter-fix headers format \
         zip make_us_happy dist-prep is-it-ok
 
@@ -331,6 +331,22 @@ test-full: compiler
 # programy v test/codegen_test/extensions (make_ext_programs.py, výstupy: scala_expected.py)
 ext-status: parser-build semantic-build compiler
 	@python3 test/codegen_test/ext_status.py $(if $(INTERP),--interp $(INTERP))
+
+# ----------------------------------------------------------------------
+# DKA lexeru: kontrola proti skutečnému lexeru a export diagramů do docs/dka
+# ----------------------------------------------------------------------
+# Precedenční tabulka (ze zdrojáku parseru, ověřená na parser_test) a LL tabulka z gramatiky.
+#   make tables                       jen precedence
+#   make tables GRAMMAR=cesta/ll.txt  i LL tabulka; výstup v docs/tables (.tex, .md, .csv)
+GRAMMAR ?=
+tables: parser-build
+	@python3 test/formal_verify/gen_tables.py $(if $(GRAMMAR),all $(GRAMMAR),prec)
+
+# DKA_URL = adresa, kam se nahraje docs/dka (index.html); s ní vzniknou i PDF s odkazy na web.
+#   make dka DKA_URL=https://example.org/ifj26/dka/
+DKA_URL ?=
+dka: scanner-build
+	@python3 test/formal_verify/lexer_dka.py --base-url "$(DKA_URL)"
 
 # ----------------------------------------------------------------------
 # Formátování a Lintery

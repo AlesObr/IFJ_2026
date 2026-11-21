@@ -1,0 +1,58 @@
+// Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+// SVG: dot -Tsvg <tento soubor> -o <vystup>.svg
+digraph DKA {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=16, labelloc=t, nodesep=0.35, ranksep=0.55,
+         label="DKA lexeru IFJ26 – Operátory a oddělovače"];
+  node  [shape=circle, fontname="Helvetica", fontsize=9, margin=0, width=0.3];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.7];
+  __start [shape=point, width=0.12, label=""];
+  __start -> "START";
+  "START" [label="START", shape=circle, id="s_START", URL="#all/START", target="_top", tooltip="START", style=bold];
+  subgraph "cluster_op" {
+    label="Operátory a oddělovače"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_op"; URL="#op"; target="_top"; tooltip="Operátory a oddělovače";
+    "PLUS" [label=<PLUS<BR/><FONT POINT-SIZE="7">PLUS</FONT>>, shape=doublecircle, id="s_PLUS", URL="#op/PLUS", target="_top", tooltip="PLUS"];
+    "MINUS" [label=<MINUS<BR/><FONT POINT-SIZE="7">MINUS</FONT>>, shape=doublecircle, id="s_MINUS", URL="#op/MINUS", target="_top", tooltip="MINUS"];
+    "MUL" [label=<MUL<BR/><FONT POINT-SIZE="7">MUL</FONT>>, shape=doublecircle, id="s_MUL", URL="#op/MUL", target="_top", tooltip="MUL"];
+    "COLON" [label=<COLON<BR/><FONT POINT-SIZE="7">COLON</FONT>>, shape=doublecircle, id="s_COLON", URL="#op/COLON", target="_top", tooltip="COLON"];
+    "COMMA" [label=<COMMA<BR/><FONT POINT-SIZE="7">COMMA</FONT>>, shape=doublecircle, id="s_COMMA", URL="#op/COMMA", target="_top", tooltip="COMMA"];
+    "SEMICOLON" [label=<SEMICOLON<BR/><FONT POINT-SIZE="7">SEMICOLON</FONT>>, shape=doublecircle, id="s_SEMICOLON", URL="#op/SEMICOLON", target="_top", tooltip="SEMICOLON"];
+    "LPAREN" [label=<LPAREN<BR/><FONT POINT-SIZE="7">LPAREN</FONT>>, shape=doublecircle, id="s_LPAREN", URL="#op/LPAREN", target="_top", tooltip="LPAREN"];
+    "RPAREN" [label=<RPAREN<BR/><FONT POINT-SIZE="7">RPAREN</FONT>>, shape=doublecircle, id="s_RPAREN", URL="#op/RPAREN", target="_top", tooltip="RPAREN"];
+    "ASSIGN" [label=<ASSIGN<BR/><FONT POINT-SIZE="7">ASSIGN</FONT>>, shape=doublecircle, id="s_ASSIGN", URL="#op/ASSIGN", target="_top", tooltip="ASSIGN"];
+    "EQ" [label=<EQ<BR/><FONT POINT-SIZE="7">EQ</FONT>>, shape=doublecircle, id="s_EQ", URL="#op/EQ", target="_top", tooltip="EQ: [nenásleduje = > < @ : / + - * | & !]"];
+    "ARROW" [label=<ARROW<BR/><FONT POINT-SIZE="7">ARROW</FONT>>, shape=doublecircle, id="s_ARROW", URL="#op/ARROW", target="_top", tooltip="ARROW: [nenásleduje = > < @ : / + - * | & !]"];
+    "LT" [label=<LT<BR/><FONT POINT-SIZE="7">LT</FONT>>, shape=doublecircle, id="s_LT", URL="#op/LT", target="_top", tooltip="LT"];
+    "LTE" [label=<LTE<BR/><FONT POINT-SIZE="7">LTE</FONT>>, shape=doublecircle, id="s_LTE", URL="#op/LTE", target="_top", tooltip="LTE: [nenásleduje = > < @ : / + - * | & !]"];
+    "GT" [label=<GT<BR/><FONT POINT-SIZE="7">GT</FONT>>, shape=doublecircle, id="s_GT", URL="#op/GT", target="_top", tooltip="GT"];
+    "GTE" [label=<GTE<BR/><FONT POINT-SIZE="7">GTE</FONT>>, shape=doublecircle, id="s_GTE", URL="#op/GTE", target="_top", tooltip="GTE: [nenásleduje = > < @ : / + - * | & !]"];
+    "NOT" [label=<NOT<BR/><FONT POINT-SIZE="7">NOT</FONT>>, shape=doublecircle, id="s_NOT", URL="#op/NOT", target="_top", tooltip="NOT"];
+    "NEQ" [label=<NEQ<BR/><FONT POINT-SIZE="7">NEQ</FONT>>, shape=doublecircle, id="s_NEQ", URL="#op/NEQ", target="_top", tooltip="NEQ: [nenásleduje = > < @ : / + - * | & !]"];
+    "PIPE" [label=<PIPE<BR/><FONT POINT-SIZE="7">PIPE</FONT>>, shape=doublecircle, id="s_PIPE", URL="#op/PIPE", target="_top", tooltip="PIPE"];
+    "OR" [label=<OR<BR/><FONT POINT-SIZE="7">OR</FONT>>, shape=doublecircle, id="s_OR", URL="#op/OR", target="_top", tooltip="OR: [nenásleduje = > < @ : / + - * | & !]"];
+    "AMP" [label="AMP", shape=circle, id="s_AMP", URL="#op/AMP", target="_top", tooltip="AMP"];
+    "AND" [label=<AND<BR/><FONT POINT-SIZE="7">AND</FONT>>, shape=doublecircle, id="s_AND", URL="#op/AND", target="_top", tooltip="AND: [nenásleduje = > < @ : / + - * | & !]"];
+  }
+  "START" -> "PLUS" [label="'+'", id="e70"];
+  "START" -> "MINUS" [label="'-'", id="e71"];
+  "START" -> "MUL" [label="'*'", id="e72"];
+  "START" -> "COLON" [label="':'", id="e73"];
+  "START" -> "COMMA" [label="','", id="e74"];
+  "START" -> "SEMICOLON" [label="';'", id="e75"];
+  "START" -> "LPAREN" [label="'('\n/ hloubka závorek ±1", id="e76"];
+  "START" -> "RPAREN" [label="')'\n/ hloubka závorek ±1", id="e77"];
+  "START" -> "ASSIGN" [label="'='", id="e78"];
+  "ASSIGN" -> "EQ" [label="'='", id="e79"];
+  "ASSIGN" -> "ARROW" [label="'>'", id="e80"];
+  "START" -> "LT" [label="'<'", id="e81"];
+  "LT" -> "LTE" [label="'='", id="e82"];
+  "START" -> "GT" [label="'>'", id="e83"];
+  "GT" -> "GTE" [label="'='", id="e84"];
+  "START" -> "NOT" [label="'!'", id="e85"];
+  "NOT" -> "NEQ" [label="'='", id="e86"];
+  "START" -> "PIPE" [label="'|'", id="e87"];
+  "PIPE" -> "OR" [label="'|'", id="e88"];
+  "START" -> "AMP" [label="'&'", id="e89"];
+  "AMP" -> "AND" [label="'&'", id="e90"];
+  __legend [shape=note, fontsize=9, label="Dvojitý kruh = koncový stav (token).\nChybějící přechod z koncového stavu: token se přijme, znak se vrátí.\nChybějící přechod z nekoncového stavu: chyba 1.\n[podmínka] a / akce: kontext mimo konečný automat."];
+}

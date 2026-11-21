@@ -1,0 +1,194 @@
+// Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+// SVG: dot -Tsvg <tento soubor> -o <vystup>.svg
+digraph DKA {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=16, labelloc=t, nodesep=0.35, ranksep=0.55,
+         label="DKA lexeru IFJ26"];
+  node  [shape=circle, fontname="Helvetica", fontsize=9, margin=0, width=0.3];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.7];
+  __start [shape=point, width=0.12, label=""];
+  __start -> "START";
+  "START" [label="START", shape=circle, id="s_START", URL="#all/START", target="_top", tooltip="START", style=bold];
+  subgraph "cluster_ws" {
+    label="Bílé znaky, konec řádku a souboru"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_ws"; URL="#ws"; target="_top"; tooltip="Bílé znaky, konec řádku a souboru";
+    "EOL" [label=<EOL<BR/><FONT POINT-SIZE="7">EOL</FONT>>, shape=doublecircle, id="s_EOL", URL="#ws/EOL", target="_top", tooltip="EOL"];
+    "EOF" [label=<EOF<BR/><FONT POINT-SIZE="7">EOF</FONT>>, shape=doublecircle, id="s_EOF", URL="#ws/EOF", target="_top", tooltip="EOF: nejdřív zbývající OUTDENT"];
+  }
+  subgraph "cluster_num" {
+    label="Čísla (Int, Double)"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_num"; URL="#num"; target="_top"; tooltip="Čísla (Int, Double)";
+    "ZERO_SEEN" [label=<ZERO_SEEN<BR/><FONT POINT-SIZE="7">LIT_INT</FONT>>, shape=doublecircle, id="s_ZERO_SEEN", URL="#num/ZERO_SEEN", target="_top", tooltip="ZERO_SEEN"];
+    "NUMBER_SEEN" [label=<NUMBER_SEEN<BR/><FONT POINT-SIZE="7">LIT_INT</FONT>>, shape=doublecircle, id="s_NUMBER_SEEN", URL="#num/NUMBER_SEEN", target="_top", tooltip="NUMBER_SEEN: 0_1 → chyba 1 (vedoucí nula)"];
+    "DOUBLE" [label=<DOUBLE<BR/><FONT POINT-SIZE="7">LIT_FLOAT</FONT>>, shape=doublecircle, id="s_DOUBLE", URL="#num/DOUBLE", target="_top", tooltip="DOUBLE"];
+    "EXPONENT" [label=<EXPONENT<BR/><FONT POINT-SIZE="7">LIT_FLOAT</FONT>>, shape=doublecircle, id="s_EXPONENT", URL="#num/EXPONENT", target="_top", tooltip="EXPONENT"];
+    "SUFFIX" [label=<SUFFIX<BR/><FONT POINT-SIZE="7">LIT_FLOAT</FONT>>, shape=doublecircle, id="s_SUFFIX", URL="#num/SUFFIX", target="_top", tooltip="SUFFIX"];
+    "DOT" [label=<DOT<BR/><FONT POINT-SIZE="7">DOT</FONT>>, shape=doublecircle, id="s_DOT", URL="#num/DOT", target="_top", tooltip="DOT"];
+    "DIV_DEC" [label="DIV_DEC", shape=circle, id="s_DIV_DEC", URL="#num/DIV_DEC", target="_top", tooltip="DIV_DEC"];
+    "WANNA_BE_DOUBLE" [label="WANNA_BE_DOUBLE", shape=circle, id="s_WANNA_BE_DOUBLE", URL="#num/WANNA_BE_DOUBLE", target="_top", tooltip="WANNA_BE_DOUBLE"];
+    "UNDER_SCORE" [label="UNDER_SCORE", shape=circle, id="s_UNDER_SCORE", URL="#num/UNDER_SCORE", target="_top", tooltip="UNDER_SCORE"];
+    "WANNA_BE_EXP" [label="WANNA_BE_EXP", shape=circle, id="s_WANNA_BE_EXP", URL="#num/WANNA_BE_EXP", target="_top", tooltip="WANNA_BE_EXP: v kódu _EXP_1 a _EXP_2"];
+    "EXP_SIGN" [label="EXP_SIGN", shape=circle, id="s_EXP_SIGN", URL="#num/EXP_SIGN", target="_top", tooltip="EXP_SIGN: v kódu _SIGN_1 a _SIGN_2"];
+    "EXP_UNDER_SCORE" [label="EXP_UNDER_SCORE", shape=circle, id="s_EXP_UNDER_SCORE", URL="#num/EXP_UNDER_SCORE", target="_top", tooltip="EXP_UNDER_SCORE"];
+  }
+  subgraph "cluster_id" {
+    label="Identifikátory a klíčová slova"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_id"; URL="#id"; target="_top"; tooltip="Identifikátory a klíčová slova";
+    "CHAR" [label=<CHAR<BR/><FONT POINT-SIZE="7">IDENTIFIER</FONT>>, shape=doublecircle, id="s_CHAR", URL="#id/CHAR", target="_top", tooltip="CHAR: nebo KEYWORD podle tabulky"];
+    "UNDERSCORE" [label=<UNDERSCORE<BR/><FONT POINT-SIZE="7">UNDERSCORE</FONT>>, shape=doublecircle, id="s_UNDERSCORE", URL="#id/UNDERSCORE", target="_top", tooltip="UNDERSCORE"];
+  }
+  subgraph "cluster_str" {
+    label="Řetězce"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_str"; URL="#str"; target="_top"; tooltip="Řetězce";
+    "STR_OPEN" [label="STR_OPEN", shape=circle, id="s_STR_OPEN", URL="#str/STR_OPEN", target="_top", tooltip="STR_OPEN"];
+    "STRING" [label="STRING", shape=circle, id="s_STRING", URL="#str/STRING", target="_top", tooltip="STRING"];
+    "STR_ESC" [label="STR_ESC", shape=circle, id="s_STR_ESC", URL="#str/STR_ESC", target="_top", tooltip="STR_ESC"];
+    "ML_STRING" [label="ML_STRING", shape=circle, id="s_ML_STRING", URL="#str/ML_STRING", target="_top", tooltip="ML_STRING"];
+    "ML_QUOTE_1" [label="ML_QUOTE_1", shape=circle, id="s_ML_QUOTE_1", URL="#str/ML_QUOTE_1", target="_top", tooltip="ML_QUOTE_1"];
+    "ML_QUOTE_2" [label="ML_QUOTE_2", shape=circle, id="s_ML_QUOTE_2", URL="#str/ML_QUOTE_2", target="_top", tooltip="ML_QUOTE_2"];
+    "STR_END" [label=<STR_END<BR/><FONT POINT-SIZE="7">LIT_STRING</FONT>>, shape=doublecircle, id="s_STR_END", URL="#str/STR_END", target="_top", tooltip="STR_END"];
+    "STR_QUOTE_2" [label=<STR_QUOTE_2<BR/><FONT POINT-SIZE="7">LIT_STRING</FONT>>, shape=doublecircle, id="s_STR_QUOTE_2", URL="#str/STR_QUOTE_2", target="_top", tooltip="STR_QUOTE_2: prázdný řetězec \"\""];
+    "ML_END" [label=<ML_END<BR/><FONT POINT-SIZE="7">LIT_STRING</FONT>>, shape=doublecircle, id="s_ML_END", URL="#str/ML_END", target="_top", tooltip="ML_END: poslední tři \" ukončují"];
+  }
+  subgraph "cluster_com" {
+    label="Komentáře"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_com"; URL="#com"; target="_top"; tooltip="Komentáře";
+    "SLASH" [label=<SLASH<BR/><FONT POINT-SIZE="7">DIV</FONT>>, shape=doublecircle, id="s_SLASH", URL="#com/SLASH", target="_top", tooltip="SLASH"];
+    "LINE_COMMENT" [label="LINE_COMMENT", shape=circle, id="s_LINE_COMMENT", URL="#com/LINE_COMMENT", target="_top", tooltip="LINE_COMMENT"];
+    "BLOCK" [label="BLOCK", shape=circle, id="s_BLOCK", URL="#com/BLOCK", target="_top", tooltip="BLOCK"];
+    "BLOCK_SLASH" [label="BLOCK_SLASH", shape=circle, id="s_BLOCK_SLASH", URL="#com/BLOCK_SLASH", target="_top", tooltip="BLOCK_SLASH"];
+    "BLOCK_STAR" [label="BLOCK_STAR", shape=circle, id="s_BLOCK_STAR", URL="#com/BLOCK_STAR", target="_top", tooltip="BLOCK_STAR"];
+    "BLOCK_EOL" [label=<BLOCK_EOL<BR/><FONT POINT-SIZE="7">EOL</FONT>>, shape=doublecircle, id="s_BLOCK_EOL", URL="#com/BLOCK_EOL", target="_top", tooltip="BLOCK_EOL: další token pokračuje v BLOCK"];
+  }
+  subgraph "cluster_op" {
+    label="Operátory a oddělovače"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_op"; URL="#op"; target="_top"; tooltip="Operátory a oddělovače";
+    "PLUS" [label=<PLUS<BR/><FONT POINT-SIZE="7">PLUS</FONT>>, shape=doublecircle, id="s_PLUS", URL="#op/PLUS", target="_top", tooltip="PLUS"];
+    "MINUS" [label=<MINUS<BR/><FONT POINT-SIZE="7">MINUS</FONT>>, shape=doublecircle, id="s_MINUS", URL="#op/MINUS", target="_top", tooltip="MINUS"];
+    "MUL" [label=<MUL<BR/><FONT POINT-SIZE="7">MUL</FONT>>, shape=doublecircle, id="s_MUL", URL="#op/MUL", target="_top", tooltip="MUL"];
+    "COLON" [label=<COLON<BR/><FONT POINT-SIZE="7">COLON</FONT>>, shape=doublecircle, id="s_COLON", URL="#op/COLON", target="_top", tooltip="COLON"];
+    "COMMA" [label=<COMMA<BR/><FONT POINT-SIZE="7">COMMA</FONT>>, shape=doublecircle, id="s_COMMA", URL="#op/COMMA", target="_top", tooltip="COMMA"];
+    "SEMICOLON" [label=<SEMICOLON<BR/><FONT POINT-SIZE="7">SEMICOLON</FONT>>, shape=doublecircle, id="s_SEMICOLON", URL="#op/SEMICOLON", target="_top", tooltip="SEMICOLON"];
+    "LPAREN" [label=<LPAREN<BR/><FONT POINT-SIZE="7">LPAREN</FONT>>, shape=doublecircle, id="s_LPAREN", URL="#op/LPAREN", target="_top", tooltip="LPAREN"];
+    "RPAREN" [label=<RPAREN<BR/><FONT POINT-SIZE="7">RPAREN</FONT>>, shape=doublecircle, id="s_RPAREN", URL="#op/RPAREN", target="_top", tooltip="RPAREN"];
+    "ASSIGN" [label=<ASSIGN<BR/><FONT POINT-SIZE="7">ASSIGN</FONT>>, shape=doublecircle, id="s_ASSIGN", URL="#op/ASSIGN", target="_top", tooltip="ASSIGN"];
+    "EQ" [label=<EQ<BR/><FONT POINT-SIZE="7">EQ</FONT>>, shape=doublecircle, id="s_EQ", URL="#op/EQ", target="_top", tooltip="EQ: [nenásleduje = > < @ : / + - * | & !]"];
+    "ARROW" [label=<ARROW<BR/><FONT POINT-SIZE="7">ARROW</FONT>>, shape=doublecircle, id="s_ARROW", URL="#op/ARROW", target="_top", tooltip="ARROW: [nenásleduje = > < @ : / + - * | & !]"];
+    "LT" [label=<LT<BR/><FONT POINT-SIZE="7">LT</FONT>>, shape=doublecircle, id="s_LT", URL="#op/LT", target="_top", tooltip="LT"];
+    "LTE" [label=<LTE<BR/><FONT POINT-SIZE="7">LTE</FONT>>, shape=doublecircle, id="s_LTE", URL="#op/LTE", target="_top", tooltip="LTE: [nenásleduje = > < @ : / + - * | & !]"];
+    "GT" [label=<GT<BR/><FONT POINT-SIZE="7">GT</FONT>>, shape=doublecircle, id="s_GT", URL="#op/GT", target="_top", tooltip="GT"];
+    "GTE" [label=<GTE<BR/><FONT POINT-SIZE="7">GTE</FONT>>, shape=doublecircle, id="s_GTE", URL="#op/GTE", target="_top", tooltip="GTE: [nenásleduje = > < @ : / + - * | & !]"];
+    "NOT" [label=<NOT<BR/><FONT POINT-SIZE="7">NOT</FONT>>, shape=doublecircle, id="s_NOT", URL="#op/NOT", target="_top", tooltip="NOT"];
+    "NEQ" [label=<NEQ<BR/><FONT POINT-SIZE="7">NEQ</FONT>>, shape=doublecircle, id="s_NEQ", URL="#op/NEQ", target="_top", tooltip="NEQ: [nenásleduje = > < @ : / + - * | & !]"];
+    "PIPE" [label=<PIPE<BR/><FONT POINT-SIZE="7">PIPE</FONT>>, shape=doublecircle, id="s_PIPE", URL="#op/PIPE", target="_top", tooltip="PIPE"];
+    "OR" [label=<OR<BR/><FONT POINT-SIZE="7">OR</FONT>>, shape=doublecircle, id="s_OR", URL="#op/OR", target="_top", tooltip="OR: [nenásleduje = > < @ : / + - * | & !]"];
+    "AMP" [label="AMP", shape=circle, id="s_AMP", URL="#op/AMP", target="_top", tooltip="AMP"];
+    "AND" [label=<AND<BR/><FONT POINT-SIZE="7">AND</FONT>>, shape=doublecircle, id="s_AND", URL="#op/AND", target="_top", tooltip="AND: [nenásleduje = > < @ : / + - * | & !]"];
+  }
+  subgraph "cluster_main" {
+    label="Anotace @main"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_main"; URL="#main"; target="_top"; tooltip="Anotace @main";
+    "AT" [label="AT", shape=circle, id="s_AT", URL="#main/AT", target="_top", tooltip="AT"];
+    "AT_M" [label="AT_M", shape=circle, id="s_AT_M", URL="#main/AT_M", target="_top", tooltip="AT_M"];
+    "AT_MA" [label="AT_MA", shape=circle, id="s_AT_MA", URL="#main/AT_MA", target="_top", tooltip="AT_MA"];
+    "AT_MAI" [label="AT_MAI", shape=circle, id="s_AT_MAI", URL="#main/AT_MAI", target="_top", tooltip="AT_MAI"];
+    "AT_MAIN" [label=<AT_MAIN<BR/><FONT POINT-SIZE="7">AT_MAIN</FONT>>, shape=doublecircle, id="s_AT_MAIN", URL="#main/AT_MAIN", target="_top", tooltip="AT_MAIN: [nenásleduje písmeno, číslice, _]"];
+  }
+  "START" -> "START" [label="' ', TAB", id="e0"];
+  "START" -> "EOL" [label="LF\n[mimo závorky]", id="e1"];
+  "START" -> "EOF" [label="EOF", id="e2"];
+  "START" -> "ZERO_SEEN" [label="'0'", id="e3"];
+  "START" -> "NUMBER_SEEN" [label="1–9", id="e4"];
+  "START" -> "DOT" [label="'.'", id="e5"];
+  "DOT" -> "DOUBLE" [label="0–9", id="e6"];
+  "ZERO_SEEN" -> "WANNA_BE_DOUBLE" [label="'.'\n[další znak je číslice]", id="e7"];
+  "ZERO_SEEN" -> "WANNA_BE_EXP" [label="e, E", id="e8"];
+  "ZERO_SEEN" -> "DIV_DEC" [label="'_'", id="e9"];
+  "NUMBER_SEEN" -> "NUMBER_SEEN" [label="0–9", id="e10"];
+  "NUMBER_SEEN" -> "WANNA_BE_DOUBLE" [label="'.'\n[další znak je číslice]", id="e11"];
+  "NUMBER_SEEN" -> "WANNA_BE_EXP" [label="e, E", id="e12"];
+  "NUMBER_SEEN" -> "DIV_DEC" [label="'_'", id="e13"];
+  "DIV_DEC" -> "NUMBER_SEEN" [label="0–9", id="e14"];
+  "DIV_DEC" -> "DIV_DEC" [label="'_'", id="e15"];
+  "WANNA_BE_DOUBLE" -> "DOUBLE" [label="0–9", id="e16"];
+  "DOUBLE" -> "DOUBLE" [label="0–9", id="e17"];
+  "DOUBLE" -> "UNDER_SCORE" [label="'_'", id="e18"];
+  "DOUBLE" -> "WANNA_BE_EXP" [label="e, E", id="e19"];
+  "DOUBLE" -> "SUFFIX" [label="d, D", id="e20"];
+  "UNDER_SCORE" -> "DOUBLE" [label="0–9", id="e21"];
+  "UNDER_SCORE" -> "UNDER_SCORE" [label="'_'", id="e22"];
+  "WANNA_BE_EXP" -> "EXPONENT" [label="0–9", id="e23"];
+  "WANNA_BE_EXP" -> "EXP_SIGN" [label="+, -", id="e24"];
+  "EXP_SIGN" -> "EXPONENT" [label="0–9", id="e25"];
+  "EXPONENT" -> "EXPONENT" [label="0–9", id="e26"];
+  "EXPONENT" -> "EXP_UNDER_SCORE" [label="'_'", id="e27"];
+  "EXPONENT" -> "SUFFIX" [label="d, D", id="e28"];
+  "EXP_UNDER_SCORE" -> "EXPONENT" [label="0–9", id="e29"];
+  "EXP_UNDER_SCORE" -> "EXP_UNDER_SCORE" [label="'_'", id="e30"];
+  "START" -> "CHAR" [label="a–z, A–Z", id="e31"];
+  "START" -> "UNDERSCORE" [label="'_'", id="e32"];
+  "UNDERSCORE" -> "CHAR" [label="a–z, A–Z, 0–9, _", id="e33"];
+  "CHAR" -> "CHAR" [label="a–z, A–Z, 0–9, _", id="e34"];
+  "START" -> "STR_OPEN" [label="'\"'", id="e35"];
+  "STR_OPEN" -> "STR_QUOTE_2" [label="'\"'", id="e36"];
+  "STR_OPEN" -> "STR_ESC" [label="'\\'", id="e37"];
+  "STR_OPEN" -> "STRING" [label="Σ \\ {\", \\, LF, EOF}", id="e38"];
+  "STRING" -> "STRING" [label="Σ \\ {\", \\, LF, EOF}", id="e39"];
+  "STRING" -> "STR_ESC" [label="'\\'", id="e40"];
+  "STRING" -> "STR_END" [label="'\"'", id="e41"];
+  "STR_ESC" -> "STRING" [label="n, t, r, \", \\", id="e42"];
+  "STR_QUOTE_2" -> "ML_STRING" [label="'\"'", id="e43"];
+  "ML_STRING" -> "ML_STRING" [label="Σ \\ {\", EOF}", id="e44"];
+  "ML_STRING" -> "ML_QUOTE_1" [label="'\"'", id="e45"];
+  "ML_QUOTE_1" -> "ML_QUOTE_2" [label="'\"'", id="e46"];
+  "ML_QUOTE_1" -> "ML_STRING" [label="Σ \\ {\", EOF}", id="e47"];
+  "ML_QUOTE_2" -> "ML_END" [label="'\"'", id="e48"];
+  "ML_QUOTE_2" -> "ML_STRING" [label="Σ \\ {\", EOF}", id="e49"];
+  "ML_END" -> "ML_END" [label="'\"'\n/ předchozí \" patří do obsahu", id="e50"];
+  "START" -> "SLASH" [label="'/'", id="e51"];
+  "SLASH" -> "LINE_COMMENT" [label="'/'", id="e52"];
+  "SLASH" -> "BLOCK" [label="'*'\n/ depth = 1", id="e53"];
+  "LINE_COMMENT" -> "LINE_COMMENT" [label="Σ \\ {LF, EOF}", id="e54"];
+  "LINE_COMMENT" -> "EOL" [label="LF\n[mimo závorky]", id="e55"];
+  "LINE_COMMENT" -> "EOF" [label="EOF", id="e56"];
+  "BLOCK" -> "BLOCK_EOL" [label="LF\n[mimo závorky]", id="e57"];
+  "BLOCK" -> "BLOCK_STAR" [label="'*'", id="e58"];
+  "BLOCK" -> "BLOCK_SLASH" [label="'/'", id="e59"];
+  "BLOCK" -> "BLOCK" [label="Σ \\ {*, /, LF, EOF}", id="e60"];
+  "BLOCK_SLASH" -> "BLOCK_EOL" [label="LF\n[mimo závorky]", id="e61"];
+  "BLOCK_SLASH" -> "BLOCK" [label="'*'\n/ depth++", id="e62"];
+  "BLOCK_SLASH" -> "BLOCK" [label="Σ \\ {*, /, LF, EOF}", id="e63"];
+  "BLOCK_STAR" -> "BLOCK_EOL" [label="LF\n[mimo závorky]", id="e64"];
+  "BLOCK_STAR" -> "BLOCK" [label="Σ \\ {*, /, LF, EOF}", id="e65"];
+  "BLOCK_SLASH" -> "BLOCK_SLASH" [label="'/'", id="e66"];
+  "BLOCK_STAR" -> "BLOCK_STAR" [label="'*'", id="e67"];
+  "BLOCK_STAR" -> "START" [label="'/'\n[depth = 1]\n/ depth = 0 (bílý znak)", id="e68"];
+  "BLOCK_STAR" -> "BLOCK" [label="'/'\n[depth > 1]\n/ depth--", id="e69"];
+  "START" -> "PLUS" [label="'+'", id="e70"];
+  "START" -> "MINUS" [label="'-'", id="e71"];
+  "START" -> "MUL" [label="'*'", id="e72"];
+  "START" -> "COLON" [label="':'", id="e73"];
+  "START" -> "COMMA" [label="','", id="e74"];
+  "START" -> "SEMICOLON" [label="';'", id="e75"];
+  "START" -> "LPAREN" [label="'('\n/ hloubka závorek ±1", id="e76"];
+  "START" -> "RPAREN" [label="')'\n/ hloubka závorek ±1", id="e77"];
+  "START" -> "ASSIGN" [label="'='", id="e78"];
+  "ASSIGN" -> "EQ" [label="'='", id="e79"];
+  "ASSIGN" -> "ARROW" [label="'>'", id="e80"];
+  "START" -> "LT" [label="'<'", id="e81"];
+  "LT" -> "LTE" [label="'='", id="e82"];
+  "START" -> "GT" [label="'>'", id="e83"];
+  "GT" -> "GTE" [label="'='", id="e84"];
+  "START" -> "NOT" [label="'!'", id="e85"];
+  "NOT" -> "NEQ" [label="'='", id="e86"];
+  "START" -> "PIPE" [label="'|'", id="e87"];
+  "PIPE" -> "OR" [label="'|'", id="e88"];
+  "START" -> "AMP" [label="'&'", id="e89"];
+  "AMP" -> "AND" [label="'&'", id="e90"];
+  "START" -> "AT" [label="'@'", id="e91"];
+  "AT" -> "AT_M" [label="'m'", id="e92"];
+  "AT_M" -> "AT_MA" [label="'a'", id="e93"];
+  "AT_MA" -> "AT_MAI" [label="'i'", id="e94"];
+  "AT_MAI" -> "AT_MAIN" [label="'n'", id="e95"];
+  __indent [shape=note, fontsize=9, label="Odsazení (vrstva nad automatem, zásobník úrovní):\nna začátku řádku mimo závorky se počítají mezery;\nu prvního znaku tokenu: víc než vrchol → INDENT,\nméně → OUTDENT za každou opuštěnou úroveň,\nnesouhlasná úroveň → chyba 1; TAB v odsazení → chyba 1;\nv závorkách musí být řádek odsazen víc než vrchol."];
+  __legend [shape=note, fontsize=9, label="Dvojitý kruh = koncový stav (token).\nChybějící přechod z koncového stavu: token se přijme, znak se vrátí.\nChybějící přechod z nekoncového stavu: chyba 1.\n[podmínka] a / akce: kontext mimo konečný automat."];
+}

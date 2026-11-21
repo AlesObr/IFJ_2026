@@ -1,0 +1,2 @@
+> [!important]
+> Finální verze grafických znázornění DKA byla vypracována s využitím nástrojů generativní umělé inteligence na základě ručně vypracovaných diagramů, došlo tedy pouze k sjednocení jednotlivých diagramů do shodné grafické reprezentace a jejich kompletace.

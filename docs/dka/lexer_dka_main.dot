@@ -1,0 +1,26 @@
+// Vygenerovano z test/formal_verify/lexer_dka.py, needitovat rucne.
+// SVG: dot -Tsvg <tento soubor> -o <vystup>.svg
+digraph DKA {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=16, labelloc=t, nodesep=0.35, ranksep=0.55,
+         label="DKA lexeru IFJ26 – Anotace @main"];
+  node  [shape=circle, fontname="Helvetica", fontsize=9, margin=0, width=0.3];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.7];
+  __start [shape=point, width=0.12, label=""];
+  __start -> "START";
+  "START" [label="START", shape=circle, id="s_START", URL="#all/START", target="_top", tooltip="START", style=bold];
+  subgraph "cluster_main" {
+    label="Anotace @main"; style="rounded,dashed"; color=gray60; fontcolor=gray30;
+    id="c_main"; URL="#main"; target="_top"; tooltip="Anotace @main";
+    "AT" [label="AT", shape=circle, id="s_AT", URL="#main/AT", target="_top", tooltip="AT"];
+    "AT_M" [label="AT_M", shape=circle, id="s_AT_M", URL="#main/AT_M", target="_top", tooltip="AT_M"];
+    "AT_MA" [label="AT_MA", shape=circle, id="s_AT_MA", URL="#main/AT_MA", target="_top", tooltip="AT_MA"];
+    "AT_MAI" [label="AT_MAI", shape=circle, id="s_AT_MAI", URL="#main/AT_MAI", target="_top", tooltip="AT_MAI"];
+    "AT_MAIN" [label=<AT_MAIN<BR/><FONT POINT-SIZE="7">AT_MAIN</FONT>>, shape=doublecircle, id="s_AT_MAIN", URL="#main/AT_MAIN", target="_top", tooltip="AT_MAIN: [nenásleduje písmeno, číslice, _]"];
+  }
+  "START" -> "AT" [label="'@'", id="e91"];
+  "AT" -> "AT_M" [label="'m'", id="e92"];
+  "AT_M" -> "AT_MA" [label="'a'", id="e93"];
+  "AT_MA" -> "AT_MAI" [label="'i'", id="e94"];
+  "AT_MAI" -> "AT_MAIN" [label="'n'", id="e95"];
+  __legend [shape=note, fontsize=9, label="Dvojitý kruh = koncový stav (token).\nChybějící přechod z koncového stavu: token se přijme, znak se vrátí.\nChybějící přechod z nekoncového stavu: chyba 1.\n[podmínka] a / akce: kontext mimo konečný automat."];
+}
