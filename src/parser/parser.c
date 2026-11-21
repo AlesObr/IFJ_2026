@@ -647,14 +647,12 @@ ParserStatus parse_match_case(Token *curr_token) {
 	GET_TOKEN(curr_token, NULL, false);
 	switch (curr_token->type) {
 		case TOKEN_KEYWORD_TRUE:
-			ALLOC_NODE(expr_node,
-				ast_create_bool(true, curr_token->line, curr_token->col));
+			ALLOC_NODE(expr_node, ast_create_bool(true, curr_token->line, curr_token->col));
 			GET_TOKEN(curr_token, expr_node, false);
 			break;
 
 		case TOKEN_KEYWORD_FALSE:
-			ALLOC_NODE(expr_node,
-				ast_create_bool(false, curr_token->line, curr_token->col));
+			ALLOC_NODE(expr_node, ast_create_bool(false, curr_token->line, curr_token->col));
 			GET_TOKEN(curr_token, expr_node, false);
 			break;
 
@@ -838,7 +836,8 @@ ParserStatus parse_statement(Token *curr_token) {
 			GET_TOKEN(curr_token, node, true);
 			if (curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_SEMICOLON) {
 				status = parse_expression(curr_token);
-				CHECK_AST_APPEND(node, ast_return_add_expr(node, status.new_node), "Failed to add return expression to node\n");
+				CHECK_AST_APPEND(node, ast_return_add_expr(node, status.new_node),
+					"Failed to add return expression to node\n");
 				CHECK_STATUS_OWNED(status, node);
 				if (curr_token->type != TOKEN_EOL && curr_token->type != TOKEN_SEMICOLON) {
 					ast_destroy(status.new_node);
@@ -1007,12 +1006,12 @@ ParserStatus parse_param_section(Token *curr_token) {
 									   "Invalid token after , in function declaration params\n"),
 					PAR_FAIL);
 			}
-		} else if (curr_token->type == TOKEN_RPAREN){
+		} else if (curr_token->type == TOKEN_RPAREN) {
 			return PARSE_OK(PAR_SUCC, param_window);
 		} else {
 			ast_destroy(param_window);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
-									"Invalid token after , in function declaration params\n"),
+								   "Invalid token after , in function declaration params\n"),
 				PAR_FAIL);
 		}
 	}
