@@ -1,0 +1,4 @@
+xhorens00 - (Syntaktická analýza a tabulka symbolů): Kompletní syntaktická analýza (rekurzivní sestup i precedenční syntaktická analýza výrazů) a implementace tabulky symbolů (symtable). Spolupráce na návrhu DKA.
+xkrizka00 - (Sémantika a generování kódu): Sémantická analýza a generování cílového kódu (code_gen).
+xobrale00 - (Vedoucí týmu / Architektura a QA): Návrh architektury překladače, spolupráce na návrhu DKA, systém správy a propagace chyb, automatizované testování, správa repozitáře a kompletace dokumentace.
+xkolekj00 - (Lexikální analýza a dokumentace): Implementace lexikálního analyzátoru podle DKA, spolupráce na technické dokumentaci a administrativní agendě.
