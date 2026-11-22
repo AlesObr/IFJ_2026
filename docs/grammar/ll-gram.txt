@@ -1,0 +1,216 @@
+
+
+<program> ::= import ifj26* EOL <prog_body> EOF
+<prog_body> ::= <extension> <prog_body> | <func_def>  <prog_body> | EOL <prog_body> | ε
+
+<extension> ::= extension ( <ext_param> ) EOL [indent] <ext_body> [outdent]
+<ext_param> ::= [id] : [type]
+<ext_body> ::= <func_def> <ext_tail>
+<ext_tail> ::= <func_def> <ext_tail> | EOL <ext_tail> | ε
+
+<func_def> ::= <main_sign> def [id] <param_section>  <data_type> = <func_body>
+<func_body> ::= <statement> | EOL <code_block>
+<param_section> ::= <param_list> <param_section> | ε
+<param_list> ::= ( <param_list_in>
+<param_list_in> ::= <param_mem> ) | )
+<param_mem> ::= [id] : [type] <param_tail>
+<param_tail> ::= , <param_next> | ε
+<param_next> ::= [id] : [type] <param_tail> | EOL <param_next> | ε
+<main_sign> ::= @main <opt_EOL> | ε
+<opt_EOL> ::= EOL | ε
+
+<data_type> ::=  : [type] | ε 
+
+<if_statement> ::= if <expr> then <if_body> <if_tail>
+<if_body> ::= EOL <code_block> | <expr>
+<if_tail> ::= else <else_if_statement> | ε✓
+<else_if_statement> ::= if <expr> then <if_body> <if_tail> | EOL <code_block> <if_tail> | <expr> <if_tail>
+
+<while_statement> ::= while <expr> do EOL <code_block>✓
+
+<code_block> ::= [indent] <code_block_in> [outdent]✓
+<code_block_in> ::= <statement> <separator> <statement_tail>✓
+<statement_tail> ::= <statement> <separator> <statement_tail> | ε
+<separator> ::= EOL | ;
+<statement> ::= <if_statement> | <while_statement> | <for_statement> | <return> | <decl> | <expr>
+<decl> ::= <decl_type> [id] <data_type> = <expr>
+<decl_type> ::= val | var
+<return> ::= return <return_val>
+<return_val> ::= <expr> | ε
+
+<for_statement> ::= for <for_tail>
+<for_tail> ::= <header> do <func_body> | EOL [indent] <header> [outdent] do <func_body>✓
+<header> ::= [id] <- <range> <guard_list>✓
+<range> ::= <expr> <range_type>✓
+<range_type> ::= to <expr> <step> | until <expr> <step>
+<step> ::= by <expr> | ε✓
+<guard_list> ::= EOL <guard> | ε 
+<guard> ::= if <expr> <guard_list> | ε
+
+FIRST
+
+<program> => import
+<prog_body> => EOL | extension | def | @main | ε
+<extension> => extension
+<ext_param> => [id]
+<ext_body> => def | @main
+<ext_tail> => EOL | def | @main | ε
+<func_def> => def | @main
+<func_body> => EOL | if | <expr> | while | val | var | return | for
+<param_section> => ( | ε
+<param_list> => (
+<param_list_in> => ) | [id]
+<param_mem> => [id]
+<param_tail> => , | ε
+<param_next> => EOL | [id] | ε
+<main_sign> => @main | ε
+<opt_EOL> => EOL | ε
+<data_type> => : | ε
+<if_statement> => if
+<if_body> => EOL | <expr>
+<if_tail> => else | ε
+<else_if_statement> => EOL | if | <expr>
+<while_statement> => while
+<code_block> => [indent]
+<code_block_in> => if | <expr> | while | val | var | return | for
+<statement_tail> => if | <expr> | while | val | var | return | for | ε
+<separator> => EOL | ;
+<statement> => if | <expr> | while | val | var | return | for
+<decl> => val | var
+<decl_type> => val | var
+<return> => return
+<return_val> => <expr> | ε
+<for_statement> => for
+<for_tail> => EOL | [id]
+<header> => [id]
+<range> => <expr>
+<range_type> => to | until
+<step> => by | ε
+<guard_list> => EOL | ε
+<guard> => if | ε
+
+FOLLOW
+
+<program> => $
+<prog_body> => EOF
+<extension> => EOL | EOF | extension | def | @main
+<ext_param> => )
+<ext_body> => [outdent]
+<ext_tail> => [outdent]
+<func_def> => EOL | EOF | extension | [outdent] | def | @main
+<func_body> => EOL | EOF | extension | [outdent] | def | @main | ;
+<param_section> => : | =
+<param_list> => ( | : | =
+<param_list_in> => ( | : | =
+<param_mem> => )
+<param_tail> => )
+<param_next> => )
+<main_sign> => def
+<opt_EOL> => def
+<data_type> => =
+<if_statement> => EOL | EOF | extension | [outdent] | def | @main | ;
+<if_body> => EOL | EOF | extension | [outdent] | def | @main | else | ;
+<if_tail> => EOL | EOF | extension | [outdent] | def | @main | ;
+<else_if_statement> => EOL | EOF | extension | [outdent] | def | @main | ;
+<while_statement> => EOL | EOF | extension | [outdent] | def | @main | ;
+<code_block> => EOL | EOF | extension | [outdent] | def | @main | else | ;
+<code_block_in> => [outdent]
+<statement_tail> => [outdent]
+<separator> => [outdent] | if | <expr> | while | val | var | return | for
+<statement> => EOL | EOF | extension | [outdent] | def | @main | ;
+<decl> => EOL | EOF | extension | [outdent] | def | @main | ;
+<decl_type> => [id]
+<return> => EOL | EOF | extension | [outdent] | def | @main | ;
+<return_val> => EOL | EOF | extension | [outdent] | def | @main | ;
+<for_statement> => EOL | EOF | extension | [outdent] | def | @main | ;
+<for_tail> => EOL | EOF | extension | [outdent] | def | @main | ;
+<header> => [outdent] | do
+<range> => EOL | [outdent] | do
+<range_type> => EOL | [outdent] | do
+<step> => EOL | [outdent] | do
+<guard_list> => [outdent] | do
+<guard> => [outdent] | do
+
+EMPTY
+
+<program> ::= ∅
+<prog_body> ::= ε
+<extension> ::= ∅
+<ext_param> ::= ∅
+<ext_body> ::= ∅
+<ext_tail> ::= ε
+<func_def> ::= ∅
+<func_body> ::= ∅
+<param_section> ::= ε
+<param_list> ::= ∅
+<param_list_in> ::= ∅
+<param_mem> ::= ∅
+<param_tail> ::= ε
+<param_next> ::= ε
+<main_sign> ::= ε
+<opt_EOL> ::= ε
+<data_type> ::= ε
+<if_statement> ::= ∅
+<if_body> ::= ∅
+<if_tail> ::= ε
+<else_if_statement> ::= ∅
+<while_statement> ::= ∅
+<code_block> ::= ∅
+<code_block_in> ::= ∅
+<statement_tail> ::= ε
+<separator> ::= ∅
+<statement> ::= ∅
+<decl> ::= ∅
+<decl_type> ::= ∅
+<return> ::= ∅
+<return_val> ::= ε
+<for_statement> ::= ∅
+<for_tail> ::= ∅
+<header> ::= ∅
+<range> ::= ∅
+<range_type> ::= ∅
+<step> ::= ε
+<guard_list> ::= ε
+<guard> ::= ε
+
+PREDICT
+
+<program> => import
+<prog_body> => EOL | EOF | extension | def | @main
+<extension> => extension
+<ext_param> => [id]
+<ext_body> => def | @main
+<ext_tail> => EOL | [outdent] | def | @main
+<func_def> => def | @main
+<func_body> => EOL | if | <expr> | while | val | var | return | for
+<param_section> => ( | : | =
+<param_list> => (
+<param_list_in> => ) | [id]
+<param_mem> => [id]
+<param_tail> => ) | ,
+<param_next> => EOL | ) | [id]
+<main_sign> => def | @main
+<opt_EOL> => EOL | def
+<data_type> => : | =
+<if_statement> => if
+<if_body> => EOL | <expr>
+<if_tail> => EOL | EOF | extension | [outdent] | def | @main | else | ;
+<else_if_statement> => EOL | if | <expr>
+<while_statement> => while
+<code_block> => [indent]
+<code_block_in> => if | <expr> | while | val | var | return | for
+<statement_tail> => [outdent] | if | <expr> | while | val | var | return | for
+<separator> => EOL | ;
+<statement> => if | <expr> | while | val | var | return | for
+<decl> => val | var
+<decl_type> => val | var
+<return> => return
+<return_val> => EOL | EOF | extension | [outdent] | def | @main | <expr> | ;
+<for_statement> => for
+<for_tail> => EOL | [id]
+<header> => [id]
+<range> => <expr>
+<range_type> => to | until
+<step> => EOL | [outdent] | do | by
+<guard_list> => EOL | [outdent] | do
+<guard> => [outdent] | if | do
