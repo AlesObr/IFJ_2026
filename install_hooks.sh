@@ -2,6 +2,8 @@
 # scripts/install_hooks.sh
 # Aktivace git hooků a sterilizace hlaviček pro tým IFJ26
 
+
+
 set -e
 
 # ANSI barvy

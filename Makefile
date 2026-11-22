@@ -1,3 +1,5 @@
+# Makefile byl vytvářen ve spolupráci s generativní umělou inteligencí
+
 CC ?= gcc
 CFLAGS ?= -std=c11 -Wall -Wextra  -pedantic -g
 INCLUDES = -Iinclude -Isrc
@@ -335,14 +337,13 @@ ext-status: parser-build semantic-build compiler
 # ----------------------------------------------------------------------
 # DKA lexeru: kontrola proti skutečnému lexeru a export diagramů do docs/dka
 # ----------------------------------------------------------------------
-# Precedenční tabulka (ze zdrojáku parseru, ověřená na parser_test) a LL tabulka z gramatiky.
-#   make tables                       jen precedence
-#   make tables GRAMMAR=cesta/ll.txt  i LL tabulka; výstup v docs/tables (.tex, .md, .csv)
+#   make tables
+#   make tables GRAMMAR=cesta/ll.txt  i LL tabulka;
 GRAMMAR ?=
 tables: parser-build
 	@python3 test/formal_verify/gen_tables.py $(if $(GRAMMAR),all $(GRAMMAR),prec)
 
-# DKA_URL = adresa, kam se nahraje docs/dka (index.html); s ní vzniknou i PDF s odkazy na web.
+# DKA_URL = adresa, kam se nahraje docs/dka (index.html); 
 #   make dka DKA_URL=https://example.org/ifj26/dka/
 DKA_URL ?=
 dka: scanner-build
@@ -384,7 +385,6 @@ dist-prep: format linter-full | $(DIST_DIR)
 	else \
 		echo "=== Kopíruji zdrojové soubory do $(DIST_DIR) ==="; \
 		cp -r src/* $(DIST_DIR)/; \
-		[ -f Makefile ] && cp Makefile $(DIST_DIR)/; \
 	fi
 
 zip: dist-prep

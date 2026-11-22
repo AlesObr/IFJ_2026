@@ -128,7 +128,12 @@ def main():
 
 	print(f"{CLR_CYAN}{CLR_BOLD}[2/4] Zplošťování zdrojáků a přepis #include...{CLR_RESET}")
 	flatten_and_rewrite(src_dir, dist_dir)
-	generate_flat_makefile(dist_dir)
+	# Ručně psaný src/Makefile má přednost, generovaný je jen záloha
+	if (src_dir / "Makefile").is_file():
+		shutil.copy(src_dir / "Makefile", dist_dir / "Makefile")
+		print(f"  {CLR_GREEN}✔{CLR_RESET} Přiložen src/Makefile")
+	else:
+		generate_flat_makefile(dist_dir)
 
 	# Povinné soubory odevzdání (kontroluje je is_it_ok.sh); hledají se v kořeni a v src/
 	for name in SUBMISSION_FILES:
