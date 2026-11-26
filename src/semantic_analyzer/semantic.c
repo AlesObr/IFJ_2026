@@ -148,6 +148,24 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 				return err;
 			break;
 		}
+		case NODE_IF: {
+			bool returns = false;
+			Error err = analyze_if(ctx, expr, out, &returns);
+			if (ERROR_IS_ERR(err))
+				return err;
+
+			size_t if_count = expr->if_else_stmt.next_conds.count;
+			ASTNode *last_node = expr->if_else_stmt.next_conds.items[if_count - 1];
+
+			if (last_node->type != NODE_ELSE || last_node->if_else_stmt.cond != NULL)
+				return ERROR_EMIT(ERR_SEM_TYPE, expr->line, expr->col,
+					"The if expression has to end with an else with no conditions");
+
+			if (*out == UNDEF)
+				return ERROR_EMIT(ERR_SEM_TYPE, expr->line, expr->col,
+					"All branches need a matching return type");
+			break;
+		}
 		default: { // Temporary default case for unsupported expression types
 			static char msg[64];
 			snprintf(msg, sizeof(msg), "Unsupported expression node type %d", expr->type);
@@ -439,7 +457,7 @@ static Error analyze_condition(SemanticContext *ctx, ASTNode *cond) {
 	return ERROR_OK();
 }
 
-static Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
 	if (!ctx || !node || !out || !returns || node->type != NODE_IF)
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_if");
 
