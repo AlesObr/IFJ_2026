@@ -313,10 +313,34 @@ static ParserStatus parse_stack(Token *curr_token) {
 	bool prev_op = false;
 	int paren_depth = 0;
 	while (true){
-		PrecStackItem top_term;
-		PrecIndex idx = token_to_prec_idx(curr_token, prev_op, paren_depth);
+		PrecStackItem top_term = stack_get_top_term(&stack);
+		PrecIndex curr_idx = token_to_prec_idx(curr_token, prev_op, paren_depth);
+		if (top_term->term = IDX_DOLLAR && curr_idx == IDX_DOLLAR){
+			PrecStackItem *top_item = (PrecStackItem *)(stack_top(&stack));
+			if (top_item == NULL || top_item->is_term){
+				destroy_prec_stack(&stack);
+				return PARSE_ERROR(
+					ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Empty expression\n"),
+					PAR_FAIL);
+			}
+			ASTNode *res_node = top_item->node;
+			top_item->node = NULL;
+			return PARSE_OK(PAR_SUCC, res_node);
+		}
+		char action = precedence_table[top_term->term][curr_idx];
+		if (action == '<') {
+
+		} else if (action == '>') {
+
+		} else if (action == '=') {
+
+		} else {
+			prec_stack_cleanup(&stack, true);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								   "Invalid operator sequence in expression\n"),
+				PAR_FAIL);
+		}
 	}
-	stack_destroy();
 }
 
 ParserStatus parse_expression(Token *curr_token) {
