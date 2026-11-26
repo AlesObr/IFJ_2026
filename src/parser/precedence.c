@@ -17,12 +17,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define PREC_TABLE_SIZE 19 /**< Size of both dimensions of precedence table */
+#define PREC_TABLE_DIM 19  	/**< Size of both dimensions of precedence table */
+#define MAX_RULE_LEN 4		/**< Max length of rule to be handled in reducing */
 
 /**
  * @brief Precedence table for evaluating expressions
 */
-static const char precedence_table = {
+static const char precedence_table[PREC_TABLE_DIM][PREC_TABLE_DIM] = {
 	//         u-   !    *    /    +    -    <    >    <=   >=   ==   !=   &&   ||   =    (    )    i    $
 	/* u- */ {'<', '<', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '<', '>', '<', '>'},
 	/* !  */ {'<', '<', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '<', '>', '<', '>'},
@@ -315,7 +316,7 @@ static void destroy_prec_stack(Stack *stack, bool destroy_ast){
 static PrecStackItem *get_top_terminal(Stack *stack) {
 	StackElement *elem = stack_top(stack);
 	while (elem != NULL) {
-		PrecStackItem *item = (PrecStackItem *)el->data;
+		PrecStackItem *item = (PrecStackItem *)elem->data;
 		if (item != NULL && item->is_term) {
 			return item;
 		}
@@ -435,6 +436,100 @@ static ParserStatus parse_operand(Token *curr_token){
 }
 
 /**
+ * @brief Handling of reduction
+ * @param curr_token Current token given by scanner
+ * @param stack Precedence analysis stack
+ * @return ParserStatus structure containing flags for parser
+ */
+static ParserStatus reduce_handle(Token *curr_token, Stack *stack){
+	PrecStackItem *popped[MAX_RULE_LEN];
+	int cnt = 0;
+	while (stack->top != NULL){
+
+	}
+	if (cnt == 1 && !popped[0]->is_term){
+		stack_push(stack, popped[0]);
+		return PARSE_OK(PAR_SUCC, NULL);
+	}
+	if (cnt == 2 && !popped[0]->is_term && popped[1]->is_term &&
+		(popped[1]->term_idx == IDX_UMINUS || popped[1]->term_idx == IDX_NOT)) {
+		ASTNode *un_node =
+			ast_create_unop(popped[1]->op, popped[0]->node, popped[1]->line, popped[1]->col);
+		if (un_node == NULL) {
+			ast_destroy(popped[0]->node);
+			free(popped[0]);
+			free(popped[1]);
+			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
+								   "Failed to allocate unary op node\n"),
+				PAR_FAIL);
+		}
+		popped[0]->node = un_node;
+		free(popped[1]);
+		stack_push(stack, popped[0]);
+		return PARSE_OK(PAR_SUCC, NULL);
+	}
+	if (cnt == 2 && popped[0]->is_term && popped[1]->is_term &&
+		popped[1]->term_idx == IDX_LPAREN && popped[0]->term_idx == IDX_RPAREN) {
+		ASTNode *unit_node = ast_create_null(popped[1]->line, popped[1]->col);
+		if (unit_node == NULL) {
+			free(popped[0]);
+			free(popped[1]);
+			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
+								   "Failed to allocate unit literal node\n"),
+				PAR_FAIL);
+		}
+		popped[1]->is_term = false;
+		popped[1]->node = unit_node;
+		free(popped[0]);
+		stack_push(stack, popped[1]);
+		return PARSE_OK(PAR_SUCC, NULL);
+	}
+	if (cnt == 3 && popped[0]->is_term && !popped[1]->is_term && popped[2]->is_term &&
+		popped[2]->term_idx == IDX_LPAREN && popped[0]->term_idx == IDX_RPAREN) {
+		free(popped[0]);
+		free(popped[2]);
+		stack_push(stack, popped[1]);
+		return PARSE_OK(PAR_SUCC, NULL);
+	}
+	if (cnt == 3 && !popped[0]->is_term && popped[1]->is_term && !popped[2]->is_term) {
+		if (popped[1]->op == OP_ASSIGN && popped[2]->node->type != NODE_IDENTIFIER) {
+			ast_destroy(popped[0]->node);
+			ast_destroy(popped[2]->node);
+			free(popped[0]);
+			free(popped[1]);
+			free(popped[2]);
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								   "Tried assigning into literal or expression\n"),
+				PAR_FAIL);
+		}
+		ASTNode *bin_node = ast_create_binop(
+			popped[1]->op, popped[2]->node, popped[0]->node, popped[1]->line, popped[1]->col);
+		if (bin_node == NULL) {
+			ast_destroy(popped[0]->node);
+			ast_destroy(popped[2]->node);
+			free(popped[0]);
+			free(popped[1]);
+			free(popped[2]);
+			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
+								   "Failed to allocate binary op node\n"),
+				PAR_FAIL);
+		}
+		popped[2]->node = bin_node;
+		free(popped[0]);
+		free(popped[1]);
+		stack_push(stack, popped[2]);
+		return PARSE_OK(PAR_SUCC, NULL);
+	}
+	for (int idx = 0; idx < cnt; idx++) {
+		if (popped[idx]->node != NULL) ast_destroy(popped[idx]->node);
+		free(popped[idx]);
+	}
+	return PARSE_ERROR(
+		ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Error while reducing the expression\n"),
+		PAR_FAIL);
+}
+
+/**
  * @brief Parsing of expression via stack
  * @param curr_token Current token given by scanner
  * @return ParserStatus structure containing flags for parser
@@ -457,7 +552,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 					PAR_FAIL);
 		}
 		PrecIndex curr_idx = token_to_prec_idx(curr_token, prev_op, paren_depth);
-		if (top_term->term = IDX_DOLLAR && curr_idx == IDX_DOLLAR){
+		if (top_term->term_idx = IDX_DOLLAR && curr_idx == IDX_DOLLAR){
 			PrecStackItem *top_item = (PrecStackItem *)(stack_top(&stack));
 			if (top_item == NULL || top_item->is_term){
 				destroy_prec_stack(&stack, true);
@@ -469,11 +564,11 @@ static ParserStatus parse_stack(Token *curr_token) {
 			top_item->node = NULL;
 			return PARSE_OK(PAR_SUCC, res_node);
 		}
-		char action = precedence_table[top_term->term][curr_idx];
+		char action = precedence_table[top_term->term_idx][curr_idx];
 		if (action == '<') {
 			top_term->has_handle = true;
-			if (curr_idx = IDX_ID){
-				ParserStatus status = parse_operand();
+			if (curr_idx == IDX_ID){
+				ParserStatus status = parse_operand(curr_token);
 				if (status.flag != PAR_SUCC && status.flag != PAR_EOF) {
 					destroy_prec_stack(&stack, false);
 					return status;
@@ -484,7 +579,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 				stack_push(&stack, item);
 				prev_op = true;
 			} else {
-				if (curr_idx == TOK_LPAREN){
+				if (curr_idx == TOKEN_LPAREN){
 					paren_depth++;
 				}
 				PrecStackItem *item = malloc_stack_item();
