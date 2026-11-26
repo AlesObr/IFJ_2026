@@ -513,92 +513,111 @@ static ParserStatus parse_operand(Token *curr_token){
  * @return ParserStatus structure containing flags for parser
  */
 static ParserStatus reduce_handle(Token *curr_token, Stack *stack){
-	PrecStackItem *popped[MAX_RULE_LEN];
-	int cnt = 0;
-	while (stack->top != NULL){
+	if (stack->top == NULL) {
+		return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+							   "Empty stack during reduction\n"),
+			PAR_FAIL);
 	}
-	if (cnt == 1 && !popped[0]->is_term){
-		stack_push(stack, popped[0]);
+
+	PrecStackItem *s0 = (PrecStackItem *)stack->top->data; // Topmost rihtmost item
+	PrecStackItem *s1 = (stack->top->next != NULL) ? (PrecStackItem *)stack->top->next->data : NULL;
+	PrecStackItem *s2 = (s1 != NULL && stack->top->next->next != NULL)
+		? (PrecStackItem *)stack->top->next->next->data
+		: NULL;
+
+	// 1. Rule: E -> ( E )   [stack top: s0=')', s1=E, s2='(']
+	if (s0 != NULL && s1 != NULL && s2 != NULL &&
+		s0->is_term && s0->term_idx == IDX_RPAREN &&
+		!s1->is_term &&
+		s2->is_term && s2->term_idx == IDX_LPAREN) {
+		free(stack_pop(stack)); // pop ')'
+		PrecStackItem *expr = (PrecStackItem *)stack_pop(stack); // pop E
+		free(stack_pop(stack)); // pop '('
+		stack_push(stack, expr);
 		return PARSE_OK(PAR_SUCC, NULL);
 	}
-	if (cnt == 2 && !popped[0]->is_term && popped[1]->is_term &&
-		(popped[1]->term_idx == IDX_UMINUS || popped[1]->term_idx == IDX_NOT)) {
-		ASTNode *un_node =
-			ast_create_unop(popped[1]->op, popped[0]->node, popped[1]->line, popped[1]->col);
-		if (un_node == NULL) {
-			ast_destroy(popped[0]->node);
-			free(popped[0]);
-			free(popped[1]);
-			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
-								   "Failed to allocate unary op node\n"),
-				PAR_FAIL);
-		}
-		popped[0]->node = un_node;
-		free(popped[1]);
-		stack_push(stack, popped[0]);
-		return PARSE_OK(PAR_SUCC, NULL);
-	}
-	if (cnt == 2 && popped[0]->is_term && popped[1]->is_term &&
-		popped[1]->term_idx == IDX_LPAREN && popped[0]->term_idx == IDX_RPAREN) {
-		ASTNode *unit_node = ast_create_null(popped[1]->line, popped[1]->col);
+
+	// 2. Rule: E -> ( )     [stack top: s0=')', s1='(']
+	if (s0 != NULL && s1 != NULL &&
+		s0->is_term && s0->term_idx == IDX_RPAREN &&
+		s1->is_term && s1->term_idx == IDX_LPAREN) {
+		PrecStackItem *rparen = (PrecStackItem *)stack_pop(stack);
+		PrecStackItem *lparen = (PrecStackItem *)stack_pop(stack);
+		ASTNode *unit_node = ast_create_null(lparen->line, lparen->col);
+		free(rparen);
 		if (unit_node == NULL) {
-			free(popped[0]);
-			free(popped[1]);
+			free(lparen);
 			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
-								   "Failed to allocate unit literal node\n"),
+								   "Failed to allocate unit node\n"),
 				PAR_FAIL);
 		}
-		popped[1]->is_term = false;
-		popped[1]->node = unit_node;
-		free(popped[0]);
-		stack_push(stack, popped[1]);
+		lparen->is_term = false;
+		lparen->node = unit_node;
+		stack_push(stack, lparen);
 		return PARSE_OK(PAR_SUCC, NULL);
 	}
-	if (cnt == 3 && popped[0]->is_term && !popped[1]->is_term && popped[2]->is_term &&
-		popped[2]->term_idx == IDX_LPAREN && popped[0]->term_idx == IDX_RPAREN) {
-		free(popped[0]);
-		free(popped[2]);
-		stack_push(stack, popped[1]);
-		return PARSE_OK(PAR_SUCC, NULL);
-	}
-	if (cnt == 3 && !popped[0]->is_term && popped[1]->is_term && !popped[2]->is_term) {
-		if (popped[1]->op == OP_ASSIGN && popped[2]->node->type != NODE_IDENTIFIER) {
-			ast_destroy(popped[0]->node);
-			ast_destroy(popped[2]->node);
-			free(popped[0]);
-			free(popped[1]);
-			free(popped[2]);
+
+	// 3. Rule: E -> E binop E   [stack top: s0=RHS E, s1=binop, s2=LHS E]
+	if (s0 != NULL && s1 != NULL && s2 != NULL &&
+		!s0->is_term && s1->is_term && !s2->is_term) {
+		PrecStackItem *rhs = (PrecStackItem *)stack_pop(stack);
+		PrecStackItem *op = (PrecStackItem *)stack_pop(stack);
+		PrecStackItem *lhs = (PrecStackItem *)stack_pop(stack);
+
+		if (op->op == OP_ASSIGN && lhs->node->type != NODE_IDENTIFIER) {
+			ast_destroy(lhs->node);
+			ast_destroy(rhs->node);
+			free(lhs);
+			free(op);
+			free(rhs);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Tried assigning into literal or expression\n"),
 				PAR_FAIL);
 		}
-		ASTNode *bin_node = ast_create_binop(
-			popped[1]->op, popped[2]->node, popped[0]->node, popped[1]->line, popped[1]->col);
+		ASTNode *bin_node = ast_create_binop(op->op, lhs->node, rhs->node, op->line, op->col);
+		free(op);
 		if (bin_node == NULL) {
-			ast_destroy(popped[0]->node);
-			ast_destroy(popped[2]->node);
-			free(popped[0]);
-			free(popped[1]);
-			free(popped[2]);
+			ast_destroy(lhs->node);
+			ast_destroy(rhs->node);
+			free(rhs);
+			free(lhs);
 			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
 								   "Failed to allocate binop node\n"),
 				PAR_FAIL);
 		}
-		popped[2]->node = bin_node;
-		free(popped[0]);
-		free(popped[1]);
-		stack_push(stack, popped[2]);
+		free(rhs);
+		lhs->node = bin_node;
+		stack_push(stack, lhs);
 		return PARSE_OK(PAR_SUCC, NULL);
 	}
-	for (int idx = 0; idx < cnt; idx++) {
-		if (popped[idx]->node != NULL) ast_destroy(popped[idx]->node);
-		free(popped[idx]);
+
+	// 4. Rule: E -> unop E   [stack top: s0=E, s1=u- or !]
+	if (s0 != NULL && s1 != NULL &&
+		!s0->is_term && s1->is_term &&
+		(s1->term_idx == IDX_UMINUS || s1->term_idx == IDX_NOT)) {
+		PrecStackItem *expr = (PrecStackItem *)stack_pop(stack);
+		PrecStackItem *op = (PrecStackItem *)stack_pop(stack);
+		ASTNode *un_node = ast_create_unop(op->op, expr->node, op->line, op->col);
+		if (un_node == NULL) {
+			ast_destroy(expr->node);
+			free(expr);
+			free(op);
+			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
+								   "Failed to allocate unop node\n"),
+				PAR_FAIL);
+		}
+		free(expr);
+		op->is_term = false;
+		op->node = un_node;
+		stack_push(stack, op);
+		return PARSE_OK(PAR_SUCC, NULL);
 	}
 
 	return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 						   "Error while reducing the expression\n"),
 		PAR_FAIL);
 }
+
 /**
  * @brief Parses an expression using bottom-up operator-precedence parsing
  * @param curr_token Current token from scanner (updated in-place as tokens are consumed)
