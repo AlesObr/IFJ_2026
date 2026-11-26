@@ -86,6 +86,18 @@ typedef struct {
 
 static ParserStatus parse_stack(Token *curr_token);
 
+static void precedence_trace_token(const char *location, const Token *token) {
+	const char *value = "";
+	if (token->type == TOKEN_IDENTIFIER || token->type == TOKEN_LIT_STRING) {
+		value = token->data.str_val ? dstring_get(token->data.str_val) : "<null>";
+	}
+	fprintf(stderr, "[precedence] %s: %s at %zu:%zu", location, token_type_name(token->type),
+		token->line, token->col);
+	if (*value)
+		fprintf(stderr, " value=\"%s\"", value);
+	fputc('\n', stderr);
+}
+
 #define GET_TOKEN(tok_ptr, node, eof_poss)                                                         \
 	do {                                                                                           \
 		token_destroy(tok_ptr);                                                                    \
@@ -169,7 +181,7 @@ static ParserStatus parse_stack(Token *curr_token);
 #define CHECK_STACK_ITEM(item, stack)															   \
 	do {																						   \
 		if ((item) == NULL){																	   \
-			destroy_prec_stack(stack);															   \
+			destroy_prec_stack(stack, true);													   \
 			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,         \
 								   "Failed to allocate stack node"),                      		   \
 				AST_FAIL);																		   \
@@ -313,7 +325,7 @@ static void destroy_prec_stack(Stack *stack, bool destroy_ast){
  * @param stack Stack to get the top symbol from
  * @return Terminal stack node if success, NULL if terminal not found
 */
-static PrecStackItem *get_top_terminal(Stack *stack) {
+static PrecStackItem *get_top_term(Stack *stack) {
 	StackElement *elem = stack_top(stack);
 	while (elem != NULL) {
 		PrecStackItem *item = (PrecStackItem *)elem->data;
@@ -323,6 +335,61 @@ static PrecStackItem *get_top_terminal(Stack *stack) {
 		elem = elem->next;
 	}
 	return NULL;
+}
+
+/**
+ * @brief Parsing of call parameters of member function
+ * @param curr_token Actual token pointer to be translated
+ * @param node Node to append parameters into
+ */
+ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
+	bool first_iter = true;
+	do {
+		if (curr_token->type == TOKEN_LPAREN && !first_iter) {
+			GET_TOKEN(curr_token, node, false);
+		}
+		ASTNode *window = NULL;
+		ALLOC_NODE(window, ast_create_param_window(curr_token->line, curr_token->col));
+		CHECK_AST_APPEND(node, ast_call_add_window(node, window));
+		if (curr_token->type == TOKEN_RPAREN) {
+			GET_TOKEN(curr_token, node, false);
+			first_iter = false;
+			if (curr_token->type == TOKEN_EOL || curr_token->type == TOKEN_SEMICOLON) {
+				break;
+			}
+			continue;
+		}
+		ParserStatus status = parse_climb(curr_token, 0);
+		APPEND_BEFORE_EOF_RETURN(status, window, ast_window_add_param(window, status.new_node));
+		CHECK_STATUS_OWNED(status, node);
+		CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
+		while (true) {
+			if (curr_token->type == TOKEN_RPAREN) {
+				break;
+			} else if (curr_token->type == TOKEN_COMMA) {
+				GET_TOKEN(curr_token, node, false);
+				status = parse_climb(curr_token, 0);
+				APPEND_BEFORE_EOF_RETURN(
+					status, window, ast_window_add_param(window, status.new_node));
+				CHECK_STATUS_OWNED(status, node);
+				if (status.new_node != NULL) {
+					CHECK_AST_APPEND(node, ast_window_add_param(window, status.new_node));
+				}
+			} else {
+				ast_destroy(node);
+				return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+									   "Invalid token in expression call parameter parsing "
+									   "(expected TOKEN_RBRACE or TOKEN_COMMA)\n"),
+					PAR_FAIL);
+			}
+		}
+		GET_TOKEN(curr_token, node, false);
+		if (curr_token->type == TOKEN_EOL) {
+			break;
+		}
+		first_iter = false;
+	} while (curr_token->type == TOKEN_LPAREN);
+	return PARSE_OK(PAR_SUCC, node);
 }
 
 /**
@@ -538,13 +605,13 @@ static ParserStatus parse_stack(Token *curr_token) {
 	Stack stack;
 	stack_init(&stack);
 	PrecStackItem *dollar = malloc_stack_item();
-	CHECK_STACK_ITEM(dollar);
-	*dollar = {.term = IDX_DOLLAR, .is_term = true, .has_handle = false};
+	CHECK_STACK_ITEM(dollar, &stack);
+	*dollar = (PrecStackItem){.term_idx = IDX_DOLLAR, .is_term = true, .has_handle = false};
 	stack_push(&stack, dollar);
 	bool prev_op = false;
 	int paren_depth = 0;
 	while (true){
-		PrecStackItem *top_term = stack_get_top_term(&stack);
+		PrecStackItem *top_term = get_top_term(&stack);
 		if (top_term == NULL){
 			destroy_prec_stack(&stack, true);
 			return PARSE_ERROR(
@@ -552,7 +619,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 					PAR_FAIL);
 		}
 		PrecIndex curr_idx = token_to_prec_idx(curr_token, prev_op, paren_depth);
-		if (top_term->term_idx = IDX_DOLLAR && curr_idx == IDX_DOLLAR){
+		if (top_term->term_idx == IDX_DOLLAR && curr_idx == IDX_DOLLAR){
 			PrecStackItem *top_item = (PrecStackItem *)(stack_top(&stack));
 			if (top_item == NULL || top_item->is_term){
 				destroy_prec_stack(&stack, true);
@@ -573,27 +640,27 @@ static ParserStatus parse_stack(Token *curr_token) {
 					destroy_prec_stack(&stack, false);
 					return status;
 				}
-				PrecStackItem item = malloc_stack_item();
-				CHECK_STACK_ITEM(item);
-				*item = {.sym = IDX_ID, is_term = false, .node = status.new_node};
+				PrecStackItem *item = malloc_stack_item();
+				CHECK_STACK_ITEM(item, &stack);
+				*item = (PrecStackItem){.term_idx = IDX_ID, .is_term = false, .node = status.new_node};
 				stack_push(&stack, item);
 				prev_op = true;
 			} else {
-				if (curr_idx == TOKEN_LPAREN){
+				if (curr_idx == IDX_LPAREN){
 					paren_depth++;
 				}
 				PrecStackItem *item = malloc_stack_item();
-				CHECK_STACK_ITEM(item);
-				OpType oper = (in_idx == IDX_UMINUS) ? OP_UNARY_MINUS
-							: (in_idx == IDX_NOT)    ? OP_NOT
+				CHECK_STACK_ITEM(item, &stack);
+				OpType oper = (curr_idx == IDX_UMINUS) ? OP_UNARY_MINUS
+							: (curr_idx == IDX_NOT)    ? OP_NOT
 							: token_to_op(curr_token);
-				*item = {.term = curr_idx, .is_term = true, .line = curr_token->line, .op = oper, .line = curr_token->line, .col = curr_token->col};
+				*item = (PrecStackItem){.term_idx = curr_idx, .is_term = true, .op = oper, .line = curr_token->line, .col = curr_token->col};
 				stack_push(&stack, item);
 				prev_op = false;
 				GET_TOKEN(curr_token, NULL, false);
 			}
 		} else if (action == '>') {
-			ParserStatus status = reduce_handle(&stack, curr_token);
+			ParserStatus status = reduce_handle(curr_token, &stack);
 			if (status.flag != PAR_SUCC){
 				destroy_prec_stack(&stack, false);
 				return status;
@@ -601,8 +668,8 @@ static ParserStatus parse_stack(Token *curr_token) {
 		} else if (action == '=') {
 			paren_depth--;
 			PrecStackItem *item = malloc_stack_item();
-			CHECK_STACK_ITEM(item);
-			*item = {.term = IDX_RPAREN, .is_term = true, .line = curr_token->line, .col = curr_token->col};
+			CHECK_STACK_ITEM(item, &stack);
+			*item = (PrecStackItem){.term_idx = IDX_RPAREN, .is_term = true, .line = curr_token->line, .col = curr_token->col};
 			stack_push(&stack, item);
 			prev_op = true;
 			GET_TOKEN(curr_token, NULL, false);
@@ -616,7 +683,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 }
 
 ParserStatus parse_expression(Token *curr_token) {
-	ParserStatus status = parse_stack(curr_token, 0);
+	ParserStatus status = parse_stack(curr_token);
 	CHECK_STATUS(status);
 	return PARSE_OK(PAR_SUCC, status.new_node);
 }
