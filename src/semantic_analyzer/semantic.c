@@ -155,6 +155,9 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 				return err;
 
 			size_t if_count = expr->if_else_stmt.next_conds.count;
+			if (if_count == 0)
+				return ERROR_EMIT(
+					ERR_SEM_TYPE, expr->line, expr->col, "If expression has to have a case");
 			ASTNode *last_node = expr->if_else_stmt.next_conds.items[if_count - 1];
 
 			if (last_node->type != NODE_ELSE || last_node->if_else_stmt.cond != NULL)
