@@ -170,10 +170,11 @@ static ParserStatus parse_stack(Token *curr_token);
 		if ((item) == NULL){																	   \
 			destroy_prec_stack(stack);															   \
 			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,         \
-								   "Failed to allocate node for AST tree\n"),                      \
+								   "Failed to allocate stack node"),                      		   \
 				AST_FAIL);																		   \
 		}																						   \
 	} while (0)
+
 /**
  * @brief Translater operator token into operator AST node type
  * @param curr_token Actual token pointer to be translated
@@ -291,10 +292,10 @@ static PrecStackItem *malloc_stack_item (){
 
 /**
  * @brief Function for destroying precedence stack
- * @param stack Stack structure to destroy
+ * @param stack Pointer of stack structure to destroy
  *
 */
-void destroy_prec_stack(Stack stack){
+void destroy_prec_stack(Stack *stack){
 	return;
 }
 
@@ -308,7 +309,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 	stack_init(&stack);
 	PrecStackItem *dollar = malloc_stack_item();
 	CHECK_STACK_ITEM(dollar);
-	dollar = {.term = IDX_DOLLAR, .is_term = true, .has_handle = false};
+	*dollar = {.term = IDX_DOLLAR, .is_term = true, .has_handle = false};
 	stack_push(&stack, dollar);
 	bool prev_op = false;
 	int paren_depth = 0;
@@ -329,13 +330,23 @@ static ParserStatus parse_stack(Token *curr_token) {
 		}
 		char action = precedence_table[top_term->term][curr_idx];
 		if (action == '<') {
-
+			top_term->has_handle = true;
 		} else if (action == '>') {
-
+			ParserStatus status = reduce_handle(&stack, curr_token);
+			if (status.flag != PAR_SUCC){
+				destroy_prec_stack(&stack);
+				return status;
+			}
 		} else if (action == '=') {
-
+			paren_depth--;
+			PrecStackItem *item = malloc_stack_item();
+			CHECK_STACK_ITEM(item);
+			*item = {.term = IDX_RPAREN, .is_term = true, .line = curr_token->line, .col = curr_token->col};
+			stack_push(&stack, item);
+			prev_op = true;
+			GET_TOKEN(curr_token, NULL, false);
 		} else {
-			prec_stack_cleanup(&stack, true);
+			destroy_prec_stack(&stack);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid operator sequence in expression\n"),
 				PAR_FAIL);
