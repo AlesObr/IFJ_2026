@@ -219,6 +219,8 @@ static Error gen_val(const ASTNode *node) {
 			Error err = gen_if(node, true);
 			if (ERROR_IS_ERR(err))
 				return err;
+			if (node->to_double)
+				printf("INT2FLOATS\n");
 			break;
 		}
 		case NODE_VAR_DECL: {
