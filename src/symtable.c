@@ -3,13 +3,9 @@
  * @file symtable.c
  * @brief Symbol table implemented as a hash table with implicit chaining.
  * @author Štěpán Hořenek (xhorens00)
+ * @author Karel Kříž (xkrizka00)
  * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11
- *
- * Implicit chaining (open addressing): all symbols live directly in one array and a collision
- * is resolved by linear probing, i.e. the synonym is stored in the next free slot. The table
- * always keeps at least one slot empty, which guarantees that every probe sequence terminates.
- * Symbols are never removed individually; each scope is expected to have its own table.
  */
 
 #include "symtable.h"
