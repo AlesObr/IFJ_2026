@@ -90,11 +90,20 @@ Error analyze_call(SemanticContext *ctx, ASTNode *call, ValType *out);
  * @param block The AST node representing the block to analyze
  * @param new_scope Whether to create a new scope for this block
  * @param out Pointer to store the resulting type of the block (if applicable)
- * @param returns Syas if it returns or not
+ * @param returns Says if it returns or not
  * @return Error code indicating success or failure
  */
 Error analyze_block(
 	SemanticContext *ctx, ASTNode *block, bool new_scope, ValType *out, bool *returns);
+/**
+ * @brief Anlyzes an if statement or if epxression
+ * @param ctx The semantic analysis context
+ * @param node The if node
+ * @param out Type of the result
+ * @param returns Says if every branch returns
+ * @return ERROR code indicating success or failure
+ */
+Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns);
 
 /**
  * @brief Analyze a statement
