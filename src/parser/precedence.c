@@ -283,6 +283,7 @@ static PrecIndex token_to_prec_idx(Token *curr_token, bool prev_was_op, int pare
 			return (paren_depth > 0) ? IDX_RPAREN : IDX_DOLLAR;
 
 		case TOKEN_IDENTIFIER:
+		case TOKEN_KEYWORD_IF:
 		case TOKEN_LIT_INT:
 		case TOKEN_LIT_FLOAT:
 		case TOKEN_LIT_STRING:
@@ -368,6 +369,9 @@ ParserStatus parse_call_parameters(Token *curr_token, ASTNode *node) {
 				break;
 			} else if (curr_token->type == TOKEN_COMMA) {
 				GET_TOKEN(curr_token, node, false);
+				if (curr_token->type == TOKEN_RPAREN) {
+					break;
+				}
 				status = parse_stack(curr_token);
 				APPEND_BEFORE_EOF_RETURN(
 					status, window, ast_window_add_param(window, status.new_node));
@@ -577,7 +581,7 @@ static ParserStatus reduce_handle(Token *curr_token, Stack *stack){
 			free(popped[1]);
 			free(popped[2]);
 			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
-								   "Failed to allocate binary op node\n"),
+								   "Failed to allocate binop node\n"),
 				PAR_FAIL);
 		}
 		popped[2]->node = bin_node;
@@ -590,27 +594,31 @@ static ParserStatus reduce_handle(Token *curr_token, Stack *stack){
 		if (popped[idx]->node != NULL) ast_destroy(popped[idx]->node);
 		free(popped[idx]);
 	}
-	return PARSE_ERROR(
-		ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Error while reducing the expression\n"),
+
+	return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+						   "Error while reducing the expression\n"),
 		PAR_FAIL);
 }
-
 /**
- * @brief Parsing of expression via stack
- * @param curr_token Current token given by scanner
- * @return ParserStatus structure containing flags for parser
+ * @brief Parses an expression using bottom-up operator-precedence parsing
+ * @param curr_token Current token from scanner (updated in-place as tokens are consumed)
+ * @return ParserStatus containing the resulting expression AST root or a syntax/lexical error
  */
 static ParserStatus parse_stack(Token *curr_token) {
 	Stack stack;
 	stack_init(&stack);
+
+	// Push '$' sentinel as the bottom boundary of the precedence stack
 	PrecStackItem *dollar = malloc_stack_item();
 	CHECK_STACK_ITEM(dollar, &stack);
 	*dollar = (PrecStackItem){.term_idx = IDX_DOLLAR, .is_term = true, .has_handle = false};
 	stack_push(&stack, dollar);
-	bool prev_op = false;
-	int paren_depth = 0;
+
+	bool prev_op = false;  // Tracks whether the previous token was an operand/value (for unary '-' disambiguation)
+	int paren_depth = 0;   // Tracks open '(' depth inside this expression
 
 	while (true) {
+		// Find topmost terminal symbol on the stack to compare against incoming token
 		PrecStackItem *top_term = get_top_term(&stack);
 		if (top_term == NULL) {
 			destroy_prec_stack(&stack, true);
@@ -619,25 +627,41 @@ static ParserStatus parse_stack(Token *curr_token) {
 					"Expected terminal in stack, found none\n"),
 				PAR_FAIL);
 		}
+
 		PrecIndex curr_idx = token_to_prec_idx(curr_token, prev_op, paren_depth);
+
+		// Acceptance check: both stack top terminal and incoming symbol are '$'
 		if (top_term->term_idx == IDX_DOLLAR && curr_idx == IDX_DOLLAR) {
 			StackElement *top_el = stack_top(&stack);
 			PrecStackItem *top_item = (top_el != NULL) ? (PrecStackItem *)top_el->data : NULL;
-			if (top_item == NULL || top_item->is_term || top_item->node == NULL) {
+			if (stack.size != 2 || top_item == NULL || top_item->is_term || top_item->node == NULL) {
 				destroy_prec_stack(&stack, true);
 				return PARSE_ERROR(
-					ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Empty expression\n"),
+					ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+						"Invalid or incomplete expression\n"),
 					PAR_FAIL);
 			}
+			// Detach finished AST root before freeing the remaining stack items
 			ASTNode *res_node = top_item->node;
 			top_item->node = NULL;
 			destroy_prec_stack(&stack, true);
-			return PARSE_OK(PAR_SUCC, res_node);
+			return PARSE_OK((curr_token->type == TOKEN_EOF) ? PAR_EOF : PAR_SUCC, res_node);
 		}
+
 		char action = precedence_table[top_term->term_idx][curr_idx];
+
 		if (action == '<') {
+			// Shift: incoming token has higher precedence (or opens a sub-expression)
 			top_term->has_handle = true;
 			if (curr_idx == IDX_ID) {
+				// Reject two consecutive operands without an operator between them
+				if (prev_op) {
+					destroy_prec_stack(&stack, true);
+					return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+										"Unexpected operand without operator\n"),
+						PAR_FAIL);
+				}
+				// Parse atomic operand (literal, identifier, call, or if-expression) as non-terminal E
 				ParserStatus status = parse_operand(curr_token);
 				if (status.flag != PAR_SUCC && status.flag != PAR_EOF) {
 					destroy_prec_stack(&stack, true);
@@ -650,6 +674,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 				stack_push(&stack, item);
 				prev_op = true;
 			} else {
+				// Shift operator or opening '(' onto the stack
 				if (curr_idx == IDX_LPAREN) {
 					paren_depth++;
 				}
@@ -668,12 +693,14 @@ static ParserStatus parse_stack(Token *curr_token) {
 				GET_TOKEN(curr_token, NULL, false);
 			}
 		} else if (action == '>') {
+			// Reduce: stack top has higher precedence than incoming token; fold top handle into AST node
 			ParserStatus status = reduce_handle(curr_token, &stack);
 			if (status.flag != PAR_SUCC) {
 				destroy_prec_stack(&stack, true);
 				return status;
 			}
 		} else if (action == '=') {
+			// Equal precedence: match closing ')' with opening '(' without returning early on EOF
 			paren_depth--;
 			PrecStackItem *item = malloc_stack_item();
 			CHECK_STACK_ITEM(item, &stack);
@@ -683,8 +710,16 @@ static ParserStatus parse_stack(Token *curr_token) {
 				.col = curr_token->col};
 			stack_push(&stack, item);
 			prev_op = true;
-			GET_TOKEN(curr_token, NULL, true);
+
+			token_destroy(curr_token);
+			Error err = lexer_get_next_token(curr_token);
+			if (ERROR_IS_ERR(err)) {
+				destroy_prec_stack(&stack, true);
+				return PARSE_ERROR(err, LEX_FAIL);
+			}
+			precedence_trace_token(__func__, curr_token);
 		} else {
+			// Blank entry in precedence table -> invalid token combination
 			destroy_prec_stack(&stack, true);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid operator sequence in expression\n"),
@@ -692,6 +727,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 		}
 	}
 }
+
 
 ParserStatus parse_expression(Token *curr_token) {
 	ParserStatus status = parse_stack(curr_token);

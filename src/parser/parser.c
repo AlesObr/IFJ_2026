@@ -506,15 +506,13 @@ ParserStatus parse_for_generator(Token *curr_token, ASTNode *for_node) {
 	CHECK_STATUS_OWNED(status, for_node);
 	CHECK_AST_APPEND(for_node, ast_for_add_start(for_node, status.new_node),
 		"Failed to append generator expressiong to for AST node\n");
-	if (curr_token->type == TOKEN_IDENTIFIER &&
-		dstring_cmp_str(curr_token->data.str_val, "to") == 0) {
+	if (curr_token->type == TOKEN_KEYWORD_TO) {
 		GET_TOKEN(curr_token, for_node, false);
 		status = parse_expression(curr_token);
 		CHECK_STATUS_OWNED(status, for_node);
 		CHECK_AST_APPEND(for_node, ast_for_add_end(for_node, status.new_node, true),
 			"Failed to append generator expressiong to for AST node\n");
-	} else if (curr_token->type == TOKEN_IDENTIFIER &&
-			   dstring_cmp_str(curr_token->data.str_val, "until") == 0) {
+	} else if (curr_token->type == TOKEN_KEYWORD_UNTIL) {
 		GET_TOKEN(curr_token, for_node, false);
 		status = parse_expression(curr_token);
 		CHECK_STATUS_OWNED(status, for_node);
@@ -526,8 +524,7 @@ ParserStatus parse_for_generator(Token *curr_token, ASTNode *for_node) {
 							   "Unexpected token inside of for statement generator\n"),
 			PAR_FAIL);
 	}
-	if (curr_token->type == TOKEN_IDENTIFIER &&
-		dstring_cmp_str(curr_token->data.str_val, "by") == 0) {
+	if (curr_token->type == TOKEN_KEYWORD_BY) {
 		GET_TOKEN(curr_token, for_node, false);
 		status = parse_expression(curr_token);
 		CHECK_STATUS_OWNED(status, for_node);
