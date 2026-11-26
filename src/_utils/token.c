@@ -67,6 +67,12 @@ const char *token_type_name(TokenType type) {
 			return "TOKEN_KEYWORD_TRUE";
 		case TOKEN_KEYWORD_FALSE:
 			return "TOKEN_KEYWORD_FALSE";
+		case TOKEN_KEYWORD_TO:
+			return "TOKEN_KEYWORD_TO";
+		case TOKEN_KEYWORD_BY:
+			return "TOKEN_KEYWORD_BY";
+		case TOKEN_KEYWORD_UNTIL:
+			return "TOKEN_KEYWORD_UNTIL";
 		case TOKEN_LIT_INT:
 			return "TOKEN_LIT_INT";
 		case TOKEN_LIT_FLOAT:

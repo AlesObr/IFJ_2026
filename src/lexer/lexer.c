@@ -189,6 +189,12 @@ TokenType is_it_keyword(const char *str) {
 		return TOKEN_KEYWORD_TRUE;
 	} else if (strcmp(str, "false") == 0) {
 		return TOKEN_KEYWORD_FALSE;
+	} else if (strcmp(str, "to") == 0) {
+		return TOKEN_KEYWORD_TO;
+	} else if (strcmp(str, "by") == 0) {
+		return TOKEN_KEYWORD_BY;
+	} else if (strcmp(str, "until") == 0) {
+		return TOKEN_KEYWORD_UNTIL;
 	}
 	return TOKEN_IDENTIFIER;
 }
