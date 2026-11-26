@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define PREC_TABLE_SIZE 19 /**< Size of both dimensions of precedence table */
 
 /**
  * @brief Precedence table for evaluating expressions
@@ -45,12 +46,38 @@ static const char precedence_table = {
 };
 
 /**
+ * @brief Translation table from operator to index of precedence table
+*/
+typedef enum {
+	IDX_UMINUS = 0, // u-
+	IDX_NOT,        // !
+	IDX_MUL,        // *
+	IDX_DIV,        // /
+	IDX_ADD,        // +
+	IDX_SUB,        // -
+	IDX_LT,         // <
+	IDX_GT,         // >
+	IDX_LTE,        // <=
+	IDX_GTE,        // >=
+	IDX_EQ,         // ==
+	IDX_NEQ,        // !=
+	IDX_AND,        // &&
+	IDX_OR,         // ||
+	IDX_ASSIGN,     // =
+	IDX_LPAREN,     // (
+	IDX_RPAREN,     // )
+	IDX_ID,         // i (identifier, literal, call, unit '()')
+	IDX_DOLLAR,     // $ (end of expression)
+} PrecIndex;
+
+/**
  * @brief Structure for items of stack durring parsing exprs
 */
 typedef struct {
+	PrecIndex term_idx;	/**< Index of terminal */
 	ASTNode *node;		/**< ASTNode in case node contains some literal or function call */
-	bool is_term;		/**< Tracks whether construct is terminal or no */
-	bool has_handle;
+	bool is_term;		/**< false -> is not terminal, has ASTnode, true -> is terminal, is operation */
+	bool has_handle;	/**< true if '<' handle marker placed right after this */
 	OpType op;			/**< Operator type in case item is operator */
 	size_t line;		/**< Line of the object */
 	size_t col;			/**< Collumn of the object */
@@ -184,11 +211,12 @@ OpType token_to_op(Token *curr_token) {
 			return OP_ADD;
 	}
 }
+
 /**
  * @brief Function for allocating of stack item, control of pointer done by caller
 */
-static PrecStackItem malloc_stack_item (){
-	PrecStackItem item = malloc(sizeof(PrecStackItem));
+static PrecStackItem *malloc_stack_item (){
+	PrecStackItem *item = malloc(sizeof(PrecStackItem));
 	return item;
 }
 
@@ -209,9 +237,13 @@ void destroy_prec_stack(Stack stack){
 static ParserStatus parse_stack(Token *curr_token) {
 	Stack stack;
 	stack_init(&stack);
-	PrecStackItem dollar = malloc_stack_item();
+	PrecStackItem *dollar = malloc_stack_item();
 	CHECK_STACK_ITEM(dollar);
-	stack_free(&stack);
+	dollar = {.term = IDX_DOLLAR, .is_term = true, .has_handle = false};
+	stack_push(&stack, dollar);
+	bool prev_op = false;
+	int paren_depth = 0;
+	stack_destroy();
 }
 
 ParserStatus parse_expression(Token *curr_token) {
