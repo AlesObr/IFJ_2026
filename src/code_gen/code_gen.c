@@ -67,6 +67,7 @@ static bool is_expression(const ASTNode *node) {
 		case NODE_FLOAT_LITERAL:
 		case NODE_STRING_LITERAL:
 		case NODE_NULL_LITERAL:
+		case NODE_BOOL_LITERAL:
 		case NODE_CALL:
 		case NODE_UNARY_OP:
 		case NODE_IDENTIFIER:
@@ -103,6 +104,7 @@ Error gen_run(const ASTNode *outermost_node) {
 	read_line();
 	read_int();
 	read_double();
+	read_boolean();
 	print();
 	to_str();
 	to_int();
@@ -234,15 +236,6 @@ Error gen_binary_op_stack(const ASTNode *exp) {
 		case OP_EQ:
 			printf("EQS\n");
 			break;
-		case OP_AND:
-			printf("ANDS\n");
-			break;
-		case OP_OR:
-			printf("ORS\n");
-			break;
-		case OP_NOT:
-			printf("NOTS\n");
-			break;
 		case OP_NEQ:
 			printf("EQS\n");
 			printf("NOTS\n");
@@ -271,7 +264,41 @@ Error gen_expr(const ASTNode *exp) {
 
 	Error err = ERROR_OK();
 	switch (exp->type) {
-		case NODE_BINARY_OP:
+		case NODE_BINARY_OP: {
+			if (exp->op.op == OP_AND) {
+				size_t id = label_id++;
+				err = gen_expr(exp->op.left);
+				if (ERROR_IS_ERR(err))
+					return err;
+				printf("PUSHS bool@false\n");
+				printf("JUMPIFEQS $and_%zu_short\n", id);
+
+				err = gen_expr(exp->op.right);
+				if (ERROR_IS_ERR(err))
+					return err;
+				printf("JUMP $and_%zu_end\n", id);
+				printf("LABEL $and_%zu_short\n", id);
+				printf("PUSHS bool@false\n");
+				printf("LABEL $and_%zu_end\n", id);
+				break;
+			}
+			if (exp->op.op == OP_OR) {
+				size_t id = label_id++;
+				err = gen_expr(exp->op.left);
+				if (ERROR_IS_ERR(err))
+					return err;
+				printf("PUSHS bool@true\n");
+				printf("JUMPIFEQS $or_%zu_short\n", id);
+
+				err = gen_expr(exp->op.right);
+				if (ERROR_IS_ERR(err))
+					return err;
+				printf("JUMP $or_%zu_end\n", id);
+				printf("LABEL $or_%zu_short\n", id);
+				printf("PUSHS bool@true\n");
+				printf("LABEL $or_%zu_end\n", id);
+				break;
+			}
 			err = gen_expr(exp->op.left);
 			if (ERROR_IS_ERR(err))
 				return err;
@@ -282,6 +309,7 @@ Error gen_expr(const ASTNode *exp) {
 			if (ERROR_IS_ERR(err))
 				return err;
 			break;
+		}
 		case NODE_INT_LITERAL:
 			printf("PUSHS int@%ld\n", exp->int_val);
 			break;
@@ -295,6 +323,12 @@ Error gen_expr(const ASTNode *exp) {
 			break;
 		case NODE_NULL_LITERAL:
 			printf("PUSHS nil@nil\n");
+			break;
+		case NODE_BOOL_LITERAL:
+			if (exp->bool_val)
+				printf("PUSHS bool@true\n");
+			else
+				printf("PUSHS bool@false\n");
 			break;
 		case NODE_IDENTIFIER:
 			printf("PUSHS LF@v%zu\n", exp->sym_id);
@@ -475,6 +509,7 @@ Error gen_stmt(const ASTNode *stmt) {
 		case NODE_FLOAT_LITERAL:
 		case NODE_STRING_LITERAL:
 		case NODE_NULL_LITERAL:
+		case NODE_BOOL_LITERAL:
 		case NODE_CALL:
 		case NODE_UNARY_OP:
 		case NODE_IDENTIFIER:
