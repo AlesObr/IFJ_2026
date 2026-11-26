@@ -41,7 +41,7 @@ static size_t max_sym_id(const ASTNode *node, bool emit) {
 			}
 			return biggest;
 		case NODE_VAR_DECL:
-			biggest = bigger_size(node->sym_id, max_sym_id(node->var_decl.init_expr));
+			biggest = bigger_size(node->sym_id, max_sym_id(node->var_decl.init_expr, emit));
 			return biggest;
 		case NODE_IF:
 		case NODE_ELSE:
@@ -50,21 +50,21 @@ static size_t max_sym_id(const ASTNode *node, bool emit) {
 				const ASTNode *branch = node->if_else_stmt.next_conds.items[i];
 				biggest = bigger_size(max_sym_id(branch, emit), biggest);
 			}
-			biggest = bigger_size(max_sym_id(node->if_else_stmt.cond), biggest);
+			biggest = bigger_size(max_sym_id(node->if_else_stmt.cond, emit), biggest);
 			return biggest;
 		case NODE_WHILE:
-			biggest = bigger_size(max_sym_id(node->while_stmt.body), biggest);
-			biggest = bigger_size(max_sym_id(node->while_stmt.cond), biggest);
+			biggest = bigger_size(max_sym_id(node->while_stmt.body, emit), biggest);
+			biggest = bigger_size(max_sym_id(node->while_stmt.cond, emit), biggest);
 			return biggest;
 		case NODE_RETURN:
-			biggest = bigger_size(max_sym_id(node->return_stmt.expr), biggest);
+			biggest = bigger_size(max_sym_id(node->return_stmt.expr, emit), biggest);
 			return biggest;
 		case NODE_BINARY_OP:
-			biggest = bigger_size(max_sym_id(node->op.left), biggest);
-			biggest = bigger_size(max_sym_id(node->op.right), biggest);
+			biggest = bigger_size(max_sym_id(node->op.left, emit), biggest);
+			biggest = bigger_size(max_sym_id(node->op.right, emit), biggest);
 			return biggest;
 		case NODE_UNARY_OP:
-			biggest = bigger_size(max_sym_id(node->op.left), biggest);
+			biggest = bigger_size(max_sym_id(node->op.left, emit), biggest);
 			return biggest;
 		case NODE_CALL: {
 			if (node->call.args.count == 0)
@@ -72,7 +72,27 @@ static size_t max_sym_id(const ASTNode *node, bool emit) {
 			const ASTNodeList *args = &node->call.args.items[0]->param_window.params;
 			for (size_t i = 0; i < args->count; i++) {
 				const ASTNode *arg = args->items[i];
-				biggest = bigger_size(max_sym_id(arg), biggest);
+				biggest = bigger_size(max_sym_id(arg, emit), biggest);
+			}
+			return biggest;
+		}
+		case NODE_FOR: {
+			if (emit) {
+				printf("DEFVAR LF@v%zu_end\n", node->sym_id);
+				printf("DEFVAR LF@v%zu_step\n", node->sym_id);
+			}
+
+			biggest = node->sym_id;
+			biggest = bigger_size(max_sym_id(node->for_stmt.gen_start, emit), biggest);
+			biggest = bigger_size(max_sym_id(node->for_stmt.gen_end, emit), biggest);
+			if (node->for_stmt.gen_step)
+				biggest = bigger_size(max_sym_id(node->for_stmt.gen_step, emit), biggest);
+			biggest = bigger_size(max_sym_id(node->for_stmt.body, emit), biggest);
+
+			const ASTNodeList *guards = &node->for_stmt.guards;
+			for (size_t i = 0; i < guards->count; i++) {
+				const ASTNode *guard = guards->items[i];
+				biggest = bigger_size(max_sym_id(guard, emit), biggest);
 			}
 			return biggest;
 		}
@@ -557,6 +577,95 @@ static Error gen_while(const ASTNode *node) {
 	if (!node || node->type != NODE_WHILE)
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to gen_while");
 
+	size_t id = label_id++;
+
+	Error err = gen_expr(node->for_stmt.gen_start);
+	if (ERROR_IS_ERR(err))
+		return err;
+	printf("POPS LF@v%zu\n", node->sym_id);
+
+	err = gen_expr(node->for_stmt.gen_end);
+	if (ERROR_IS_ERR(err))
+		return err;
+	printf("POPS LF@v%zu_end\n", node->sym_id);
+
+	if (node->for_stmt.gen_step) {
+		err = gen_expr(node->for_stmt.gen_step);
+		if (ERROR_IS_ERR(err))
+			return err;
+
+		printf("POPS LF@v%zu_step\n", node->sym_id);
+		if (node->for_stmt.gen_step->type != NODE_INT_LITERAL) {
+			printf("JUMPIFNEQ $for_%zu_ok LF@v%zu_step int@0\n", id, node->sym_id);
+			printf("EXIT int@40\n");
+			printf("LABEL $for_%zu_ok\n", id);
+		}
+	} else
+		printf("MOVE LF@v%zu_step int@1\n", node->sym_id);
+
+	printf("LABEL $for_%zu_cond\n", id);
+
+	printf("PUSHS LF@v%zu_step\n", node->sym_id);
+	printf("PUSHS int@0\n");
+	printf("GTS\n");
+	printf("PUSHS bool@false\n");
+
+	printf("JUMPIFEQS $for_%zu_neg\n", id);
+
+	printf("PUSHS LF@v%zu\n", node->sym_id);
+	printf("PUSHS LF@v%zu_end\n", node->sym_id);
+	if (node->for_stmt.last_in) {
+		printf("GTS\n");
+		printf("NOTS\n");
+	} else
+		printf("LTS\n");
+	printf("JUMP $for_%zu_chk\n", id);
+
+	printf("LABEL $for_%zu_neg\n", id);
+	printf("PUSHS LF@v%zu\n", node->sym_id);
+	printf("PUSHS LF@v%zu_end\n", node->sym_id);
+	if (node->for_stmt.last_in) {
+		printf("LTS\n");
+		printf("NOTS\n");
+	} else
+		printf("GTS\n");
+	printf("LABEL $for_%zu_chk\n", id);
+
+	printf("PUSHS bool@false\n");
+	printf("JUMPIFEQS $for_%zu_end\n", id);
+
+	// Guard
+	const ASTNodeList *guards = &node->for_stmt.guards;
+	for (size_t i = 0; i < guards->count; i++) {
+		const ASTNode *guard = guards->items[i];
+		err = gen_expr(guard);
+		if (ERROR_IS_ERR(err))
+			return err;
+
+		printf("PUSHS bool@false\n");
+		printf("JUMPIFEQS $for_%zu_next\n", id);
+	}
+
+	// Body
+	err = gen_stmt(node->for_stmt.body);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	printf("LABEL $for_%zu_next\n", id);
+	printf("PUSHS LF@v%zu\n", node->sym_id);
+	printf("PUSHS LF@v%zu_step\n", node->sym_id);
+	printf("ADDS\n");
+	printf("POPS LF@v%zu\n", node->sym_id);
+	printf("JUMP $for_%zu_cond\n", id);
+
+	printf("LABEL $for_%zu_end\n", id);
+
+	return ERROR_OK();
+}
+
+static Error gen_for(const ASTNode *node) {
+	if (!node || node->type != NODE_FOR)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters for gen_for");
 	size_t id = label_id++;
 
 	Error err = gen_expr(node->for_stmt.gen_start);
