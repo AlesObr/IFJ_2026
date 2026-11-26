@@ -293,10 +293,35 @@ static PrecStackItem *malloc_stack_item (){
 /**
  * @brief Function for destroying precedence stack
  * @param stack Pointer of stack structure to destroy
- *
+ * @param destroy_ast Flag whether inner AST should be destroyed
 */
-void destroy_prec_stack(Stack *stack){
-	return;
+static void destroy_prec_stack(Stack *stack, bool destroy_ast){
+	while (stack->top != NULL) {
+		PrecStackItem *item = (PrecStackItem *)stack_pop(stack);
+		if (item != NULL) {
+			if (destroy_ast && item->node != NULL) {
+				ast_destroy(item->node);
+			}
+			free(item);
+		}
+	}
+}
+
+/**
+ * @brief Function for returning top terminal from stack
+ * @param stack Stack to get the top symbol from
+ * @return Terminal stack node if success, NULL if terminal not found
+*/
+static PrecStackItem *get_top_terminal(Stack *stack) {
+	StackElement *elem = stack_top(stack);
+	while (elem != NULL) {
+		PrecStackItem *item = (PrecStackItem *)el->data;
+		if (item != NULL && item->is_term) {
+			return item;
+		}
+		elem = elem->next;
+	}
+	return NULL;
 }
 
 /**
@@ -424,12 +449,18 @@ static ParserStatus parse_stack(Token *curr_token) {
 	bool prev_op = false;
 	int paren_depth = 0;
 	while (true){
-		PrecStackItem top_term = stack_get_top_term(&stack);
+		PrecStackItem *top_term = stack_get_top_term(&stack);
+		if (top_term == NULL){
+			destroy_prec_stack(&stack, true);
+			return PARSE_ERROR(
+					ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Expected terminal in stack, found none\n"),
+					PAR_FAIL);
+		}
 		PrecIndex curr_idx = token_to_prec_idx(curr_token, prev_op, paren_depth);
 		if (top_term->term = IDX_DOLLAR && curr_idx == IDX_DOLLAR){
 			PrecStackItem *top_item = (PrecStackItem *)(stack_top(&stack));
 			if (top_item == NULL || top_item->is_term){
-				destroy_prec_stack(&stack);
+				destroy_prec_stack(&stack, true);
 				return PARSE_ERROR(
 					ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col, "Empty expression\n"),
 					PAR_FAIL);
@@ -444,7 +475,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 			if (curr_idx = IDX_ID){
 				ParserStatus status = parse_operand();
 				if (status.flag != PAR_SUCC && status.flag != PAR_EOF) {
-					destroy_prec_stack(&stack);
+					destroy_prec_stack(&stack, false);
 					return status;
 				}
 				PrecStackItem item = malloc_stack_item();
@@ -469,7 +500,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 		} else if (action == '>') {
 			ParserStatus status = reduce_handle(&stack, curr_token);
 			if (status.flag != PAR_SUCC){
-				destroy_prec_stack(&stack);
+				destroy_prec_stack(&stack, false);
 				return status;
 			}
 		} else if (action == '=') {
@@ -481,7 +512,7 @@ static ParserStatus parse_stack(Token *curr_token) {
 			prev_op = true;
 			GET_TOKEN(curr_token, NULL, false);
 		} else {
-			destroy_prec_stack(&stack);
+			destroy_prec_stack(&stack, true);
 			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
 								   "Invalid operator sequence in expression\n"),
 				PAR_FAIL);
