@@ -1,3 +1,4 @@
 test/** linguist-vendored
 *.ifj26 linguist-vendored
 *.scala linguist-vendored
+test/generated_tests/** linguist-generated

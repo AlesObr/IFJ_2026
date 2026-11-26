@@ -555,7 +555,7 @@ def main():
 		print(f"  {CLR_BLUE}• MIXLANG (-0,10 b):{CLR_RESET} Čeština/slovenština v komentářích (vyjma @author a @dev).")
 		print(f"  {CLR_BLUE}• COMCODE (-0,05 b):{CLR_RESET} Zakomentované bloky zdrojového kódu.")
 		print(f"  {CLR_BLUE}• GP      (-0,10 b):{CLR_RESET} Nezdůvodněné nestatické globální proměnné.")
-		print(f"  {CLR_BLUE}• VUL     (-0,30 b):{CLR_RESET} Zakázaná slova, vulgarismy a zmínky o AI.")
+		print(f"  {CLR_BLUE}• VUL     (-0,30 b):{CLR_RESET} Zakázaná slova, vulgarismy")
 		print(f"\n{CLR_CYAN}Tip:{CLR_RESET} Použij '{CLR_BOLD}--fix{CLR_RESET}' pro odsazení nebo '{CLR_BOLD}--strip-dev{CLR_RESET}' pro smazání @dev poznámek před odevzdáním.\n")
 		sys.exit(1)
 

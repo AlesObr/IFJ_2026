@@ -18,6 +18,9 @@ import shutil
 import subprocess
 from pathlib import Path
 
+sys.dont_write_bytecode = True  # no scripts/__pycache__
+from lint_comments import strip_dev_comments
+
 # ANSI barvy
 CLR_RESET  = "\033[0m"
 CLR_BOLD   = "\033[1m"
@@ -64,6 +67,8 @@ def flatten_and_rewrite(src_dir: Path, target_dir: Path):
 
 		rewritten = INCLUDE_REGEX.sub(replace_include, content)
 		dest.write_text(rewritten, encoding="utf-8")
+		# Strip @dev notes from the submitted copy only; src/ keeps them
+		strip_dev_comments(dest)
 
 def generate_flat_makefile(target_dir: Path):
 	"""Vytvoří jednoduchý Make target pro zploštělou strukturu."""

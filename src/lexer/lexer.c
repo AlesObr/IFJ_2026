@@ -255,7 +255,7 @@ Error lexer_get_next_token(Token *out_token) {
 					dstring_free(&token_buffer);
 					return ERROR_EMIT(
 						ERR_INTERNAL, current_line, current_col, "Failed to read token from file.");
-				} // @dev will probably need to be somehow incorporated into lexer_take
+				}
 				if (lexeme.current_lexeme == EOF) {
 					if (indent_stack.size > 1) {
 						pending_outdents = indent_stack.size - 1;
@@ -351,7 +351,7 @@ Error lexer_get_next_token(Token *out_token) {
 						out_token, TOKEN_EOL, lexeme.previous_line, lexeme.previous_col + 1);
 					dstring_free(&token_buffer);
 					return ERROR_OK();
-				} // @dev maybe return this only when it makes sense?
+				}
 				if (lexeme.current_lexeme == '/') {
 					LexemeState lookahead;
 					int next = lexer_take(&lookahead, source_file);
@@ -452,7 +452,6 @@ Error lexer_get_next_token(Token *out_token) {
 						continue;
 					}
 					lexer_give(&lexeme, source_file);
-					// @dev single '_' is really a valid input? what the f am I supposed to output
 					token_make_simple(
 						out_token, TOKEN_UNDERSCORE, token_start_line, token_start_col);
 					dstring_free(&token_buffer);
@@ -899,7 +898,7 @@ Error lexer_get_next_token(Token *out_token) {
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(
 					ERR_LEXICAL, current_line, current_col, "Malformed number followed by EOF.");
-				continue; // @dev does it need to be here?
+				continue;
 			case STATE_EXP_SIGN_1:
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
@@ -936,7 +935,6 @@ Error lexer_get_next_token(Token *out_token) {
 				if (lexeme.current_lexeme >= '0' && lexeme.current_lexeme <= '9') {
 					dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					continue;
-					// @dev exponent je koncový stav dka
 				}
 				if (lexeme.current_lexeme == '_') {
 					current_state = STATE_EXP_UNDER_SCORE;
@@ -1023,7 +1021,7 @@ Error lexer_get_next_token(Token *out_token) {
 				dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 				continue;
 				continue;
-			case STATE_ML_STRING: // @dev this is faulty
+			case STATE_ML_STRING:
 				if (lexeme.current_lexeme == EOF) {
 					dstring_free(&token_buffer);
 					return ERROR_EMIT(
@@ -1053,8 +1051,6 @@ Error lexer_get_next_token(Token *out_token) {
 				dstring_free(&token_buffer);
 				return ERROR_EMIT(ERR_LEXICAL, current_line, current_col, "DKA ERROR");
 				break;
-
-				// @dev(Jirka Kolek) Implementace stavu pro chybu
 		}
 	}
 	return ERROR_OK();
