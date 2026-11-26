@@ -213,6 +213,75 @@ OpType token_to_op(Token *curr_token) {
 }
 
 /**
+ * @brief Function for converting token into precedence table index
+ * @param curr_token Actual token pointer to be translated
+ * @param prev_op Flag if previously parsed token was operation
+ * @param paren_depth Current parenthesis depth
+*/
+static PrecIndex token_to_prec_idx(Token *curr_token, bool prev_was_op, int paren_depth) {
+	switch (curr_token->type) {
+		case TOKEN_MINUS:
+			return prev_was_op ? IDX_SUB : IDX_UMINUS;
+
+		case TOKEN_NOT:
+			return IDX_NOT;
+
+		case TOKEN_MUL:
+			return IDX_MUL;
+
+		case TOKEN_DIV:
+			return IDX_DIV;
+
+		case TOKEN_PLUS:
+			return IDX_ADD;
+
+		case TOKEN_LT:
+			return IDX_LT;
+
+		case TOKEN_GT:
+			return IDX_GT;
+
+		case TOKEN_LTE:
+			return IDX_LTE;
+
+		case TOKEN_GTE:
+			return IDX_GTE;
+
+		case TOKEN_EQ:
+			return IDX_EQ;
+
+		case TOKEN_NEQ:
+			return IDX_NEQ;
+
+		case TOKEN_AND:
+			return IDX_AND;
+
+		case TOKEN_OR:
+			return IDX_OR;
+
+		case TOKEN_ASSIGN:
+			return IDX_ASSIGN;
+
+		case TOKEN_LPAREN:
+			return IDX_LPAREN;
+
+		case TOKEN_RPAREN:
+			return (paren_depth > 0) ? IDX_RPAREN : IDX_DOLLAR;
+
+		case TOKEN_IDENTIFIER:
+		case TOKEN_LIT_INT:
+		case TOKEN_LIT_FLOAT:
+		case TOKEN_LIT_STRING:
+		case TOKEN_KEYWORD_TRUE:
+		case TOKEN_KEYWORD_FALSE:
+			return IDX_ID;
+
+		default:
+			return IDX_DOLLAR;
+	}
+}
+
+/**
  * @brief Function for allocating of stack item, control of pointer done by caller
 */
 static PrecStackItem *malloc_stack_item (){
@@ -243,6 +312,10 @@ static ParserStatus parse_stack(Token *curr_token) {
 	stack_push(&stack, dollar);
 	bool prev_op = false;
 	int paren_depth = 0;
+	while (true){
+		PrecStackItem top_term;
+		PrecIndex idx = token_to_prec_idx(curr_token, prev_op, paren_depth);
+	}
 	stack_destroy();
 }
 
