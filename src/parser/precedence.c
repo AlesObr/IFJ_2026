@@ -134,6 +134,20 @@ static ParserStatus parse_stack(Token *curr_token);
 	} while (0)
 
 /**
+ * @brief Macro for checking precedence stack allocating operation
+ * @param item Allocated PrecStackItem structure to be checked
+ * @param stack Stack to be destroyed in case of failure
+*/
+#define CHECK_STACK_ITEM(item, stack)															   \
+	do {																						   \
+		if ((item) == NULL){																	   \
+			destroy_prec_stack(stack);															   \
+			return PARSE_ERROR(ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,         \
+								   "Failed to allocate node for AST tree\n"),                      \
+				AST_FAIL);																		   \
+		}																						   \
+	} while (0)
+/**
  * @brief Translater operator token into operator AST node type
  * @param curr_token Actual token pointer to be translated
  * @return OpType of AST node to be created
@@ -170,6 +184,22 @@ OpType token_to_op(Token *curr_token) {
 			return OP_ADD;
 	}
 }
+/**
+ * @brief Function for allocating of stack item, control of pointer done by caller
+*/
+static PrecStackItem malloc_stack_item (){
+	PrecStackItem item = malloc(sizeof(PrecStackItem));
+	return item;
+}
+
+/**
+ * @brief Function for destroying precedence stack
+ * @param stack Stack structure to destroy
+ *
+*/
+void destroy_prec_stack(Stack stack){
+	return;
+}
 
 /**
  * @brief Parsing of expression via stack
@@ -179,6 +209,8 @@ OpType token_to_op(Token *curr_token) {
 static ParserStatus parse_stack(Token *curr_token) {
 	Stack stack;
 	stack_init(&stack);
+	PrecStackItem dollar = malloc_stack_item();
+	CHECK_STACK_ITEM(dollar);
 	stack_free(&stack);
 }
 
