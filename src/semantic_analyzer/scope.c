@@ -14,10 +14,16 @@
 #define SCOPE_TABLE_CAPACITY 8
 
 static const char *name_of_decl(const ASTNode *decl) {
-	if (decl->type == NODE_VAR_DECL)
-		return dstring_get(&decl->var_decl.var_name);
-	if (decl->type == NODE_FUNC_PARAM)
-		return dstring_get(&decl->func_param.param_name);
+	switch (decl->type) {
+		case NODE_VAR_DECL:
+			return dstring_get(&decl->var_decl.var_name);
+		case NODE_FUNC_PARAM:
+			return dstring_get(&decl->func_param.param_name);
+		case NODE_FOR:
+			return dstring_get(&decl->for_stmt.gen_id);
+		default:
+			return NULL;
+	}
 	return NULL;
 }
 
@@ -99,7 +105,8 @@ ScopeResult scope_insert(ScopeStack *s, ASTNode *decl, ValType type, Symbol **ou
 
 	Symbol *sym = &s->syms[s->count++];
 	sym->type = type;
-	sym->is_const = (decl->type == NODE_FUNC_PARAM) ? true : decl->var_decl.is_const;
+	sym->is_const =
+		(decl->type == NODE_FUNC_PARAM || decl->type == NODE_FOR) ? true : decl->var_decl.is_const;
 	sym->id = decl->sym_id;
 	sym->node = decl;
 	if (out)
