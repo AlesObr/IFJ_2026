@@ -80,7 +80,7 @@ static bool is_expression(const ASTNode *node) {
 static bool is_builtin(const char *name) {
 	// builtin_names from semantic register_builtin_function in fregister.c
 	static const char *builtin_names[] = {"print", "readLine", "readInt", "readDouble", "toStr",
-		"toInt", "strLength", "subStr", "ord", "chr"};
+		"toInt", "strLength", "subStr", "ord", "chr", "readBoolean"};
 
 	for (size_t i = 0; i < sizeof(builtin_names) / sizeof(builtin_names[0]); i++) {
 		if (strcmp(name, builtin_names[i]) == 0)

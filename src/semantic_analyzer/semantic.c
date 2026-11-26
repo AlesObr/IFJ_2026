@@ -21,7 +21,7 @@ static void mark_convert(ASTNode *n) {
 }
 
 static bool booleans_enabled(void) {
-	return false; // : BOOLTHEN
+	return true; // : BOOLTHEN
 }
 
 Error sem_run(ASTNode *outermost_node) {
@@ -92,6 +92,9 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 			break;
 		case NODE_NULL_LITERAL:
 			*out = UNIT;
+			break;
+		case NODE_BOOL_LITERAL:
+			*out = BOOLEAN;
 			break;
 		case NODE_IDENTIFIER: {
 			Symbol *sym = scope_lookup(&ctx->scope_stack, dstring_get(&expr->str_val));
@@ -166,7 +169,7 @@ Error analyze_var_decl(SemanticContext *ctx, ASTNode *node) {
 	if (ERROR_IS_ERR(err))
 		return err;
 
-	if (init_type == BOOLEAN) {
+	if (init_type == BOOLEAN && !booleans_enabled()) {
 		return ERROR_EMIT(
 			ERR_SEM_TYPE, node->line, node->col, "Cannot assign BOOLEAN type to variable");
 	}
@@ -235,7 +238,7 @@ Error analyze_assignment(SemanticContext *ctx, ASTNode *node) {
 	if (ERROR_IS_ERR(err))
 		return err;
 
-	if (expr_type == BOOLEAN)
+	if (expr_type == BOOLEAN && !booleans_enabled())
 		return ERROR_EMIT(
 			ERR_SEM_TYPE, node->line, node->col, "Cannot assign BOOLEAN type to variable");
 
@@ -548,6 +551,7 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 		case NODE_FLOAT_LITERAL:
 		case NODE_STRING_LITERAL:
 		case NODE_NULL_LITERAL:
+		case NODE_BOOL_LITERAL:
 		case NODE_IDENTIFIER:
 			return analyze_expression(ctx, stmt, out);
 		case NODE_BLOCK:
