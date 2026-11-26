@@ -41,7 +41,8 @@ static size_t max_sym_id(const ASTNode *node) {
 			}
 			return biggest;
 		case NODE_VAR_DECL:
-			return node->sym_id;
+			biggest = bigger_size(node->sym_id, max_sym_id(node->var_decl.init_expr));
+			return biggest;
 		case NODE_IF:
 		case NODE_ELSE:
 			biggest = bigger_size(max_sym_id(node->if_else_stmt.body), biggest);
@@ -49,13 +50,36 @@ static size_t max_sym_id(const ASTNode *node) {
 				const ASTNode *branch = node->if_else_stmt.next_conds.items[i];
 				biggest = bigger_size(max_sym_id(branch), biggest);
 			}
+			biggest = bigger_size(max_sym_id(node->if_else_stmt.cond), biggest);
 			return biggest;
 		case NODE_WHILE:
 			biggest = bigger_size(max_sym_id(node->while_stmt.body), biggest);
+			biggest = bigger_size(max_sym_id(node->while_stmt.cond), biggest);
 			return biggest;
+		case NODE_RETURN:
+			biggest = bigger_size(max_sym_id(node->return_stmt.expr), biggest);
+			return biggest;
+		case NODE_BINARY_OP:
+			biggest = bigger_size(max_sym_id(node->op.left), biggest);
+			biggest = bigger_size(max_sym_id(node->op.right), biggest);
+			return biggest;
+		case NODE_UNARY_OP:
+			biggest = bigger_size(max_sym_id(node->op.left), biggest);
+			return biggest;
+		case NODE_CALL: {
+			if (node->call.args.count == 0)
+				return 0;
+			const ASTNodeList *args = &node->call.args.items[0]->param_window.params;
+			for (size_t i = 0; i < args->count; i++) {
+				const ASTNode *arg = args->items[i];
+				biggest = bigger_size(max_sym_id(arg), biggest);
+			}
+			return biggest;
+		}
 		default:
 			return 0;
 	}
+	return 0;
 }
 
 static bool is_expression(const ASTNode *node) {
@@ -146,6 +170,111 @@ Error gen_run(const ASTNode *outermost_node) {
 	return ERROR_OK();
 }
 
+static Error gen_val(const ASTNode *node) {
+	if (node == NULL)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters for gen_val");
+
+	switch (node->type) {
+		case NODE_BLOCK: {
+			const ASTNodeList *stmts = &node->block.stmts;
+			Error err = ERROR_OK();
+
+			if (stmts->count == 0) {
+				printf("PUSHS nil@nil\n");
+				break;
+			}
+
+			for (size_t i = 0; i < stmts->count - 1; i++) {
+				err = gen_stmt(stmts->items[i]);
+				if (ERROR_IS_ERR(err))
+					return err;
+			}
+
+			err = gen_val(stmts->items[stmts->count - 1]);
+			if (ERROR_IS_ERR(err))
+				return err;
+			break;
+		}
+		case NODE_IF: {
+			Error err = gen_if(node, true);
+			if (ERROR_IS_ERR(err))
+				return err;
+			break;
+		}
+		case NODE_VAR_DECL: {
+			Error err = gen_stmt(node);
+			if (ERROR_IS_ERR(err))
+				return err;
+			printf("PUSHS nil@nil\n");
+			break;
+		}
+		default: { // expression and assignments
+			if (is_expression(node)) {
+				Error err = gen_expr(node);
+				if (ERROR_IS_ERR(err))
+					return err;
+				break;
+			}
+
+			// assignment and the rest
+			Error err = gen_stmt(node);
+			if (ERROR_IS_ERR(err))
+				return err;
+			printf("PUSHS nil@nil\n");
+			break;
+		}
+	}
+
+	return ERROR_OK();
+}
+
+Error gen_if(const ASTNode *node, const bool as_val) {
+	if (!node || node->type != NODE_IF)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to gen_if");
+
+	size_t id = label_id++;
+	size_t if_count = node->if_else_stmt.next_conds.count;
+	Error err = ERROR_OK();
+	for (size_t i = 0; i <= if_count; i++) {
+		const ASTNode *branch;
+		if (i == 0)
+			branch = node;
+		else
+			branch = node->if_else_stmt.next_conds.items[i - 1];
+
+		// Double check (same in semantic)
+		if (!branch || (i > 0 && branch->type != NODE_ELSE))
+			return ERROR_EMIT(ERR_INTERNAL, node->line, node->col, "Invalid branch");
+
+		if (branch->if_else_stmt.cond != NULL) {
+			err = gen_expr(branch->if_else_stmt.cond);
+			if (ERROR_IS_ERR(err))
+				return err;
+			printf("PUSHS bool@false\n");
+			printf("JUMPIFEQS $if_%zu_%zu\n", id, i + 1);
+		}
+
+		if (as_val) {
+			err = gen_val(branch->if_else_stmt.body);
+			if (ERROR_IS_ERR(err))
+				return err;
+		} else {
+			err = gen_stmt(branch->if_else_stmt.body);
+			if (ERROR_IS_ERR(err))
+				return err;
+		}
+
+		if (branch->if_else_stmt.cond != NULL) {
+			printf("JUMP $if_%zu_end\n", id);
+			printf("LABEL $if_%zu_%zu\n", id, i + 1);
+		}
+	}
+
+	printf("LABEL $if_%zu_end\n", id);
+
+	return ERROR_OK();
+}
+
 Error gen_function(ASTNode *func) {
 	printf("LABEL $func_%s\n", dstring_get(&func->func_decl.func_name));
 	printf("PUSHFRAME\n");
@@ -185,6 +314,11 @@ Error gen_function(ASTNode *func) {
 	if (last_stmt) {
 		if (is_expression(last_stmt) && func->expr_types != UNIT) {
 			err = gen_expr(last_stmt);
+			if (ERROR_IS_ERR(err))
+				return err;
+			printf("POPS LF@%%retval\n");
+		} else if (last_stmt->type == NODE_IF && func->expr_types != UNIT) {
+			err = gen_if(last_stmt, true);
 			if (ERROR_IS_ERR(err))
 				return err;
 			printf("POPS LF@%%retval\n");
@@ -399,6 +533,11 @@ Error gen_expr(const ASTNode *exp) {
 			}
 			break;
 		}
+		case NODE_IF:
+			err = gen_if(exp, true);
+			if (ERROR_IS_ERR(err))
+				return err;
+			break;
 		default: {
 			static char msg[64];
 			snprintf(msg, sizeof(msg), "Unsupported expression node type %d", exp->type);
@@ -408,47 +547,6 @@ Error gen_expr(const ASTNode *exp) {
 
 	if (exp->to_double)
 		printf("INT2FLOATS\n");
-
-	return ERROR_OK();
-}
-
-static Error gen_if(const ASTNode *node) {
-	if (!node || node->type != NODE_IF)
-		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to gen_if");
-
-	size_t id = label_id++;
-	size_t if_count = node->if_else_stmt.next_conds.count;
-	Error err = ERROR_OK();
-	for (size_t i = 0; i <= if_count; i++) {
-		const ASTNode *branch;
-		if (i == 0)
-			branch = node;
-		else
-			branch = node->if_else_stmt.next_conds.items[i - 1];
-
-		// Double check (same in semantic)
-		if (!branch || (i > 0 && branch->type != NODE_ELSE))
-			return ERROR_EMIT(ERR_INTERNAL, node->line, node->col, "Invalid branch");
-
-		if (branch->if_else_stmt.cond != NULL) {
-			err = gen_expr(branch->if_else_stmt.cond);
-			if (ERROR_IS_ERR(err))
-				return err;
-			printf("PUSHS bool@false\n");
-			printf("JUMPIFEQS $if_%zu_%zu\n", id, i + 1);
-		}
-
-		err = gen_stmt(branch->if_else_stmt.body);
-		if (ERROR_IS_ERR(err))
-			return err;
-
-		if (branch->if_else_stmt.cond != NULL) {
-			printf("JUMP $if_%zu_end\n", id);
-			printf("LABEL $if_%zu_%zu\n", id, i + 1);
-		}
-	}
-
-	printf("LABEL $if_%zu_end\n", id);
 
 	return ERROR_OK();
 }
@@ -537,7 +635,7 @@ Error gen_stmt(const ASTNode *stmt) {
 			printf("RETURN\n");
 			break;
 		case NODE_IF:
-			return gen_if(stmt);
+			return gen_if(stmt, false);
 		case NODE_WHILE:
 			return gen_while(stmt);
 		default: { // for
