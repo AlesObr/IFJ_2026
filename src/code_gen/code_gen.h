@@ -23,10 +23,18 @@ Error gen_run(const ASTNode *outermost_node);
 
 /**
  * @brief Takes a function node and prints it using instructions onto std output
- * @param fuc The func node
+ * @param func The func node
  * @return Returns Error code according to how it passed or failed
  */
 Error gen_function(ASTNode *func);
+
+/**
+ * @brief Generates and iterates through if statements
+ * @param node The if node
+ * @param as_val Set to true if the if is in an expression
+ * @return Error code according to how it passed or failed
+ */
+Error gen_if(const ASTNode *node, const bool as_val);
 
 /**
  * @brief Gets operand type and it's result type and prints the corresponding instruction to std
