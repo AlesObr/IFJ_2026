@@ -300,6 +300,116 @@ void destroy_prec_stack(Stack *stack){
 }
 
 /**
+ * @brief Parsing of non-terminal after operand
+ * @param curr_token Current token given by scanner
+ * @return ParserStatus structure containing flags for parser
+ */
+static ParserStatus parse_operand(Token *curr_token){
+	ParserStatus status = {0};
+	ASTNode *node = NULL;
+	bool skip_fetch = false;
+	switch (curr_token->type) {
+		case TOKEN_LIT_INT:
+			ALLOC_NODE(
+				node, ast_create_int(curr_token->data.int_val, curr_token->line, curr_token->col));
+			break;
+
+		case TOKEN_KEYWORD_TRUE:
+			ALLOC_NODE(node, ast_create_bool(true, curr_token->line, curr_token->col));
+			break;
+
+		case TOKEN_KEYWORD_FALSE:
+			ALLOC_NODE(node, ast_create_bool(false, curr_token->line, curr_token->col));
+			break;
+
+		case TOKEN_KEYWORD_IF:
+			skip_fetch = true;
+			status = parse_if_statement(curr_token);
+			CHECK_STATUS(status);
+			node = status.new_node;
+			break;
+
+		case TOKEN_LIT_FLOAT:
+			ALLOC_NODE(node,
+				ast_create_float(curr_token->data.float_val, curr_token->line, curr_token->col));
+			break;
+
+		case TOKEN_LIT_STRING:
+			ALLOC_NODE(node,
+				ast_create_string(curr_token->data.str_val, curr_token->line, curr_token->col));
+			break;
+
+		case TOKEN_IDENTIFIER:
+			ALLOC_NODE(node,
+				ast_create_ident(curr_token->data.str_val, curr_token->line, curr_token->col));
+			break;
+
+		default:
+			return PARSE_ERROR(ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+								   "Invalid token in expression operand parsing\n"),
+				PAR_FAIL);
+			break;
+	}
+
+	if (!skip_fetch) {
+		GET_TOKEN(curr_token, node, true);
+	}
+
+	while (curr_token->type == TOKEN_DOT || curr_token->type == TOKEN_LPAREN) {
+		if (curr_token->type == TOKEN_DOT) {
+			GET_TOKEN(curr_token, node, false);
+			if (curr_token->type != TOKEN_IDENTIFIER) {
+				ast_destroy(node);
+				return PARSE_ERROR(
+					ERROR_EMIT(ERR_SYNTAX, curr_token->line, curr_token->col,
+						"Expected identifier after . function call, got something else\n"),
+					PAR_FAIL);
+			}
+			ASTNode *tmp_node = NULL;
+			ALLOC_NODE(tmp_node,
+				ast_create_call(curr_token->data.str_val, curr_token->line, curr_token->col));
+			CHECK_AST_APPEND(tmp_node, ast_call_add_target(tmp_node, node));
+			// node is now the call target, so tmp_node owns it
+			GET_TOKEN(curr_token, tmp_node, false);
+			if (curr_token->type == TOKEN_LPAREN) {
+				GET_TOKEN(curr_token, tmp_node, false);
+				status = parse_call_parameters(curr_token, tmp_node);
+				CHECK_STATUS(status);
+			}
+			node = tmp_node;
+		} else {
+			ASTNode *tmp_node = NULL;
+			dstring_t name;
+			if (node->type == NODE_IDENTIFIER) {
+				name = node->str_val;
+			} else {
+				if (!dstring_init(&name)) {
+					ast_destroy(node);
+					return PARSE_ERROR(
+						ERROR_EMIT(ERR_INTERNAL, curr_token->line, curr_token->col,
+							"Failed to create dummy string for wrong function call\n"),
+						AST_FAIL);
+				}
+			}
+			ALLOC_NODE(tmp_node, ast_create_call(&name, curr_token->line, curr_token->col));
+			// ast_create_call copies the name, so only the placeholder needs releasing here
+			if (node->type != NODE_IDENTIFIER) {
+				dstring_free(&name);
+			}
+			GET_TOKEN(curr_token, node, false);
+			status = parse_call_parameters(curr_token, tmp_node);
+			if (status.flag != PAR_SUCC) {
+				ast_destroy(node);
+				return status;
+			}
+			ast_destroy(node);
+			node = status.new_node;
+		}
+	}
+	return PARSE_OK(PAR_SUCC, node);
+}
+
+/**
  * @brief Parsing of expression via stack
  * @param curr_token Current token given by scanner
  * @return ParserStatus structure containing flags for parser
