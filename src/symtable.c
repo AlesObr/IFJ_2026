@@ -90,6 +90,8 @@ static const char *declared_name(const ASTNode *node) {
 			return dstring_get(&node->data_class.class_name);
 		case NODE_UNIF:
 			return dstring_get(&node->type_unif.unif_name);
+		case NODE_FOR:
+			return dstring_get(&node->for_stmt.gen_id);
 		default:
 			return NULL;
 	}

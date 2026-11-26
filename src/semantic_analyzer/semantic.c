@@ -155,6 +155,9 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 				return err;
 
 			size_t if_count = expr->if_else_stmt.next_conds.count;
+			if (if_count == 0)
+				return ERROR_EMIT(
+					ERR_SEM_TYPE, expr->line, expr->col, "If expression has to have a case");
 			ASTNode *last_node = expr->if_else_stmt.next_conds.items[if_count - 1];
 
 			if (last_node->type != NODE_ELSE || last_node->if_else_stmt.cond != NULL)
@@ -519,6 +522,84 @@ Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *return
 	return ERROR_OK();
 }
 
+static Error analyze_for(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+	if (!ctx || !node || !out || !returns || node->type != NODE_FOR)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Inavlid parameters to analyze_for");
+
+	Error err = ERROR_OK();
+
+	if (!node->for_stmt.gen_start)
+		return ERROR_EMIT(
+			ERR_INTERNAL, node->line, node->col, "Start, in for statement is not defined");
+	if (!node->for_stmt.gen_end)
+		return ERROR_EMIT(
+			ERR_INTERNAL, node->line, node->col, "End, in for statement is not defined");
+
+	ValType type_step;
+	if (node->for_stmt.gen_step) {
+		err = analyze_expression(ctx, node->for_stmt.gen_step, &type_step);
+		if (ERROR_IS_ERR(err))
+			return err;
+
+		if (type_step != INT)
+			return ERROR_EMIT(
+				ERR_SEM_TYPE, node->line, node->col, "Step, in for statement is the wrong type");
+		if (node->for_stmt.gen_step->type == NODE_INT_LITERAL &&
+			node->for_stmt.gen_step->int_val == 0)
+			return ERROR_EMIT(
+				ERR_SEM_MAIN, node->line, node->col, "Step, in for statement can't be 0");
+	}
+
+	ValType type_start;
+	err = analyze_expression(ctx, node->for_stmt.gen_start, &type_start);
+	if (ERROR_IS_ERR(err))
+		return err;
+	if (type_start != INT)
+		return ERROR_EMIT(ERR_SEM_TYPE, node->for_stmt.gen_start->line,
+			node->for_stmt.gen_start->col, "Start, in for statement is not of type INT");
+
+	ValType type_end;
+	err = analyze_expression(ctx, node->for_stmt.gen_end, &type_end);
+	if (ERROR_IS_ERR(err))
+		return err;
+	if (type_end != INT)
+		return ERROR_EMIT(ERR_SEM_TYPE, node->for_stmt.gen_end->line, node->for_stmt.gen_end->col,
+			"End, in for statement is not of type INT");
+
+	if (!scope_push(&ctx->scope_stack))
+		return ERROR_EMIT(
+			ERR_INTERNAL, node->line, node->col, "Out of memory when opening a scope");
+
+	ScopeResult sr = scope_insert(&ctx->scope_stack, node, INT, NULL);
+	if (sr == SCOPE_DUP) {
+		return ERROR_EMIT(ERR_SEM_REDEF, node->line, node->col,
+			"For statement name already defined in the current scope");
+	} else if (sr == SCOPE_NOMEM) {
+		return ERROR_EMIT(ERR_INTERNAL, node->line, node->col,
+			"Out of memory while inserting for statement into scope");
+	}
+
+	ASTNodeList *guards = &node->for_stmt.guards;
+	for (size_t i = 0; i < guards->count; i++) {
+		ASTNode *guard = guards->items[i];
+		err = analyze_condition(ctx, guard);
+		if (ERROR_IS_ERR(err))
+			return err;
+	}
+
+	ValType type_body;
+	bool ret;
+	err = analyze_body(ctx, node->for_stmt.body, &type_body, &ret);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	scope_pop(&ctx->scope_stack);
+	*out = UNIT;
+	*returns = false;
+
+	return ERROR_OK();
+}
+
 static Error analyze_while(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
 	if (!ctx || !node || !out || !returns || node->type != NODE_WHILE)
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_while");
@@ -580,7 +661,9 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 			return analyze_if(ctx, stmt, out, returns);
 		case NODE_WHILE:
 			return analyze_while(ctx, stmt, out, returns);
-		default: // NODE_FOR
+		case NODE_FOR:
+			return analyze_for(ctx, stmt, out, returns);
+		default:
 			return ERROR_EMIT(
 				ERR_INTERNAL, stmt->line, stmt->col, "Unsupported statement type for analysis");
 	}
