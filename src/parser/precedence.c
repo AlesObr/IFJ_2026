@@ -331,6 +331,31 @@ static ParserStatus parse_stack(Token *curr_token) {
 		char action = precedence_table[top_term->term][curr_idx];
 		if (action == '<') {
 			top_term->has_handle = true;
+			if (curr_idx = IDX_ID){
+				ParserStatus status = parse_operand();
+				if (status.flag != PAR_SUCC && status.flag != PAR_EOF) {
+					destroy_prec_stack(&stack);
+					return status;
+				}
+				PrecStackItem item = malloc_stack_item();
+				CHECK_STACK_ITEM(item);
+				*item = {.sym = IDX_ID, is_term = false, .node = status.new_node};
+				stack_push(&stack, item);
+				prev_op = true;
+			} else {
+				if (curr_idx == TOK_LPAREN){
+					paren_depth++;
+				}
+				PrecStackItem *item = malloc_stack_item();
+				CHECK_STACK_ITEM(item);
+				OpType oper = (in_idx == IDX_UMINUS) ? OP_UNARY_MINUS
+							: (in_idx == IDX_NOT)    ? OP_NOT
+							: token_to_op(curr_token);
+				*item = {.term = curr_idx, .is_term = true, .line = curr_token->line, .op = oper, .line = curr_token->line, .col = curr_token->col};
+				stack_push(&stack, item);
+				prev_op = false;
+				GET_TOKEN(curr_token, NULL, false);
+			}
 		} else if (action == '>') {
 			ParserStatus status = reduce_handle(&stack, curr_token);
 			if (status.flag != PAR_SUCC){
