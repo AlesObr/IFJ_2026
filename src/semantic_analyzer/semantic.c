@@ -460,6 +460,16 @@ static Error analyze_condition(SemanticContext *ctx, ASTNode *cond) {
 	return ERROR_OK();
 }
 
+static ASTNode *last_value_node(ASTNode *body) {
+	if (body->type != NODE_BLOCK)
+		return body;
+
+	if (body->block.stmts.count > 0)
+		return body->block.stmts.items[body->block.stmts.count - 1];
+	else
+		return NULL;
+}
+
 Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
 	if (!ctx || !node || !out || !returns || node->type != NODE_IF)
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_if");
