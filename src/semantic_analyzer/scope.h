@@ -74,7 +74,7 @@ Symbol *scope_lookup(const ScopeStack *s, const char *name);
 /**
  * @brief Declares a variable/param in the current scope only
  * @param s The scope stack to insert into
- * @param decl NODE_VAR_DECL or NODE_FUNC_PARAM
+ * @param decl NODE_VAR_DECL, NODE_FUNC_PARAM or NODE_FOR
  * @param type The type of the symbol to insert
  * @param out Optional; recieves the new symbol, or the existing one on SCOPE_DUP.
  * @return SCOPE_OK on success, SCOPE_DUP if the name already exists in the current scope,
