@@ -18,11 +18,6 @@
 #include <stdbool.h>
 
 /**
- * @brief Levels of precedence
- */
-typedef enum { NONE = 0, ASSIGN, OR, AND, EQUALITY, RELATIONAL, ADDITIVE, MULTI, UNARY } PrecLevel;
-
-/**
  * @brief Function for parsing of expressions and conditions
  * @param curr_token Token structure with last token fetched from scanner
  * @return Status structure to be returned to caller
