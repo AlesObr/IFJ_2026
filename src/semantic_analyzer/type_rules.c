@@ -83,6 +83,11 @@ ValType binop_result(OpType op, ValType l, ValType r, bool *conv_l, bool *conv_r
 				return BOOLEAN;
 			}
 			break;
+		case OP_OR:
+		case OP_AND:
+			if (l == BOOLEAN && r == BOOLEAN)
+				return BOOLEAN;
+			break;
 		default:
 			break;
 	}
