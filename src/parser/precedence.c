@@ -18,18 +18,6 @@
 
 static ParserStatus parse_climb(Token *curr_token, PrecLevel min_prec);
 
-static void precedence_trace_token(const char *location, const Token *token) {
-	const char *value = "";
-	if (token->type == TOKEN_IDENTIFIER || token->type == TOKEN_LIT_STRING) {
-		value = token->data.str_val ? dstring_get(token->data.str_val) : "<null>";
-	}
-	fprintf(stderr, "[precedence] %s: %s at %zu:%zu", location, token_type_name(token->type),
-		token->line, token->col);
-	if (*value)
-		fprintf(stderr, " value=\"%s\"", value);
-	fputc('\n', stderr);
-}
-
 #define GET_TOKEN(tok_ptr, node, eof_poss)                                                         \
 	do {                                                                                           \
 		token_destroy(tok_ptr);                                                                    \
@@ -104,40 +92,6 @@ static void precedence_trace_token(const char *location, const Token *token) {
 			return (status);                                                                       \
 		}                                                                                          \
 	} while (0)
-
-/**
- * @brief Translater operator token into its precedence
- * @param curr_token Actual token pointer to be translated
- * @return Precedence level of token, NONE if precedence undefined
- */
-static PrecLevel translate_token(Token *curr_token) {
-	switch (curr_token->type) {
-		case TOKEN_NOT:
-			return UNARY;
-		case TOKEN_MUL:
-		case TOKEN_DIV:
-			return MULTI;
-		case TOKEN_PLUS:
-		case TOKEN_MINUS:
-			return ADDITIVE;
-		case TOKEN_LT:
-		case TOKEN_GT:
-		case TOKEN_LTE:
-		case TOKEN_GTE:
-			return RELATIONAL;
-		case TOKEN_EQ:
-		case TOKEN_NEQ:
-			return EQUALITY;
-		case TOKEN_AND:
-			return AND;
-		case TOKEN_OR:
-			return OR;
-		case TOKEN_ASSIGN:
-			return ASSIGN;
-		default:
-			return NONE;
-	}
-}
 
 /**
  * @brief Translater operator token into operator AST node type
