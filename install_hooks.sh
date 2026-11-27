@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/install_hooks.sh
-# Aktivace git hooků a sterilizace hlaviček pro tým IFJ26
+# Aktivace git hooků pro tým IFJ26
 
 
 
@@ -30,7 +30,7 @@ echo -e "${CYAN}${BOLD}       IFJ26 :: INSTALACE PROJEKTOVÉ INKVIZICE       ${N
 echo -e "${MAGENTA}${BOLD}====================================================${NC}"
 
 # 1. Příprava složky a zápis opraveného pre-commit hooku
-echo -e "\n${BLUE}${BOLD}[1/4]${NC} ${DIM}Vytvářím scripts/hooks/pre-commit...${NC}"
+echo -e "\n${BLUE}${BOLD}[1/3]${NC} ${DIM}Vytvářím scripts/hooks/pre-commit...${NC}"
 mkdir -p scripts/hooks
 
 cat << 'EOF' > scripts/hooks/pre-commit
@@ -63,16 +63,10 @@ if command -v clang-format >/dev/null 2>&1; then
     echo "$STAGED_FILES" | xargs clang-format -i
 fi
 
-# 2. Generování / úprava hlaviček
-if [ -f "scripts/generate_headers.py" ]; then
-    echo -e "${CYAN}[HOOK] Aktualizuji hlavičky souborů...${NC}"
-    python3 scripts/generate_headers.py $STAGED_FILES
-fi
-
-# 3. Znovu přidat automaticky zformátované soubory do stagingu
+# 2. Znovu přidat automaticky zformátované soubory do stagingu
 echo "$STAGED_FILES" | xargs git add
 
-# 4. Validace komentářů a Doxygenu
+# 3. Validace komentářů a Doxygenu
 if [ -f "scripts/lint_comments.py" ]; then
     echo -e "${CYAN}[HOOK] Kontroluji komentáře a dokumentaci...${NC}"
     python3 scripts/lint_comments.py $STAGED_FILES
@@ -86,13 +80,13 @@ chmod +x scripts/hooks/pre-commit
 echo -e "  ${GREEN}✔${NC} Hook vygenerován a nastaven na ${BOLD}chmod +x${NC}"
 
 # 2. Nastavení spustitelných práv pro pomocné python skripty
-echo -e "\n${BLUE}${BOLD}[2/4]${NC} ${DIM}Nastavuji práva pro lintery...${NC}"
+echo -e "\n${BLUE}${BOLD}[2/3]${NC} ${DIM}Nastavuji práva pro lintery...${NC}"
 chmod +x scripts/lint_comments.py 2>/dev/null || true
 chmod +x scripts/generate_headers.py 2>/dev/null || true
 echo -e "  ${GREEN}✔${NC} Práva skriptů v ${CYAN}scripts/${NC} nastavena"
 
 # 3. Konfigurace Gitu
-echo -e "\n${BLUE}${BOLD}[3/4]${NC} ${DIM}Konfiguruji Git core.hooksPath -> scripts/hooks...${NC}"
+echo -e "\n${BLUE}${BOLD}[3/3]${NC} ${DIM}Konfiguruji Git core.hooksPath -> scripts/hooks...${NC}"
 git config core.hooksPath scripts/hooks
 echo -e "  ${GREEN}✔${NC} Git config core.hooksPath: ${BOLD}scripts/hooks${NC}"
 
@@ -102,14 +96,6 @@ if [ -d ".git/hooks" ]; then
     rm -f "$HOOK_DEST"
     ln -s "../../scripts/hooks/pre-commit" "$HOOK_DEST"
     echo -e "  ${GREEN}✔${NC} Fallback symlink ${CYAN}.git/hooks/pre-commit${NC} vytvořen"
-fi
-
-# 4. Prohnání existujících zdrojáků přes generátor hlaviček
-echo -e "\n${BLUE}${BOLD}[4/4]${NC} ${DIM}Generuji chybějící Doxygen hlavičky v src/...${NC}"
-if [ -f "scripts/generate_headers.py" ]; then
-    python3 scripts/generate_headers.py
-else
-    echo -e "  ${YELLOW}⚠${NC} ${DIM}scripts/generate_headers.py nenalezen, přeskočeno.${NC}"
 fi
 
 # Závěrečné echo

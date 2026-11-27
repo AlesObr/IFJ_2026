@@ -4,7 +4,6 @@
  * @brief Code gen module implementation for IFJ26 compiler.
  * @author Aleš Obr (xobrale00)
  * @author Karel Kříž (xkrizka00)
- * @author Štěpán Hořenek (xhorens00)
  * @note Standard: ISO C11
  */
 

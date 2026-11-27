@@ -3,7 +3,6 @@
  * @file precedence.c
  * @brief Precedence expression parsing interface for parser
  * @author Štěpán Hořenek (xhorens00)
- * @author Aleš Obr (xobrale00)
  * @note Standard: ISO C11
  */
 

@@ -5,7 +5,6 @@
  * @author Aleš Obr (xobrale00)
  * @author Jiří Kolek (xkolekj00)
  * @author Štěpán Hořenek (xhorens00)
- * @author admiral <Jkolikovec@gmail.com>
  * @note Standard: ISO C11
  */
 

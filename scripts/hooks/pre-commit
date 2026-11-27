@@ -27,16 +27,10 @@ if command -v clang-format >/dev/null 2>&1; then
     echo "$STAGED_FILES" | xargs clang-format -i
 fi
 
-# 2. Generování / úprava hlaviček (sjednocená cesta do scripts/)
-if [ -f "scripts/generate_headers.py" ]; then
-    echo -e "${CYAN}[HOOK] Aktualizuji hlavičky souborů...${NC}"
-    python3 scripts/generate_headers.py $STAGED_FILES
-fi
-
-# 3. Znovu přidat automaticky upravené staged soubory do commitu
+# 2. Znovu přidat automaticky upravené staged soubory do commitu
 echo "$STAGED_FILES" | xargs git add
 
-# 4. Validace komentářů a Doxygenu (pokud selže, commit je zamítnut)
+# 3. Validace komentářů a Doxygenu (pokud selže, commit je zamítnut)
 if [ -f "scripts/lint_comments.py" ]; then
     echo -e "${CYAN}[HOOK] Kontroluji komentáře a dokumentaci...${NC}"
     python3 scripts/lint_comments.py $STAGED_FILES
