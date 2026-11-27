@@ -581,86 +581,21 @@ static Error gen_while(const ASTNode *node) {
 
 	size_t id = label_id++;
 
-	Error err = gen_expr(node->for_stmt.gen_start);
+	printf("LABEL $while_%zu_start\n", id);
+
+	Error err = gen_expr(node->while_stmt.cond);
 	if (ERROR_IS_ERR(err))
 		return err;
-	printf("POPS LF@v%zu\n", node->sym_id);
-
-	err = gen_expr(node->for_stmt.gen_end);
-	if (ERROR_IS_ERR(err))
-		return err;
-	printf("POPS LF@v%zu_end\n", node->sym_id);
-
-	if (node->for_stmt.gen_step) {
-		err = gen_expr(node->for_stmt.gen_step);
-		if (ERROR_IS_ERR(err))
-			return err;
-
-		printf("POPS LF@v%zu_step\n", node->sym_id);
-		if (node->for_stmt.gen_step->type != NODE_INT_LITERAL) {
-			printf("JUMPIFNEQ $for_%zu_ok LF@v%zu_step int@0\n", id, node->sym_id);
-			printf("EXIT int@40\n");
-			printf("LABEL $for_%zu_ok\n", id);
-		}
-	} else
-		printf("MOVE LF@v%zu_step int@1\n", node->sym_id);
-
-	printf("LABEL $for_%zu_cond\n", id);
-
-	printf("PUSHS LF@v%zu_step\n", node->sym_id);
-	printf("PUSHS int@0\n");
-	printf("GTS\n");
-	printf("PUSHS bool@false\n");
-
-	printf("JUMPIFEQS $for_%zu_neg\n", id);
-
-	printf("PUSHS LF@v%zu\n", node->sym_id);
-	printf("PUSHS LF@v%zu_end\n", node->sym_id);
-	if (node->for_stmt.last_in) {
-		printf("GTS\n");
-		printf("NOTS\n");
-	} else
-		printf("LTS\n");
-	printf("JUMP $for_%zu_chk\n", id);
-
-	printf("LABEL $for_%zu_neg\n", id);
-	printf("PUSHS LF@v%zu\n", node->sym_id);
-	printf("PUSHS LF@v%zu_end\n", node->sym_id);
-	if (node->for_stmt.last_in) {
-		printf("LTS\n");
-		printf("NOTS\n");
-	} else
-		printf("GTS\n");
-	printf("LABEL $for_%zu_chk\n", id);
 
 	printf("PUSHS bool@false\n");
-	printf("JUMPIFEQS $for_%zu_end\n", id);
+	printf("JUMPIFEQS $while_%zu_end\n", id);
 
-	// Guard
-	const ASTNodeList *guards = &node->for_stmt.guards;
-	for (size_t i = 0; i < guards->count; i++) {
-		const ASTNode *guard = guards->items[i];
-		err = gen_expr(guard);
-		if (ERROR_IS_ERR(err))
-			return err;
-
-		printf("PUSHS bool@false\n");
-		printf("JUMPIFEQS $for_%zu_next\n", id);
-	}
-
-	// Body
-	err = gen_stmt(node->for_stmt.body);
+	err = gen_stmt(node->while_stmt.body);
 	if (ERROR_IS_ERR(err))
 		return err;
 
-	printf("LABEL $for_%zu_next\n", id);
-	printf("PUSHS LF@v%zu\n", node->sym_id);
-	printf("PUSHS LF@v%zu_step\n", node->sym_id);
-	printf("ADDS\n");
-	printf("POPS LF@v%zu\n", node->sym_id);
-	printf("JUMP $for_%zu_cond\n", id);
-
-	printf("LABEL $for_%zu_end\n", id);
+	printf("JUMP $while_%zu_start\n", id);
+	printf("LABEL $while_%zu_end\n", id);
 
 	return ERROR_OK();
 }
