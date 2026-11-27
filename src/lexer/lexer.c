@@ -823,7 +823,6 @@ Error lexer_get_next_token(Token *out_token) {
 					continue;
 				}
 				if (lexeme.current_lexeme == '_') {
-					// dstring_append_char(&token_buffer, (char)lexeme.current_lexeme);
 					current_state = STATE_UNDER_SCORE;
 					continue;
 				}
@@ -952,8 +951,7 @@ Error lexer_get_next_token(Token *out_token) {
 				}
 				lexer_give(&lexeme, source_file);
 				double_val = strtod(dstring_get(&token_buffer), NULL);
-				token_make_float(out_token, double_val, token_start_line,
-					token_start_col); // not working good at all
+				token_make_float(out_token, double_val, token_start_line, token_start_col);
 				dstring_free(&token_buffer);
 				return ERROR_OK();
 				continue;

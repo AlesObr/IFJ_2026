@@ -74,10 +74,11 @@ python3 scripts/generate_headers.py
 make test-scanner
 make test-parser
 make test-symtable
+make test-semantic
 make test-codegen
 
 # Spuštění kompletní testovací sady
-make test-all
+make test-full
 ```
 
 # Průběh obhajoby
