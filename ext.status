@@ -1,9 +1,11 @@
+cc -std=c11 -Wall -Wextra  -pedantic -g -Iinclude -Isrc src/semantic_analyzer/fregister.c src/semantic_analyzer/ftable.c src/semantic_analyzer/scope.c src/semantic_analyzer/semantic.c src/semantic_analyzer/type_rules.c src/symtable.c src/parser/parser.c src/parser/precedence.c src/parser/ast.c src/_utils/dstring.c src/lexer/lexer.c src/_utils/token.c src/_utils/stack.c test/semantic_test/test_semantic.c -o build/semantic_test
+cc -std=c11 -Wall -Wextra  -pedantic -g -Iinclude -Isrc src/main.c src/code_gen/code_gen_buildins.c src/code_gen/code_gen.c src/code_gen/code_gen_supporting_utils.c src/semantic_analyzer/fregister.c src/semantic_analyzer/ftable.c src/semantic_analyzer/scope.c src/semantic_analyzer/semantic.c src/semantic_analyzer/type_rules.c src/symtable.c src/parser/parser.c src/parser/precedence.c src/parser/ast.c src/_utils/dstring.c src/lexer/lexer.c src/_utils/token.c src/_utils/stack.c -o build/ifj26
 Interpret: /home/skolp/prrojekty/IFJ_2026/IFJ_2026/test/codegen_test/ic26int.sh
 
 Rozsireni       OK   zaseknuti ve fazi
 ALGEBDT       0/5    parser 3, semantika 2
 BOOLTHEN      9/10   parser 1
-CONTROL       7/10   parser 1, semantika 1, vystup 1
+CONTROL       8/10   parser 1, vystup 1
 EXTKW         0/4    semantika 4
 FUNEXP        3/3    -
 LISTS         0/6    parser 6
@@ -38,7 +40,7 @@ CONTROL
   OK for_until                    
   OK if_expression                
   -- if_expression_blocks         parser: kod 2: Invalid token after declaration expression (expected semicolon or EOL)
-  -- if_expression_conversion     semantika: kod 6: 6:27 All branches need a matching return type
+  OK if_expression_conversion     
   OK single_line_branches         
 
 EXTKW
