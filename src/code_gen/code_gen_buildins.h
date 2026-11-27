@@ -26,6 +26,11 @@ void read_int(void);
 void read_double(void);
 
 /**
+ * @brief Emits the code for the built-in function readBoolean.
+ */
+void read_boolean(void);
+
+/**
  * @brief Emits the code for the built-in function print.
  */
 void print(void);

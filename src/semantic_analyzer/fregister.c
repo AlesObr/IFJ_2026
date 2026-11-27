@@ -20,7 +20,7 @@ bool register_builtin_function(FunctionTable *t) {
 		{"readInt", INT, 0, {0}}, {"readDouble", DOUBLE, 0, {0}}, {"toStr", STRING, 1, {ANY}},
 		{"toInt", INT, 1, {DOUBLE}}, {"strLength", INT, 1, {STRING}},
 		{"subStr", STRING, 3, {STRING, INT, INT}}, {"ord", INT, 2, {STRING, INT}},
-		{"chr", STRING, 1, {INT}}};
+		{"chr", STRING, 1, {INT}}, {"readBoolean", BOOLEAN, 0, {0}}};
 
 	for (size_t i = 0; i < sizeof(builtins) / sizeof(builtins[0]); i++) {
 		FunctionEntry entry;
