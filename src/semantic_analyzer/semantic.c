@@ -21,7 +21,7 @@ static void mark_convert(ASTNode *n) {
 }
 
 static bool booleans_enabled(void) {
-	return false; // : BOOLTHEN
+	return true; // : BOOLTHEN
 }
 
 Error sem_run(ASTNode *outermost_node) {
@@ -93,6 +93,9 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 		case NODE_NULL_LITERAL:
 			*out = UNIT;
 			break;
+		case NODE_BOOL_LITERAL:
+			*out = BOOLEAN;
+			break;
 		case NODE_IDENTIFIER: {
 			Symbol *sym = scope_lookup(&ctx->scope_stack, dstring_get(&expr->str_val));
 			if (!sym) {
@@ -145,6 +148,27 @@ Error analyze_expression(SemanticContext *ctx, ASTNode *expr, ValType *out) {
 				return err;
 			break;
 		}
+		case NODE_IF: {
+			bool returns = false;
+			Error err = analyze_if(ctx, expr, out, &returns);
+			if (ERROR_IS_ERR(err))
+				return err;
+
+			size_t if_count = expr->if_else_stmt.next_conds.count;
+			if (if_count == 0)
+				return ERROR_EMIT(
+					ERR_SEM_TYPE, expr->line, expr->col, "If expression has to have a case");
+			ASTNode *last_node = expr->if_else_stmt.next_conds.items[if_count - 1];
+
+			if (last_node->type != NODE_ELSE || last_node->if_else_stmt.cond != NULL)
+				return ERROR_EMIT(ERR_SEM_TYPE, expr->line, expr->col,
+					"The if expression has to end with an else with no conditions");
+
+			if (*out == UNDEF)
+				return ERROR_EMIT(ERR_SEM_TYPE, expr->line, expr->col,
+					"All branches need a matching return type");
+			break;
+		}
 		default: { // Temporary default case for unsupported expression types
 			static char msg[64];
 			snprintf(msg, sizeof(msg), "Unsupported expression node type %d", expr->type);
@@ -166,7 +190,7 @@ Error analyze_var_decl(SemanticContext *ctx, ASTNode *node) {
 	if (ERROR_IS_ERR(err))
 		return err;
 
-	if (init_type == BOOLEAN) {
+	if (init_type == BOOLEAN && !booleans_enabled()) {
 		return ERROR_EMIT(
 			ERR_SEM_TYPE, node->line, node->col, "Cannot assign BOOLEAN type to variable");
 	}
@@ -235,7 +259,7 @@ Error analyze_assignment(SemanticContext *ctx, ASTNode *node) {
 	if (ERROR_IS_ERR(err))
 		return err;
 
-	if (expr_type == BOOLEAN)
+	if (expr_type == BOOLEAN && !booleans_enabled())
 		return ERROR_EMIT(
 			ERR_SEM_TYPE, node->line, node->col, "Cannot assign BOOLEAN type to variable");
 
@@ -436,7 +460,17 @@ static Error analyze_condition(SemanticContext *ctx, ASTNode *cond) {
 	return ERROR_OK();
 }
 
-static Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+static ASTNode *last_value_node(ASTNode *body) {
+	if (body->type != NODE_BLOCK)
+		return body;
+
+	if (body->block.stmts.count > 0)
+		return body->block.stmts.items[body->block.stmts.count - 1];
+	else
+		return NULL;
+}
+
+Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
 	if (!ctx || !node || !out || !returns || node->type != NODE_IF)
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_if");
 
@@ -480,12 +514,31 @@ static Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool 
 				first_non_return = false;
 			}
 
-			if (common_type != type)
+			if ((common_type == DOUBLE && type == INT) || (common_type == INT && type == DOUBLE)) {
+				common_type = DOUBLE;
+			} else if (common_type != type)
 				common_type = UNDEF;
 		}
 
 		all_return = all_return && ret;
 		all_unit = all_unit && (type == UNIT);
+	}
+
+	if (common_type == DOUBLE) {
+		ASTNode *value;
+		for (size_t i = 0; i <= if_count; i++) {
+			ASTNode *branch;
+			if (i == 0) {
+				branch = node;
+			} // The 'if' itself
+			else {
+				branch = node->if_else_stmt.next_conds.items[i - 1];
+			}
+
+			value = last_value_node(branch->if_else_stmt.body);
+			if (value && value->expr_types == INT)
+				mark_convert(value);
+		}
 	}
 
 	*returns = has_else && all_return;
@@ -494,6 +547,84 @@ static Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool 
 	} else {
 		*out = common_type;
 	}
+
+	return ERROR_OK();
+}
+
+static Error analyze_for(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
+	if (!ctx || !node || !out || !returns || node->type != NODE_FOR)
+		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Inavlid parameters to analyze_for");
+
+	Error err = ERROR_OK();
+
+	if (!node->for_stmt.gen_start)
+		return ERROR_EMIT(
+			ERR_INTERNAL, node->line, node->col, "Start, in for statement is not defined");
+	if (!node->for_stmt.gen_end)
+		return ERROR_EMIT(
+			ERR_INTERNAL, node->line, node->col, "End, in for statement is not defined");
+
+	ValType type_step;
+	if (node->for_stmt.gen_step) {
+		err = analyze_expression(ctx, node->for_stmt.gen_step, &type_step);
+		if (ERROR_IS_ERR(err))
+			return err;
+
+		if (type_step != INT)
+			return ERROR_EMIT(
+				ERR_SEM_TYPE, node->line, node->col, "Step, in for statement is the wrong type");
+		if (node->for_stmt.gen_step->type == NODE_INT_LITERAL &&
+			node->for_stmt.gen_step->int_val == 0)
+			return ERROR_EMIT(
+				ERR_SEM_MAIN, node->line, node->col, "Step, in for statement can't be 0");
+	}
+
+	ValType type_start;
+	err = analyze_expression(ctx, node->for_stmt.gen_start, &type_start);
+	if (ERROR_IS_ERR(err))
+		return err;
+	if (type_start != INT)
+		return ERROR_EMIT(ERR_SEM_TYPE, node->for_stmt.gen_start->line,
+			node->for_stmt.gen_start->col, "Start, in for statement is not of type INT");
+
+	ValType type_end;
+	err = analyze_expression(ctx, node->for_stmt.gen_end, &type_end);
+	if (ERROR_IS_ERR(err))
+		return err;
+	if (type_end != INT)
+		return ERROR_EMIT(ERR_SEM_TYPE, node->for_stmt.gen_end->line, node->for_stmt.gen_end->col,
+			"End, in for statement is not of type INT");
+
+	if (!scope_push(&ctx->scope_stack))
+		return ERROR_EMIT(
+			ERR_INTERNAL, node->line, node->col, "Out of memory when opening a scope");
+
+	ScopeResult sr = scope_insert(&ctx->scope_stack, node, INT, NULL);
+	if (sr == SCOPE_DUP) {
+		return ERROR_EMIT(ERR_SEM_REDEF, node->line, node->col,
+			"For statement name already defined in the current scope");
+	} else if (sr == SCOPE_NOMEM) {
+		return ERROR_EMIT(ERR_INTERNAL, node->line, node->col,
+			"Out of memory while inserting for statement into scope");
+	}
+
+	ASTNodeList *guards = &node->for_stmt.guards;
+	for (size_t i = 0; i < guards->count; i++) {
+		ASTNode *guard = guards->items[i];
+		err = analyze_condition(ctx, guard);
+		if (ERROR_IS_ERR(err))
+			return err;
+	}
+
+	ValType type_body;
+	bool ret;
+	err = analyze_body(ctx, node->for_stmt.body, &type_body, &ret);
+	if (ERROR_IS_ERR(err))
+		return err;
+
+	scope_pop(&ctx->scope_stack);
+	*out = UNIT;
+	*returns = false;
 
 	return ERROR_OK();
 }
@@ -548,6 +679,7 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 		case NODE_FLOAT_LITERAL:
 		case NODE_STRING_LITERAL:
 		case NODE_NULL_LITERAL:
+		case NODE_BOOL_LITERAL:
 		case NODE_IDENTIFIER:
 			return analyze_expression(ctx, stmt, out);
 		case NODE_BLOCK:
@@ -558,7 +690,9 @@ Error analyze_stmt(SemanticContext *ctx, ASTNode *stmt, ValType *out, bool *retu
 			return analyze_if(ctx, stmt, out, returns);
 		case NODE_WHILE:
 			return analyze_while(ctx, stmt, out, returns);
-		default: // NODE_FOR
+		case NODE_FOR:
+			return analyze_for(ctx, stmt, out, returns);
+		default:
 			return ERROR_EMIT(
 				ERR_INTERNAL, stmt->line, stmt->col, "Unsupported statement type for analysis");
 	}
