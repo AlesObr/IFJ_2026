@@ -460,6 +460,16 @@ static Error analyze_condition(SemanticContext *ctx, ASTNode *cond) {
 	return ERROR_OK();
 }
 
+static ASTNode *last_value_node(ASTNode *body) {
+	if (body->type != NODE_BLOCK)
+		return body;
+
+	if (body->block.stmts.count > 0)
+		return body->block.stmts.items[body->block.stmts.count - 1];
+	else
+		return NULL;
+}
+
 Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *returns) {
 	if (!ctx || !node || !out || !returns || node->type != NODE_IF)
 		return ERROR_EMIT(ERR_INTERNAL, 0, 0, "Invalid parameters to analyze_if");
@@ -504,12 +514,31 @@ Error analyze_if(SemanticContext *ctx, ASTNode *node, ValType *out, bool *return
 				first_non_return = false;
 			}
 
-			if (common_type != type)
+			if ((common_type == DOUBLE && type == INT) || (common_type == INT && type == DOUBLE)) {
+				common_type = DOUBLE;
+			} else if (common_type != type)
 				common_type = UNDEF;
 		}
 
 		all_return = all_return && ret;
 		all_unit = all_unit && (type == UNIT);
+	}
+
+	if (common_type == DOUBLE) {
+		ASTNode *value;
+		for (size_t i = 0; i <= if_count; i++) {
+			ASTNode *branch;
+			if (i == 0) {
+				branch = node;
+			} // The 'if' itself
+			else {
+				branch = node->if_else_stmt.next_conds.items[i - 1];
+			}
+
+			value = last_value_node(branch->if_else_stmt.body);
+			if (value && value->expr_types == INT)
+				mark_convert(value);
+		}
 	}
 
 	*returns = has_else && all_return;

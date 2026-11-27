@@ -1,0 +1,73 @@
+Interpret: /home/skolp/prrojekty/IFJ_2026/IFJ_2026/test/codegen_test/ic26int.sh
+
+Rozsireni       OK   zaseknuti ve fazi
+ALGEBDT       0/5    parser 3, semantika 2
+BOOLTHEN      9/10   parser 1
+CONTROL       7/10   parser 1, semantika 1, vystup 1
+EXTKW         0/4    semantika 4
+FUNEXP        3/3    -
+LISTS         0/6    parser 6
+PARAMLISTS    0/4    semantika 4
+VALMEM        0/4    semantika 4
+
+ALGEBDT
+  -- case_class                   semantika: kod 3: 7:16 Undefined function in call
+  -- match                        parser: kod 2: Invalid token after , in function declaration params
+  -- read_maybe                   parser: kod 2: Invalid token after , in function declaration params
+  -- union_parameter              parser: kod 2: Invalid token after , in function declaration params
+  -- union_variable               semantika: kod 3: 7:6 Undefined type
+
+BOOLTHEN
+  OK condition_variable           
+  OK else_if                      
+  OK equality                     
+  -- if_without_else              parser: kod 2: Invalid TOKEN at the end of statement
+  OK literals                     
+  OK operators                    
+  OK readboolean                  
+  OK short_circuit                
+  OK tostr                        
+  OK variable_param_return        
+
+CONTROL
+  OK for_bounds_once              
+  OK for_by_negative              
+  -- for_guards                   vystup: ocekavano '0124567', vypsano '012456789'
+  OK for_single_line              
+  OK for_to                       
+  OK for_until                    
+  OK if_expression                
+  -- if_expression_blocks         parser: kod 2: Invalid token after declaration expression (expected semicolon or EOL)
+  -- if_expression_conversion     semantika: kod 6: 6:27 All branches need a matching return type
+  OK single_line_branches         
+
+EXTKW
+  -- empty_parameter_list         semantika: kod 5: 9:10 Member function calls are not supported
+  -- method_with_parameter        semantika: kod 5: 9:10 Member function calls are not supported
+  -- parameterless_method         semantika: kod 5: 9:10 Member function calls are not supported
+  -- string_receiver              semantika: kod 5: 8:14 Member function calls are not supported
+
+FUNEXP
+  OK call_as_argument             
+  OK call_in_condition            
+  OK nested_calls                 
+
+LISTS
+  -- create_and_index             parser: kod 2: Invalid token in expression prefix parsing
+  -- for_source                   parser: kod 2: Invalid token in expression prefix parsing
+  -- index_out_of_range           parser: kod 2: Invalid token in expression prefix parsing
+  -- members                      parser: kod 2: Invalid token in expression prefix parsing
+  -- range_and_concat             parser: kod 2: Invalid token in expression prefix parsing
+  -- tostring                     parser: kod 2: Invalid token in expression prefix parsing
+
+PARAMLISTS
+  -- empty_first_list             semantika: kod 3: 4:32 Undefined variable
+  -- multiple_lists               semantika: kod 3: 4:43 Undefined variable
+  -- no_parameter_list            semantika: kod 3: 7:10 Undefined variable
+  -- reevaluated                  semantika: kod 3: 9:10 Undefined variable
+
+VALMEM
+  -- chaining                     semantika: kod 5: 6:21 Member function calls are not supported
+  -- double_members               semantika: kod 5: 6:10 Member function calls are not supported
+  -- length                       semantika: kod 5: 6:10 Member function calls are not supported
+  -- tostring                     semantika: kod 5: 6:12 Member function calls are not supported

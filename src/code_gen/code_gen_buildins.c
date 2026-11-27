@@ -62,6 +62,15 @@ void read_double(void) {
 	printf("RETURN\n");
 }
 
+void read_boolean(void) {
+	printf("LABEL $built_in_readBoolean\n");
+	printf("PUSHFRAME\n");
+	printf("DEFVAR LF@%%retval\n");
+	printf("READ LF@%%retval bool\n");
+	printf("POPFRAME\n");
+	printf("RETURN\n");
+}
+
 void print(void) {
 	printf("LABEL $built_in_print\n");
 	printf("PUSHFRAME\n");
